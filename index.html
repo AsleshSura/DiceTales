@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiceTales - AI Dungeon Master</title>
+    <meta name="description" content="An AI-powered D&D experience with dynamic storytelling and immersive gameplay">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/character.css">
+    <link rel="stylesheet" href="css/dice.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen active">
+        <div class="loading-content">
+            <div class="loading-dice">🎲</div>
+            <h1>DiceTales</h1>
+            <p class="loading-subtitle">Where Epic Adventures Begin</p>
+            <p class="loading-status">Preparing your adventure...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-tips">
+                <p class="loading-tip">✨ Every roll tells a story</p>
+            </div>
+            <!-- Manual start button embedded in loading screen -->
+            <button id="embedded-start-btn" class="btn-magical" style="position: relative; margin-top: 2rem; transform: none; top: auto; left: auto;">
+                ✨ Start Your Adventure ✨
+            </button>
+        </div>
+        <div class="loading-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="app">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="dice-icon">🎲</span>
+                    DiceTales
+                </h1>
+                <nav class="header-nav">
+                    <button id="settings-btn" class="nav-btn" title="Settings">
+                        <span class="icon">⚙️</span>
+                    </button>
+                    <button id="character-sheet-btn" class="nav-btn" title="Character Sheet">
+                        <span class="icon">📋</span>
+                    </button>
+                    <button id="campaign-log-btn" class="nav-btn" title="Campaign Log">
+                        <span class="icon">📜</span>
+                    </button>
+                    <button id="save-game-btn" class="nav-btn" title="Save Game">
+                        <span class="icon">💾</span>
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Character Creation Screen -->
+        <main class="screen character-creation-screen" id="character-creation" style="display: none;">
+            <div class="creation-container">
+                <div class="creation-header">
+                    <h1>Create Your Character</h1>
+                    <p>Begin your adventure by crafting your hero</p>
+                </div>
+                
+                <!-- Step Indicator -->
+                <div class="step-indicator" id="step-indicator">
+                    <!-- Step indicators will be populated by JS -->
+                </div>
+                
+                <div class="creation-content" id="creation-content">
+                    <!-- Character creation form will be populated by JS -->
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="creation-navigation" id="creation-navigation">
+                    <button id="prev-step-btn" class="btn btn-secondary" style="display: none;">
+                        ← Previous
+                    </button>
+                    <button id="next-step-btn" class="btn btn-primary">
+                        Next →
+                    </button>
+                    <button id="complete-creation-btn" class="btn btn-success" style="display: none;">
+                        Create Character
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Campaign Selection Screen -->
+        <main class="screen campaign-selection-screen" id="campaign-selection" style="display: none;">
+            <div class="campaign-container">
+                <div class="campaign-header">
+                    <h1>Choose Your Adventure</h1>
+                    <p>Select a campaign setting for your tale</p>
+                </div>
+                <div class="campaign-content" id="campaign-selection-content">
+                    <!-- Campaign options will be populated by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Main Game Screen -->
+        <main class="screen game-screen" id="game-screen" style="display: none;">
+            <!-- Story Display Area -->
+            <section class="story-section">
+                <div class="story-display" id="story-display">
+                    <div class="story-content" id="story-content">
+                        <!-- AI-generated story content will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game Controls -->
+            <section class="controls-section">
+                <!-- Dice Rolling Area -->
+                <div class="dice-container" id="dice-container">
+                    <div class="dice-display" id="dice-display"></div>
+                    <div class="dice-controls">
+                        <div class="dice-selection" id="dice-selection">
+                            <!-- Dice selection buttons will be populated by JS -->
+                        </div>
+                        <button id="roll-dice-btn" class="btn btn-primary dice-roll-btn" disabled>
+                            🎲 Roll Dice
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons" id="action-buttons">
+                    <!-- AI-generated action options will appear here -->
+                </div>
+
+                <!-- Free Input -->
+                <div class="input-section">
+                    <div class="input-container">
+                        <textarea 
+                            id="player-input" 
+                            class="player-input" 
+                            placeholder="Describe what you want to do..."
+                            rows="3"
+                        ></textarea>
+                        <button id="submit-action-btn" class="btn btn-primary submit-btn">
+                            Submit Action
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Character Status Panel -->
+            <aside class="character-status" id="character-status">
+                <div class="status-header">
+                    <h3 id="character-name">Character</h3>
+                    <span id="character-level" class="level-badge">Level 1</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-label">Health</div>
+                    <div class="health-display">
+                        <div class="health-bar-container">
+                            <div class="health-bar-fill" id="health-bar-fill"></div>
+                        </div>
+                        <span class="health-text" id="health-text">100/100</span>
+                    </div>
+                </div>
+                <div class="stats-summary" id="stats-summary">
+                    <!-- Quick stats display -->
+                </div>
+                <button id="quick-inventory-btn" class="btn btn-secondary">
+                    View Inventory
+                </button>
+            </aside>
+        </main>
+
+        <!-- Modals and Overlays -->
+        <!-- Settings Modal -->
+        <div class="modal" id="settings-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="modal-close" data-modal="settings-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="settings-content">
+                    <!-- Settings form will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Character Sheet Modal -->
+        <div class="modal" id="character-sheet-modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>Character Sheet</h2>
+                    <button class="modal-close" data-modal="character-sheet-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="character-sheet-content">
+                    <!-- Character sheet will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaign Log Modal -->
+        <div class="modal" id="campaign-log-modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>Campaign Log</h2>
+                    <button class="modal-close" data-modal="campaign-log-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="campaign-log-content">
+                    <!-- Campaign log will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Modal -->
+        <div class="modal" id="inventory-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Inventory</h2>
+                    <button class="modal-close" data-modal="inventory-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="inventory-content">
+                    <!-- Inventory will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/utils.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/character.js"></script>
+    <script src="js/dice.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+    
+    <!-- Debug: Manual trigger if app doesn't start -->
+    <script>
+        // Global debug functions
+        window.debugForceStart = function() {
+            console.log('🎲 Debug: Force starting DiceTales...');
+            
+            // Hide loading screen
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.remove('active');
+            }
+            
+            // Try to initialize manually
+            if (typeof DiceTalesApp !== 'undefined') {
+                console.log('🎲 Debug: DiceTalesApp found, creating instance...');
+                if (!window.app) {
+                    window.app = new DiceTalesApp();
+                }
+            } else {
+                console.log('🎲 Debug: DiceTalesApp not found, showing character creation directly...');
+                
+                // Show character creation screen directly
+                const characterScreen = document.getElementById('character-creation');
+                if (characterScreen) {
+                    characterScreen.style.display = 'flex';
+                    characterScreen.classList.add('active');
+                    
+                    // Hide other screens
+                    document.querySelectorAll('.screen').forEach(screen => {
+                        if (screen !== characterScreen) {
+                            screen.style.display = 'none';
+                        }
+                    });
+                    
+                    // Try to initialize character manager
+                    if (typeof CharacterManager !== 'undefined') {
+                        if (!window.characterManager) {
+                            window.characterManager = new CharacterManager();
+                        }
+                        window.characterManager.showCharacterCreation();
+                    }
+                }
+            }
+        };
+        
+        // Fallback timer
+        // Handle embedded start button
+        document.addEventListener('DOMContentLoaded', () => {
+            const embeddedStartBtn = document.getElementById('embedded-start-btn');
+            if (embeddedStartBtn) {
+                embeddedStartBtn.onclick = () => {
+                    console.log('🎲 Embedded start button clicked!');
+                    if (window.debugForceStart) {
+                        window.debugForceStart();
+                    } else {
+                        console.log('🎲 debugForceStart not available, hiding loading screen manually');
+                        const loadingScreen = document.getElementById('loading-screen');
+                        if (loadingScreen) {
+                            loadingScreen.classList.remove('active');
+                        }
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>

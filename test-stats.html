@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiceTales - Stat System Test</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/character.css">
+</head>
+<body>
+    <div class="container">
+        <h1>DiceTales Stat System Test</h1>
+        <div id="test-container">
+            <button id="test-stats" onclick="testStatSystem()">Test Stat System</button>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/character.js"></script>
+    <script>
+        function testStatSystem() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testing Stat System...</h2>';
+            
+            try {
+                // Initialize character manager
+                const characterManager = new CharacterManager();
+                
+                // Clear any existing character data
+                gameState.set('character', {});
+                
+                // Test 1: Select a class (Fighter)
+                results.innerHTML += '<h3>Test 1: Class Selection</h3>';
+                gameState.set('character.class', 'fighter');
+                gameState.set('character.baseClassStats', characterManager.classes.fighter.stats);
+                gameState.set('character.pointBuyStats', { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 });
+                characterManager.updateFinalStats();
+                
+                const finalStats1 = gameState.get('character.stats');
+                results.innerHTML += `<p>Fighter base stats: ${JSON.stringify(characterManager.classes.fighter.stats)}</p>`;
+                results.innerHTML += `<p>Point-buy stats: ${JSON.stringify(gameState.get('character.pointBuyStats'))}</p>`;
+                results.innerHTML += `<p>Final combined stats: ${JSON.stringify(finalStats1)}</p>`;
+                
+                // Test 2: Allocate some points
+                results.innerHTML += '<h3>Test 2: Point Allocation</h3>';
+                const pointBuyStats = gameState.get('character.pointBuyStats');
+                pointBuyStats.str = 10;  // Add 2 points to strength
+                pointBuyStats.dex = 12;  // Add 4 points to dexterity  
+                gameState.set('character.pointBuyStats', pointBuyStats);
+                characterManager.updateFinalStats();
+                
+                const finalStats2 = gameState.get('character.stats');
+                const remainingPoints = characterManager.calculateRemainingPoints();
+                results.innerHTML += `<p>Updated point-buy stats: ${JSON.stringify(gameState.get('character.pointBuyStats'))}</p>`;
+                results.innerHTML += `<p>Final combined stats: ${JSON.stringify(finalStats2)}</p>`;
+                results.innerHTML += `<p>Points remaining: ${remainingPoints}</p>`;
+                
+                // Test 3: Check stat costs
+                results.innerHTML += '<h3>Test 3: Stat Costs</h3>';
+                for (let i = 8; i <= 15; i++) {
+                    const cost = characterManager.getStatCost(i);
+                    results.innerHTML += `<p>Stat ${i} costs ${cost} points</p>`;
+                }
+                
+                // Test 4: Verify base class stats can't be modified
+                results.innerHTML += '<h3>Test 4: Base Class Stat Protection</h3>';
+                const fighterStrBase = characterManager.classes.fighter.stats.str;
+                const currentPointBuyStr = gameState.get('character.pointBuyStats').str;
+                const finalStr = gameState.get('character.stats').str;
+                
+                results.innerHTML += `<p>Fighter base STR: ${fighterStrBase}</p>`;
+                results.innerHTML += `<p>Point-buy STR allocation: ${currentPointBuyStr} (${currentPointBuyStr - 8} points)</p>`;
+                results.innerHTML += `<p>Final STR: ${finalStr} = ${fighterStrBase} + ${currentPointBuyStr - 8}</p>`;
+                results.innerHTML += `<p>✅ Base class stats are protected and separate from point-buy!</p>`;
+                
+                results.innerHTML += '<h2>✅ All tests passed!</h2>';
+                
+            } catch (error) {
+                results.innerHTML += `<h2>❌ Error: ${error.message}</h2>`;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

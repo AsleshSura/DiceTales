@@ -1,0 +1,776 @@
+/* ===== RESPONSIVE DESIGN STYLES ===== */
+
+/* ===== MOBILE FIRST APPROACH ===== */
+
+/* Extra Small Devices (phones, 0px and up) */
+@media (max-width: 575.98px) {
+    :root {
+        --spacing-xs: 0.2rem;
+        --spacing-sm: 0.4rem;
+        --spacing-md: 0.8rem;
+        --spacing-lg: 1.2rem;
+        --spacing-xl: 1.6rem;
+        --spacing-2xl: 2rem;
+        
+        --font-size-xs: 0.7rem;
+        --font-size-sm: 0.8rem;
+        --font-size-base: 0.9rem;
+        --font-size-lg: 1rem;
+        --font-size-xl: 1.1rem;
+        --font-size-2xl: 1.3rem;
+        --font-size-3xl: 1.6rem;
+        --font-size-4xl: 2rem;
+    }
+    
+    /* Header adjustments */
+    .header-content {
+        padding: 0 var(--spacing-md);
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .app-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .header-nav {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .nav-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+        min-width: auto;
+    }
+    
+    .nav-btn .icon {
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Game screen layout */
+    .game-screen {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto auto;
+        grid-template-areas: 
+            "story"
+            "character"
+            "controls";
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+    }
+    
+    /* Story section */
+    .story-section {
+        padding: var(--spacing-lg);
+    }
+    
+    .story-display {
+        max-height: 40vh;
+        font-size: var(--font-size-base);
+    }
+    
+    .story-content {
+        font-size: var(--font-size-base);
+        line-height: 1.6;
+    }
+    
+    /* Character status panel */
+    .character-status {
+        position: static;
+        padding: var(--spacing-lg);
+        height: auto;
+    }
+    
+    .status-header {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .status-header h3 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .stats-summary {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xs);
+    }
+    
+    .stat-item {
+        padding: var(--spacing-xs);
+    }
+    
+    .stat-value {
+        font-size: var(--font-size-base);
+    }
+    
+    /* Controls section */
+    .controls-section {
+        padding: var(--spacing-lg);
+        gap: var(--spacing-md);
+    }
+    
+    /* Dice container */
+    .dice-container {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .dice-display {
+        min-height: 80px;
+    }
+    
+    .dice-selection {
+        gap: var(--spacing-xs);
+        justify-content: center;
+    }
+    
+    .dice-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        min-width: 40px;
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+        gap: var(--spacing-xs);
+    }
+    
+    .action-btn {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Input section */
+    .input-container {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .player-input {
+        min-height: 60px;
+        font-size: var(--font-size-sm);
+    }
+    
+    .submit-btn {
+        align-self: stretch;
+        padding: var(--spacing-md);
+    }
+    
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        margin: var(--spacing-sm);
+    }
+    
+    .modal-header {
+        padding: var(--spacing-md);
+    }
+    
+    .modal-header h2 {
+        font-size: var(--font-size-xl);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-md);
+        max-height: calc(90vh - 80px);
+    }
+    
+    /* Character creation mobile adjustments */
+    .character-creation {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-sm);
+    }
+    
+    .creation-header h1 {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .step-indicator {
+        padding: 0;
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .step-indicator-item {
+        font-size: var(--font-size-xs);
+    }
+    
+    .step-indicator-item:not(:last-child)::after {
+        width: 20px;
+        margin: 0 var(--spacing-xs);
+    }
+    
+    .step-number {
+        width: 25px;
+        height: 25px;
+        font-size: var(--font-size-xs);
+        margin-right: var(--spacing-xs);
+    }
+    
+    .setting-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .setting-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .setting-name {
+        font-size: var(--font-size-lg);
+    }
+    
+    .class-selection {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .class-list {
+        max-height: 250px;
+    }
+    
+    .class-item {
+        padding: var(--spacing-sm);
+    }
+    
+    .class-details {
+        padding: var(--spacing-md);
+    }
+    
+    .class-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .class-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .stat-row {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .stat-controls {
+        justify-content: center;
+    }
+    
+    .stat-btn {
+        width: 35px;
+        height: 35px;
+        font-size: var(--font-size-base);
+    }
+    
+    .stat-value {
+        font-size: var(--font-size-xl);
+        min-width: 40px;
+    }
+    
+    .step-navigation {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        padding-top: var(--spacing-md);
+    }
+    
+    .nav-buttons {
+        justify-content: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .btn-nav {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        font-size: var(--font-size-base);
+        flex: 1;
+        max-width: 140px;
+    }
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .game-screen {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto auto;
+        grid-template-areas: 
+            "story"
+            "character"
+            "controls";
+        gap: var(--spacing-lg);
+    }
+    
+    .character-status {
+        position: static;
+        height: auto;
+    }
+    
+    .stats-summary {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .setting-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .class-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .stat-row {
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .input-container {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+    
+    .submit-btn {
+        align-self: auto;
+    }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .game-screen {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 1fr auto;
+        grid-template-areas: 
+            "story character"
+            "controls character";
+        gap: var(--spacing-lg);
+    }
+    
+    .character-status {
+        position: sticky;
+        top: calc(80px + var(--spacing-lg));
+        height: fit-content;
+    }
+    
+    .story-display {
+        max-height: 50vh;
+    }
+    
+    .setting-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .character-sheet-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .full-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .skills-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .equipment-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Large Devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .game-screen {
+        max-width: 1000px;
+    }
+    
+    .setting-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .character-sheet-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .equipment-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .game-screen {
+        max-width: 1200px;
+    }
+    
+    .setting-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .equipment-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* ===== LANDSCAPE ORIENTATION ADJUSTMENTS ===== */
+@media (orientation: landscape) and (max-height: 600px) {
+    .loading-screen {
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .loading-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        max-width: none;
+    }
+    
+    .loading-dice {
+        font-size: 2rem;
+        margin-bottom: 0;
+    }
+    
+    .loading-content h1 {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .story-display {
+        max-height: 30vh;
+    }
+    
+    .character-creation {
+        padding: var(--spacing-md);
+    }
+    
+    .creation-header {
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-sm);
+    }
+    
+    .creation-header h1 {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .step-indicator {
+        margin-bottom: var(--spacing-lg);
+    }
+}
+
+/* ===== TOUCH DEVICE OPTIMIZATIONS ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch targets */
+    .btn {
+        min-height: 44px;
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .nav-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .dice-btn,
+    .dice-type-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .action-btn {
+        min-height: 48px;
+        padding: var(--spacing-md);
+    }
+    
+    .modal-close {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .stat-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .btn:hover,
+    .nav-btn:hover,
+    .dice-btn:hover,
+    .action-btn:hover,
+    .setting-card:hover,
+    .class-item:hover {
+        transform: none;
+        box-shadow: var(--box-shadow);
+    }
+    
+    /* Add active states for touch feedback */
+    .btn:active {
+        transform: scale(0.98);
+        background: var(--primary-light);
+    }
+    
+    .nav-btn:active {
+        transform: scale(0.98);
+        background: var(--background-dark);
+    }
+    
+    .dice-btn:active,
+    .dice-type-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .action-btn:active {
+        transform: scale(0.98);
+        background: var(--primary-dark);
+    }
+}
+
+/* ===== HIGH DPI / RETINA DISPLAY OPTIMIZATIONS ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .dice-face {
+        border-width: 1px;
+    }
+    
+    .loading-progress,
+    .health-bar-fill {
+        will-change: width;
+    }
+    
+    .dice-3d.rolling {
+        will-change: transform;
+    }
+}
+
+/* ===== REDUCED MOTION PREFERENCES ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .dice-3d.rolling {
+        animation: none;
+        transform: rotateX(180deg) rotateY(180deg);
+    }
+    
+    .loading-dice {
+        animation: none;
+    }
+    
+    .dice-icon {
+        animation: none;
+    }
+    
+    .loading-progress {
+        animation: none;
+        width: 100%;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    /* Dark mode is already the default, but we can add overrides here if needed */
+}
+
+/* ===== LIGHT MODE SUPPORT ===== */
+@media (prefers-color-scheme: light) {
+    :root {
+        --background-dark: #f8f9fa;
+        --background-medium: #ffffff;
+        --background-light: #e9ecef;
+        
+        --text-primary: #212529;
+        --text-secondary: #495057;
+        --text-muted: #6c757d;
+        
+        --border-color: #dee2e6;
+        --border-light: #ced4da;
+    }
+    
+    .dice-face {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        color: var(--primary-dark);
+        border-color: var(--primary-color);
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+    
+    .app-header,
+    .controls-section,
+    .character-status,
+    .modal,
+    .loading-screen {
+        display: none !important;
+    }
+    
+    .game-screen {
+        grid-template-columns: 1fr !important;
+        grid-template-areas: "story" !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+    
+    .story-section {
+        border: 2px solid black !important;
+        border-radius: 0 !important;
+        padding: 1rem !important;
+        box-shadow: none !important;
+        max-height: none !important;
+    }
+    
+    .story-display {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    .story-content {
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+    }
+    
+    .story-content p {
+        margin-bottom: 0.5rem !important;
+        break-inside: avoid;
+    }
+    
+    .dice-result {
+        border: 1px solid black !important;
+        padding: 0.2rem 0.5rem !important;
+    }
+    
+    /* Character creation print styles */
+    .character-creation {
+        page-break-inside: avoid;
+        border: 2px solid black !important;
+        padding: 1rem !important;
+        margin: 0 !important;
+    }
+    
+    .creation-step.active {
+        display: block !important;
+    }
+    
+    .setting-card.selected,
+    .class-item.selected {
+        border: 2px solid black !important;
+        background: #f0f0f0 !important;
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (max-width: 767.98px) {
+    /* Improve readability on small screens */
+    .story-content {
+        font-size: var(--font-size-lg);
+        line-height: 1.7;
+    }
+    
+    /* Ensure adequate spacing for touch targets */
+    .action-btn {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    /* Make form elements easier to use on mobile */
+    .form-input,
+    .form-textarea,
+    .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: var(--spacing-lg);
+    }
+    
+    /* Improve modal usability on mobile */
+    .modal {
+        padding: var(--spacing-sm);
+    }
+    
+    .modal-content {
+        border-radius: var(--border-radius);
+    }
+}
+
+/* ===== CONTAINER QUERIES (Future-proofing) ===== */
+/* Note: Container queries have limited support, but adding for future enhancement */
+@supports (container-type: inline-size) {
+    .game-screen {
+        container-type: inline-size;
+    }
+    
+    @container (max-width: 600px) {
+        .story-section {
+            padding: var(--spacing-md);
+        }
+        
+        .controls-section {
+            padding: var(--spacing-md);
+        }
+    }
+}
+
+/* ===== FOCUS MANAGEMENT FOR DIFFERENT SCREEN SIZES ===== */
+@media (max-width: 767.98px) {
+    *:focus {
+        outline-width: 3px;
+        outline-offset: 3px;
+    }
+    
+    button:focus {
+        outline-offset: 4px;
+    }
+}
+
+/* ===== UTILITY CLASSES FOR RESPONSIVE DESIGN ===== */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 767.98px) {
+    .mobile-only {
+        display: block;
+    }
+    
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-hide {
+        display: none !important;
+    }
+    
+    .mobile-full-width {
+        width: 100% !important;
+    }
+    
+    .mobile-text-center {
+        text-align: center !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .tablet-hide {
+        display: none !important;
+    }
+    
+    .tablet-show {
+        display: block !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .desktop-hide {
+        display: none !important;
+    }
+    
+    .desktop-show {
+        display: block !important;
+    }
+}
