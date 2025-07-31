@@ -5,16 +5,49 @@
 
 class AIManager {
     constructor() {
-        this.apiUrl = 'https://ai.hackclub.com/chat/completions';
-        this.model = 'Qwen/Qwen2.5-32B-Instruct';
+        // Simple AI Configuration (Primary - Always works)
+        this.useSimpleAI = window.AI_CONFIG?.USE_SIMPLE_AI !== false;
+        this.simpleAI = null;
+        
+        // HuggingFace AI Configuration (Optional - May fail)
+        this.useHuggingFace = window.AI_CONFIG?.USE_HUGGINGFACE || false;
+        this.huggingFaceAI = null;
+        
+        // Legacy Gemini configuration (fallback)
+        this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+        this.apiKey = window.AI_CONFIG?.GEMINI_API_KEY || null;
+        this.model = 'gemini-1.5-flash';
         this.conversationHistory = [];
-        this.maxTokens = 8000; // Increased for longer responses
+        this.maxTokens = 8000;
         this.isProcessing = false;
         this.initialized = false;
-        this.forceFallbackMode = false; // Add this for testing
+        this.forceFallbackMode = false;
+        
+        // Initialize Simple AI (Primary)
+        if (this.useSimpleAI && window.SimpleAI) {
+            this.simpleAI = new SimpleAI();
+            console.log('🎯 SIMPLE AI INITIALIZED - Advanced story generation!');
+        }
+        
+        // Initialize HuggingFace AI if enabled (Secondary)
+        if (this.useHuggingFace && window.HuggingFaceAI) {
+            this.huggingFaceAI = new HuggingFaceAI();
+            console.log('🤗 HUGGINGFACE AI INITIALIZED - Experimental mode!');
+        }
+        
+        // Initialize Mock AI as final fallback
+        if (window.MockAI) {
+            this.mockAI = new MockAI();
+            console.log('🎭 MOCK AI INITIALIZED as final fallback');
+        }
+        
+        // Separate AI processing flags
+        this.isGeneratingStory = false;
+        this.isGeneratingChoices = false;
         
         // Action-dice coordination system
         this.pendingAction = null;
+        this.lastPlayerAction = null; // Track the last action for dice roll processing
         this.requiredDiceRoll = null;
         this.completedDiceRoll = null;
         this.actionState = 'ready'; // 'ready', 'waiting_for_dice', 'can_submit'
@@ -28,41 +61,116 @@ class AIManager {
     async initialize() {
         if (this.initialized) return;
         
+        console.log('🔥 STARTING AI SYSTEM INITIALIZATION...');
+        console.log('🔥 Available AI systems:', {
+            simpleAI: !!this.simpleAI,
+            huggingFaceAI: !!this.huggingFaceAI,
+            mockAI: !!this.mockAI,
+            hasGeminiKey: !!(this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY')
+        });
+        
         try {
-            // Test API connection
+            // Test AI system connections (non-blocking)
+            console.log('🔥 Testing AI connections...');
             await this.testConnection();
             this.initialized = true;
-            logger.info('AI system initialized successfully');
+            logger.info('✅ AI system initialized successfully');
+            console.log('✅ AI SYSTEM READY FOR USE');
         } catch (error) {
-            logger.warn('AI system initialization failed, using fallback mode:', error);
-            // Continue in fallback mode
+            logger.warn('⚠️ AI system initialization had issues, but continuing with fallbacks:', error);
+            console.warn('⚠️ AI initialization warning (continuing anyway):', error);
+            this.initialized = true; // Still mark as initialized to use fallbacks
         }
     }
     
     /**
-     * Test API connection
+     * Test API connection - Updated to use available AI systems
      */
     async testConnection() {
-        const testRequest = {
-            model: this.model,
-            messages: [
-                { role: 'user', content: 'Test connection' }
-            ],
-            max_tokens: 10
-        };
+        // Don't test Gemini API anymore - we have better alternatives
+        console.log('🔥 TESTING AI SYSTEM CONNECTION...');
         
-        const response = await fetch(this.apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(testRequest)
-        });
+        // Test in order of preference: HuggingFace -> Simple -> Mock -> Gemini
         
-        if (!response.ok) {
-            throw new Error(`API test failed: ${response.status}`);
+        // Test HuggingFace AI first (best option)
+        if (this.useHuggingFace && this.huggingFaceAI) {
+            try {
+                console.log('🤗 Testing HuggingFace AI connection...');
+                const testResponse = await this.huggingFaceAI.generateStory('Testing connection', 'narrative');
+                if (testResponse && testResponse.length > 20) {
+                    console.log('🤗 HUGGINGFACE AI CONNECTION SUCCESSFUL');
+                    return true;
+                }
+            } catch (error) {
+                console.warn('🤗 HuggingFace AI test failed:', error);
+            }
         }
         
+        // Test Simple AI (reliable fallback)
+        if (this.useSimpleAI && this.simpleAI) {
+            try {
+                console.log('🎯 Testing Simple AI connection...');
+                const testResponse = await this.simpleAI.simulateAPICall('Testing connection', 'story');
+                if (testResponse && testResponse.length > 20) {
+                    console.log('🎯 SIMPLE AI CONNECTION SUCCESSFUL');
+                    return true;
+                }
+            } catch (error) {
+                console.warn('🎯 Simple AI test failed:', error);
+            }
+        }
+        
+        // Test Mock AI (always works)
+        if (this.mockAI) {
+            try {
+                console.log('🎭 Testing Mock AI connection...');
+                const testResponse = await this.mockAI.simulateAPICall('Testing connection', 'story');
+                if (testResponse) {
+                    console.log('🎭 MOCK AI CONNECTION SUCCESSFUL');
+                    return true;
+                }
+            } catch (error) {
+                console.warn('🎭 Mock AI test failed:', error);
+            }
+        }
+        
+        // Only test Gemini if we have a proper API key
+        if (this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY') {
+            console.log('🔑 Testing Gemini API connection...');
+            const testRequest = {
+                contents: [{
+                    parts: [{
+                        text: 'Test connection - respond with just "OK"'
+                    }]
+                }],
+                generationConfig: {
+                    maxOutputTokens: 10,
+                    temperature: 0.1
+                }
+            };
+            
+            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(testRequest)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.warn('🔑 Gemini API test failed:', response.status, errorText);
+                throw new Error(`Gemini API test failed: ${response.status} - ${errorText}`);
+            }
+            
+            console.log('🔑 GEMINI API CONNECTION SUCCESSFUL');
+            return true;
+        } else {
+            console.log('🔑 No Gemini API key configured - using alternative AI systems');
+        }
+        
+        // If we get here, at least one AI system should be working
+        console.log('🔥 AI SYSTEM CONNECTION TEST COMPLETED - using available fallbacks');
         return true;
     }
     
@@ -81,6 +189,9 @@ class AIManager {
      */
     async startCampaign() {
         try {
+            // Emit thinking state for dice system  
+            eventBus.emit('ai:thinking');
+            
             const character = gameState.getCharacter();
             const campaign = gameState.getCampaign();
             
@@ -111,9 +222,13 @@ class AIManager {
                 }, 1000);
             }
             
+            // Emit complete state
+            eventBus.emit('ai:complete');
+            
         } catch (error) {
             logger.error('Failed to start campaign:', error);
             this.showFallbackStart();
+            eventBus.emit('ai:complete');
         }
     }
     
@@ -125,6 +240,20 @@ class AIManager {
             showToast('Please wait for the current action to complete', 'warning');
             return;
         }
+        
+        // Store the last player action for reference
+        this.lastPlayerAction = actionData.action;
+        console.log('🎯 Processing action with dice roll:', actionData);
+        
+        // Check if this is the new combined format (action + dice roll)
+        if (actionData.diceRoll) {
+            console.log('🎲 New format: Action + Dice Roll received together');
+            await this.processActionWithDiceRoll(actionData);
+            return;
+        }
+        
+        // Legacy format handling (for backward compatibility)
+        console.log('🎯 Legacy format: Action only');
         
         // If we're waiting for a dice roll, store the action and check requirements
         if (this.actionState === 'waiting_for_dice') {
@@ -149,12 +278,34 @@ class AIManager {
     async processNormalAction(actionData) {
         this.isProcessing = true;
         this.showTypingIndicator();
+        this.showProgressiveLoadingText();
         
-        console.log('Processing action:', actionData.action);
+        // Emit thinking state for dice system
+        eventBus.emit('ai:thinking');
         
-        // Temporary: Force fallback mode for testing if AI is not working
+        console.log('🚀 Processing action with specialized AI methods:', actionData.action);
+        
+        // TEMPORARY: Test if API is working, enable fallback if not
+        console.log('🔥 Checking if we should force fallback mode...');
         if (this.forceFallbackMode) {
-            console.log('FALLBACK MODE: Using fallback response');
+            console.log('🔥 FALLBACK MODE: Using fallback response due to forceFallbackMode=true');
+            this.showFallbackResponse(actionData.action);
+            this.isProcessing = false;
+            this.hideTypingIndicator();
+            return;
+        }
+        
+        // Test API with a simple call first (but with timeout for faster fallback)
+        try {
+            console.log('🔥 Testing API connection before story generation...');
+            await Promise.race([
+                this.testConnection(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 3000))
+            ]);
+            console.log('🔥 API connection test passed');
+        } catch (error) {
+            console.error('🔥 API connection test failed, enabling fallback mode:', error);
+            this.forceFallbackMode = true;
             this.showFallbackResponse(actionData.action);
             this.isProcessing = false;
             this.hideTypingIndicator();
@@ -162,71 +313,69 @@ class AIManager {
         }
         
         try {
-            const character = gameState.getCharacter();
-            const campaign = gameState.getCampaign();
+            // Step 1: Generate story response using STORY AI
+            console.log('🎭 Step 1: Generating story content...');
+            const storyResponse = await this.generateStoryResponse(actionData);
             
-            console.log('Character:', character);
-            console.log('Campaign:', campaign);
-            
-            // Build context
-            const context = this.buildActionContext(character, campaign, actionData);
-            console.log('Built context:', context);
-            
-            // Get AI response
-            console.log('Calling AI...');
-            const response = await this.callAI([
-                { role: 'system', content: this.buildSystemPrompt() },
-                { role: 'user', content: context },
-                { role: 'user', content: '🚨 RESPOND WITH PURE STORY ONLY - no meta-commentary, no analysis, just what happens in the game world!' }
-            ]);
-            
-            console.log('AI Response received:', response);
-            
-            if (response) {
-                // Check if response requests a dice roll
-                const diceRequest = this.detectDiceRequest(response);
+            if (storyResponse) {
+                // Check if story response requests a dice roll
+                const diceRequest = this.detectDiceRequest(storyResponse);
                 
                 if (diceRequest) {
                     // Store the action and AI response, wait for dice roll
                     this.pendingAction = actionData;
-                    this.pendingAIResponse = response;
+                    this.pendingAIResponse = storyResponse;
                     this.requiredDiceRoll = diceRequest;
                     this.actionState = 'waiting_for_dice';
                     
                     // Display the story content that requests the dice roll
                     this.displayStoryContent(actionData.action, 'player-action');
-                    setTimeout(() => {
-                        this.displayStoryContent(response, 'dm-response');
+                    setTimeout(async () => {
+                        this.displayStoryContent(storyResponse, 'dm-response');
                         // Emit event for dice system to detect and show dice
-                        eventBus.emit('ai:response', response);
-                        // Generate action options first, then update their states
-                        this.generateActionOptions();
+                        eventBus.emit('ai:response', storyResponse);
+                        
+                        // Always prompt for dice roll after story response
+                        this.promptForDiceRoll(storyResponse);
+                        
+                        // Action buttons removed - players now type their actions directly
+                        console.log('🎯 Players can now type their actions instead of using buttons');
+                        
+                        this.updateActionButtonStates();
                     }, 1000);
                 } else {
-                    // No dice required, proceed normally
+                    // No dice required, proceed with story and choices
                     this.displayStoryContent(actionData.action, 'player-action');
                     
-                    setTimeout(() => {
-                        this.displayStoryContent(response, 'dm-response');
-                        eventBus.emit('ai:response', response);
-                        this.generateActionOptions();
+                    setTimeout(async () => {
+                        this.displayStoryContent(storyResponse, 'dm-response');
+                        eventBus.emit('ai:response', storyResponse);
+                        
+                        // Always prompt for dice roll after story response
+                        this.promptForDiceRoll(storyResponse);
+                        
+                        // Action buttons removed - players now type their actions directly
+                        console.log('🎯 Players can now type their actions instead of using buttons');
                     }, 1000);
                     
-                    this.updateGameState(actionData, response);
+                    this.updateGameState(actionData, storyResponse);
                 }
             } else {
-                console.error('No response from AI');
+                console.error('No story response from STORY AI');
                 this.showFallbackResponse(actionData.action);
             }
             
         } catch (error) {
-            console.error('Failed to process player action:', error);
+            console.error('Failed to process player action with specialized AI:', error);
             // Enable fallback mode if AI keeps failing
             this.forceFallbackMode = true;
             this.showFallbackResponse(actionData.action);
         } finally {
             this.isProcessing = false;
             this.hideTypingIndicator();
+            
+            // Emit complete state for dice system
+            eventBus.emit('ai:complete');
         }
     }
     
@@ -243,41 +392,151 @@ class AIManager {
         this.showTypingIndicator();
         
         try {
-            const character = gameState.getCharacter();
-            const campaign = gameState.getCampaign();
+            console.log('🎲 Submitting action with dice using specialized AI methods');
             
-            // Build context with dice roll result
-            const contextWithDice = this.buildActionContextWithDice(
-                character, 
-                campaign, 
-                this.pendingAction, 
-                this.completedDiceRoll
-            );
+            // Create action data with dice result
+            const actionDataWithDice = {
+                ...this.pendingAction,
+                diceResult: this.completedDiceRoll
+            };
             
-            // Get AI response considering the dice result
-            const response = await this.callAI([
-                { role: 'system', content: this.buildSystemPrompt() },
-                { role: 'user', content: contextWithDice },
-                { role: 'user', content: '🚨 RESPOND WITH PURE STORY ONLY - interpret the dice roll result and continue the story!' }
-            ]);
+            // Step 1: Generate story response using STORY AI (with dice result)
+            console.log('🎭 Step 1: Generating story with dice result...');
+            const storyResponse = await this.generateStoryResponse(actionDataWithDice);
             
-            if (response) {
-                // Display the final story response
-                setTimeout(() => {
-                    this.displayStoryContent(response, 'dm-response');
-                    eventBus.emit('ai:response', response);
-                    this.generateActionOptions();
+            if (storyResponse) {
+                // Display the dice roll result first, then story response
+                this.displayStoryContent(`🎲 Rolled ${this.completedDiceRoll.result || this.completedDiceRoll.total}`, 'dice-result');
+                
+                setTimeout(async () => {
+                    this.displayStoryContent(storyResponse, 'dm-response');
+                    eventBus.emit('ai:response', storyResponse);
+                    
+                    // Always prompt for dice roll after dice resolution
+                    this.promptForDiceRoll(storyResponse);
+                    
+                    // Action buttons removed - players now type their actions directly
+                    console.log('🎯 Players can now type their next action instead of using buttons');
                 }, 500);
                 
-                this.updateGameState(this.pendingAction, response);
+                this.updateGameState(this.pendingAction, storyResponse);
+            } else {
+                console.error('No story response from STORY AI after dice roll');
+                this.showFallbackResponse(this.pendingAction.action);
             }
             
         } catch (error) {
-            logger.error('Failed to submit action with dice:', error);
+            logger.error('Failed to submit action with dice using specialized AI:', error);
             this.showFallbackResponse(this.pendingAction.action);
         } finally {
             // Reset state
             this.resetActionState();
+            this.isProcessing = false;
+            this.hideTypingIndicator();
+        }
+    }
+    
+    /**
+     * Process action that comes with dice roll (new combined format)
+     */
+    async processActionWithDiceRoll(actionData) {
+        console.log('🎲 Processing combined action + dice roll:', actionData);
+        
+        this.isProcessing = true;
+        this.showTypingIndicator();
+        this.showProgressiveLoadingText();
+        
+        const { action, diceRoll } = actionData;
+        const character = gameState.getCharacter();
+        const campaign = gameState.getCampaign();
+        
+        // Determine success level based on dice result
+        const result = diceRoll.result;
+        const diceNumber = diceRoll.max;
+        
+        let successLevel = 'partial';
+        let outcomeType = 'neutral';
+        
+        if (diceRoll.critical || result === diceNumber) {
+            successLevel = 'critical_success';
+            outcomeType = 'great_success';
+        } else if (diceRoll.fumble || (result === 1 && diceNumber === 20)) {
+            successLevel = 'critical_failure';
+            outcomeType = 'dramatic_failure';
+        } else if (result >= diceNumber * 0.8) {
+            successLevel = 'success';
+            outcomeType = 'success';
+        } else if (result >= diceNumber * 0.5) {
+            successLevel = 'partial';
+            outcomeType = 'mixed';
+        } else {
+            successLevel = 'failure';
+            outcomeType = 'failure';
+        }
+        
+        console.log('🎲 Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
+        
+        // Create a comprehensive prompt for the AI
+        const combinedPrompt = `The player declares: "${action}"
+
+They rolled a ${diceRoll.dice.toUpperCase()} and got ${result} out of ${diceNumber} possible.
+
+DICE RESULT ANALYSIS:
+- Roll: ${result}/${diceNumber}
+- Outcome: ${successLevel.toUpperCase()}
+${diceRoll.critical ? '- CRITICAL SUCCESS: Maximum possible result!' : ''}
+${diceRoll.fumble ? '- CRITICAL FAILURE: Worst possible result!' : ''}
+
+Based on this dice result, describe what happens as a direct consequence of their action:
+
+${outcomeType === 'great_success' ? '- Make this an exceptional success with significant positive benefits' : ''}
+${outcomeType === 'success' ? '- The action succeeds as intended with good results' : ''}
+${outcomeType === 'mixed' ? '- Partial success with some complications or unexpected twists' : ''}
+${outcomeType === 'failure' ? '- The action fails but in an interesting way that moves the story forward' : ''}
+${outcomeType === 'dramatic_failure' ? '- Dramatic failure with serious consequences but not story-ending' : ''}
+
+Describe the outcome and continue the story. Then ask for another dice roll for their next action.`;
+
+        try {
+            const response = await this.callAI([
+                { role: 'system', content: this.buildSystemPrompt() },
+                { role: 'user', content: combinedPrompt }
+            ]);
+            
+            if (response) {
+                // Display the outcome
+                this.displayStoryContent(response, 'dm-response');
+                
+                // Update game state
+                gameState.set('campaign.story_state', response);
+                
+                // Add to campaign log
+                gameState.addToCampaignLog({
+                    type: 'player_action',
+                    content: action,
+                    dice: diceRoll.dice,
+                    result: result,
+                    success_level: successLevel,
+                    timestamp: new Date().toISOString()
+                });
+                
+                gameState.addToCampaignLog({
+                    type: 'dm_response',
+                    content: response,
+                    timestamp: new Date().toISOString()
+                });
+                
+                console.log('🎲 Combined action + dice processed successfully');
+                
+            } else {
+                console.error('🎲 No response from AI for combined action + dice');
+                this.showFallbackDiceOutcome(diceRoll, successLevel);
+            }
+            
+        } catch (error) {
+            logger.error('Failed to process combined action + dice:', error);
+            this.showFallbackDiceOutcome(diceRoll, successLevel);
+        } finally {
             this.isProcessing = false;
             this.hideTypingIndicator();
         }
@@ -339,112 +598,135 @@ class AIManager {
     }
     
     /**
-     * Update action button states based on current workflow
+     * Update action button states - DISABLED (no more action buttons)
      */
     updateActionButtonStates() {
-        console.log('updateActionButtonStates called, actionState:', this.actionState);
-        
-        const actionButtons = document.getElementById('action-buttons');
-        if (!actionButtons) {
-            console.log('No action-buttons element found');
-            return;
-        }
-        
-        const buttons = actionButtons.querySelectorAll('.action-btn');
-        console.log('Found', buttons.length, 'action buttons');
-        
-        if (this.actionState === 'waiting_for_dice') {
-            console.log('Setting waiting_for_dice state, pendingAction:', this.pendingAction?.action);
-            // Highlight the selected action, disable others
-            buttons.forEach(btn => {
-                if (btn.dataset.action === this.pendingAction?.action) {
-                    btn.classList.add('selected-pending');
-                    btn.disabled = false;
-                    btn.innerHTML = `${btn.dataset.action} <span class="status">(Selected - Roll dice to continue)</span>`;
-                    console.log('Set selected-pending for:', btn.dataset.action);
-                } else {
-                    btn.disabled = true;
-                }
-            });
-        } else if (this.actionState === 'can_submit') {
-            console.log('Setting can_submit state');
-            // Show that dice has been rolled and action can be submitted
-            buttons.forEach(btn => {
-                if (btn.dataset.action === this.pendingAction?.action) {
-                    btn.classList.add('ready-to-submit');
-                    btn.innerHTML = `${btn.dataset.action} <span class="status">(Ready to submit!)</span>`;
-                    btn.disabled = false;
-                    console.log('Set ready-to-submit for:', btn.dataset.action);
-                } else {
-                    btn.disabled = true;
-                }
-            });
-        } else {
-            console.log('Setting normal state');
-            // Normal state - enable all buttons
-            buttons.forEach(btn => {
-                btn.disabled = false;
-                btn.classList.remove('selected-pending', 'ready-to-submit');
-                btn.innerHTML = btn.dataset.action;
-            });
-        }
+        // Action buttons removed - this function is now a no-op
+        console.log('updateActionButtonStates called but action buttons are disabled');
+        return;
     }
     
     /**
      * Process dice roll results
      */
     async processDiceRoll(rollData) {
-        console.log('Dice rolled:', rollData);
+        console.log('🎲 Processing dice roll:', rollData);
         
-        // If we're waiting for a dice roll, store it and update state
-        if (this.actionState === 'waiting_for_dice') {
+        // If we're waiting for a dice roll as part of an action sequence, handle it properly
+        if (this.actionState === 'waiting_for_dice' && this.pendingAction) {
             this.completedDiceRoll = rollData;
             this.actionState = 'can_submit';
             
-            // Update action buttons to show ready state
-            this.updateActionButtonStates();
-            
-            showToast(`Rolled ${rollData.result}! Click your selected action to continue.`, 'success');
+            // Automatically submit the action with dice result
+            await this.submitActionWithDice();
             return;
         }
         
-        // Handle standalone dice rolls (legacy behavior)
+        // Handle dice rolls that come after AI responses (our current flow)
+        console.log('🎲 Handling dice roll from AI-prompted roll');
+        
+        // Get the last player action from stored action
+        const lastAction = this.lastPlayerAction || this.pendingAction?.action || "continue the adventure";
+        console.log('🎲 Using last action for dice outcome:', lastAction);
         const character = gameState.getCharacter();
-        const currentStory = gameState.get('campaign.story_state');
+        const campaign = gameState.getCampaign();
         
-        const rollContext = `
-            DICE ROLL RESULT:
-            Dice: ${rollData.dice || rollData.type}
-            Total: ${rollData.result || rollData.total}
-            ${rollData.critical ? 'CRITICAL SUCCESS!' : ''}
-            ${rollData.fumble ? 'CRITICAL FAILURE!' : ''}
-            
-            Current situation: ${currentStory}
-            
-            Interpret this dice roll result and continue the story accordingly.
-            ${rollData.critical ? 'Make this an exceptional success with dramatic positive consequences.' : ''}
-            ${rollData.fumble ? 'Make this a dramatic failure with interesting complications.' : ''}
-        `;
+        // Determine success level based on dice result
+        const diceNumber = parseInt(rollData.dice?.substring(1) || rollData.type?.substring(1) || '20');
+        const result = rollData.result || rollData.total;
         
+        let successLevel = 'partial';
+        let outcomeType = 'neutral';
+        
+        if (rollData.critical || result === diceNumber) {
+            successLevel = 'critical_success';
+            outcomeType = 'great_success';
+        } else if (rollData.fumble || (result === 1 && diceNumber === 20)) {
+            successLevel = 'critical_failure';
+            outcomeType = 'dramatic_failure';
+        } else if (result >= diceNumber * 0.8) {
+            successLevel = 'success';
+            outcomeType = 'success';
+        } else if (result >= diceNumber * 0.5) {
+            successLevel = 'partial';
+            outcomeType = 'mixed';
+        } else {
+            successLevel = 'failure';
+            outcomeType = 'failure';
+        }
+        
+        console.log('🎲 Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
+        
+        // Create a comprehensive prompt for the AI based on the dice result
+        const diceOutcomePrompt = `The player's last action was: "${lastAction}"
+
+You asked them to roll a ${rollData.dice || rollData.type}, and they rolled ${result} out of ${diceNumber} possible.
+
+DICE RESULT ANALYSIS:
+- Roll: ${result}/${diceNumber}
+- Outcome: ${successLevel.toUpperCase()}
+${rollData.critical ? '- CRITICAL SUCCESS: Maximum possible result!' : ''}
+${rollData.fumble ? '- CRITICAL FAILURE: Worst possible result!' : ''}
+
+Based on this dice result, describe what happens as a direct consequence of their action. The dice roll should clearly influence the outcome:
+
+${outcomeType === 'great_success' ? '- Make this an exceptional success with significant positive benefits' : ''}
+${outcomeType === 'success' ? '- The action succeeds as intended with good results' : ''}
+${outcomeType === 'mixed' ? '- Partial success with some complications or unexpected twists' : ''}
+${outcomeType === 'failure' ? '- The action fails but in an interesting way that moves the story forward' : ''}
+${outcomeType === 'dramatic_failure' ? '- Dramatic failure with serious consequences but not story-ending' : ''}
+
+Continue the story based on this dice result. Be specific about how the roll affected the action's outcome.`;
+
         try {
+            this.isProcessing = true;
+            this.showTypingIndicator();
+            
             const response = await this.callAI([
                 { role: 'system', content: this.buildSystemPrompt() },
-                { role: 'user', content: rollContext }
+                { role: 'user', content: diceOutcomePrompt }
             ]);
             
             if (response) {
-                this.displayStoryContent(`🎲 Rolled ${rollData.result || rollData.total}`, 'dice-result');
-                setTimeout(() => {
-                    this.displayStoryContent(response, 'dm-response');
-                    this.generateActionOptions();
-                }, 500);
+                // Display the outcome based on the dice roll
+                this.displayStoryContent(response, 'dm-response');
                 
+                // Update game state with the new story development
                 gameState.set('campaign.story_state', response);
+                
+                // Add the dice roll and outcome to campaign log
+                gameState.addToCampaignLog({
+                    type: 'dice_roll',
+                    action: lastAction,
+                    dice: rollData.dice || rollData.type,
+                    result: result,
+                    success_level: successLevel,
+                    content: `Rolled ${result} on ${rollData.dice || rollData.type}: ${successLevel}`,
+                    timestamp: new Date().toISOString()
+                });
+                
+                gameState.addToCampaignLog({
+                    type: 'dm_response',
+                    content: response,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Always prompt for another dice roll after the outcome
+                this.promptForDiceRoll(response);
+                
+                console.log('🎲 Dice roll outcome processed successfully');
+                
+            } else {
+                console.error('🎲 No response from AI for dice outcome');
+                this.showFallbackDiceOutcome(rollData, successLevel);
             }
             
         } catch (error) {
-            logger.error('Failed to process dice roll:', error);
-            this.showFallbackResponse('dice roll');
+            logger.error('Failed to process dice roll outcome:', error);
+            this.showFallbackDiceOutcome(rollData, successLevel);
+        } finally {
+            this.isProcessing = false;
+            this.hideTypingIndicator();
         }
     }
     
@@ -487,76 +769,25 @@ class AIManager {
         
         const settingData = characterManager?.settings?.[setting] || {};
         
-        return `You are an expert Dungeon Master running a ${settingData.name || 'fantasy'} campaign. 
+        return `You are the Dungeon Master for ${character.name || 'the adventurer'}, a ${character.class || 'character'} in a ${settingData.name || 'fantasy'} campaign.
 
-SETTING: ${settingData.description || 'Fantasy adventure'}
-DIFFICULTY: ${difficulty} - ${this.getDifficultyDescription(difficulty)}
-CUSTOM PERSONALITY: ${campaign.dm_custom_prompt || 'Standard DM approach'}
+CHARACTER STATS: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}
 
-PLAYER CHARACTER:
-- Name: ${character.name || 'Adventurer'}
-- Class: ${character.class || 'Unknown'}
-- Level: ${character.level || 1}
-- Health: ${character.health?.current || 100}/${character.health?.maximum || 100}
-- Stats: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}
+CAMPAIGN: ${settingData.description || 'Fantasy adventure'} - ${difficulty} difficulty
 
-IMPORTANT RULES:
-1. Always respond in character as the DM - NEVER break character or provide meta-commentary
-2. NEVER summarize what you're planning to do or explain your approach
-3. Jump straight into vivid, immersive storytelling
-4. Describe scenes vividly using all five senses
-5. Ask for dice rolls when appropriate (format: "Roll d20 + [modifier] for [skill]")
-6. Remember all previous events and reference them naturally
-7. Create meaningful consequences for player choices
-8. Generate realistic NPCs with distinct personalities
-9. Balance challenge appropriately for the difficulty level
-10. Write detailed, immersive responses (4-8 paragraphs minimum)
-11. End responses by either asking what the player wants to do OR providing 3-4 specific action options (labeled A, B, C, etc.)
-12. Stay true to the ${settingData.name || 'fantasy'} setting
-13. NEVER start responses with phrases like "Okay, so..." or "Let me..." or "I should..."
-14. Begin immediately with the story, action, or description
+DM STYLE:
+- Describe what happens directly, like a real DM would
+- Be concise but vivid - set the scene, describe consequences
+- Focus on the immediate situation and what the player sees/hears/feels
+- Don't overthink or over-describe - just tell them what happens
+- Use second person ("you see...", "you hear...")
+- At least 100 words, but don't drag it out
 
-🚨 CRITICAL: ZERO TOLERANCE FOR META-COMMENTARY 🚨
+The player will provide both their action and dice roll together. Use the dice result to determine the outcome of their action, then continue the story and ask them to declare their next action and roll dice for it.
 
-❌ FORBIDDEN PHRASES - NEVER START WITH:
-- "Okay, so..." / "Let me..." / "I should..." / "I'll..." / "I need to..."
-- "First," / "Next," / "Also," / "Then," / "Now," / "This..."
-- "They need..." / "The user..." / "The player wants..."
-- "Check if..." / "Consider..." / "Make sure..." / "Incorporate..."
-- "Since..." / "Given..." / "Based on..." / "Looking at..."
-- ". Maybe a..." / ". So..." / ". Use..." / ". If..." / ". Start..."
-- ". End..." / ". Make sure..." / ". Potential..." / ". Introduce..."
-- ". Describe..." / ANY bullet points or fragmented planning
-- ANY analysis, planning, or explanation of what you're doing
-- ANY line of thought, reasoning, or problem-solving visible to user
+Example: "Your action succeeds/fails based on your roll. [story continues]. What do you want to do next? Choose a die (D4-D20) based on the difficulty and roll it along with your action."
 
-🔥 IMMEDIATE TERMINATION TRIGGERS:
-- Any mention of "scenario," "mystery," "challenge," "urgency," "choices," "options"
-- Any mention of "setup," "environment," "element," "forward," "hook," "propels"
-- Any incomplete sentences starting with periods
-- Any visible thought process or planning language
-- Any reference to user requests or requirements
-
-✅ REQUIRED: START IMMEDIATELY WITH IN-WORLD CONTENT
-- Begin with sensory descriptions, dialogue, or action
-- Jump straight into what the character sees, hears, feels, smells
-- No preamble, no setup, no analysis - pure story
-- NO THINKING OUT LOUD - hide ALL mental processes
-
-EXAMPLE CORRECT START:
-"The neon glow flickers across rain-slicked streets as you..."
-
-EXAMPLE FORBIDDEN START:
-"Okay, so the user wants me to create a modern adventure. Let me break down..."
-". Maybe a late-night hacking scenario, since Morgan is a hacker..."
-
-🎯 REMEMBER: You ARE in the game world. Write ONLY what happens IN the story.
-HIDE ALL THOUGHT PROCESSES. Show only the final narrative result.
-
-CAMPAIGN CONTEXT:
-${this.buildCampaignContext()}
-
-Maintain immersion and create an engaging narrative experience!`;
+Start describing what happens immediately based on their action and dice result.`;
     }
     
     /**
@@ -589,6 +820,102 @@ Maintain immersion and create an engaging narrative experience!`;
         return context || 'This is the beginning of the adventure.';
     }
     
+    /**
+     * Always prompt for dice roll after AI response
+     */
+    promptForDiceRoll(aiResponse) {
+        console.log('🎲 Always prompting for dice roll after AI response');
+        
+        // Detect dice requirement from AI response (D4, D6, D8, D10, D12, D20)
+        const diceMatches = aiResponse.match(/(?:roll|make).*?[ad]?\s*(d4|d6|d8|d10|d12|d20)/gi);
+        let diceType = 'd20'; // Default to D20
+        
+        if (diceMatches && diceMatches.length > 0) {
+            const match = diceMatches[0].toLowerCase();
+            if (match.includes('d4')) diceType = 'd4';
+            else if (match.includes('d6')) diceType = 'd6';
+            else if (match.includes('d8')) diceType = 'd8';
+            else if (match.includes('d10')) diceType = 'd10';
+            else if (match.includes('d12')) diceType = 'd12';
+            else if (match.includes('d20')) diceType = 'd20';
+        }
+        
+        console.log('🎲 Detected dice type from AI response:', diceType);
+        console.log('🎲 AI response dice matches:', diceMatches);
+        
+        // Force dice system to show for this dice type with a delay to ensure dice system is ready
+        setTimeout(() => {
+            if (typeof eventBus !== 'undefined' && window.diceSystem) {
+                console.log('🎲 Emitting force:dice:show event for:', diceType);
+                eventBus.emit('force:dice:show', {
+                    diceType: diceType,
+                    reason: 'AI response requires dice roll'
+                });
+                
+                // Also directly call the dice system as backup
+                if (window.diceSystem && window.diceSystem.showDiceRequest) {
+                    console.log('🎲 Directly calling diceSystem.showDiceRequest as backup');
+                    window.diceSystem.showDiceRequest([diceType]);
+                }
+            } else {
+                console.warn('🎲 EventBus or diceSystem not available');
+            }
+        }, 500);
+        
+        console.log(`🎲 Scheduled dice UI to show for ${diceType.toUpperCase()} roll`);
+    }
+    
+    /**
+     * Validate response length meets minimum word count requirement
+     */
+    validateResponseLength(response, minWords = 100) {
+        if (!response || typeof response !== 'string') {
+            console.warn('📏 LENGTH VALIDATION: Invalid response type:', typeof response);
+            return false;
+        }
+        
+        // Count words by splitting on whitespace and filtering out empty strings
+        const words = response.trim().split(/\s+/).filter(word => word.length > 0);
+        const wordCount = words.length;
+        
+        console.log(`📏 LENGTH VALIDATION: ${wordCount} words (minimum: ${minWords})`);
+        
+        if (wordCount < minWords) {
+            console.warn(`📏 LENGTH VALIDATION FAILED: Response only has ${wordCount} words, needs ${minWords} minimum`);
+            return false;
+        }
+        
+        console.log('📏 LENGTH VALIDATION PASSED: Response meets minimum word count');
+        return true;
+    }
+    
+    /**
+     * Debug function to test AI system from browser console
+     */
+    async debugTest() {
+        console.log('🔧 DEBUG: Testing AI system...');
+        console.log('🔧 AI Manager state:', {
+            initialized: this.initialized,
+            isProcessing: this.isProcessing,
+            simpleAI: !!this.simpleAI,
+            huggingFaceAI: !!this.huggingFaceAI,
+            mockAI: !!this.mockAI
+        });
+        
+        try {
+            const testResponse = await this.callAI([
+                { role: 'system', content: 'You are a helpful test assistant.' },
+                { role: 'user', content: 'Say hello and confirm you are working!' }
+            ]);
+            
+            console.log('🔧 DEBUG TEST SUCCESS:', testResponse);
+            return testResponse;
+        } catch (error) {
+            console.error('🔧 DEBUG TEST FAILED:', error);
+            return null;
+        }
+    }
+
     /**
      * Build start prompt for new campaign
      */
@@ -628,7 +955,395 @@ CRITICAL: Respond immediately with the story outcome. NO meta-commentary, NO exp
 
 Respond with the outcome of this action and what happens next.`;
     }
-    
+
+    /**
+     * STORY AI - Handles narrative responses and story progression
+     */
+    async generateStoryResponse(actionData) {
+        if (this.isGeneratingStory) {
+            console.log('Story AI already processing, ignoring duplicate request');
+            return null;
+        }
+
+        this.isGeneratingStory = true;
+        console.log('🎭 STORY AI: Generating narrative response for action:', actionData.action);
+
+        try {
+            const character = gameState.getCharacter();
+            const campaign = gameState.getCampaign();
+            
+            // Build context specifically for story generation
+            const storyContext = this.buildActionContext(character, campaign, actionData);
+            
+            // Story-specific system prompt
+            const storySystemPrompt = `🎭 STORY AI - PURE NARRATIVE GENERATION
+
+You are the storytelling engine for a ${campaign.setting} campaign. Your ONLY job is to generate immersive story content.
+
+🚨 CRITICAL RULES:
+❌ NO meta-commentary, planning, or thinking out loud
+❌ NO action options or choices - that's handled separately  
+❌ NO dice requests - dice are handled separately
+❌ NO game mechanics discussion
+✅ ONLY pure story narrative describing what happens
+
+RESPONSE FORMAT:
+- 4-8 detailed paragraphs of immersive story content (MINIMUM 100 words)
+- Rich sensory details and atmospheric description
+- Character emotions and reactions
+- Consequences of the player's action
+- Natural story progression
+- End with the scene resolution (no choices needed)
+
+📏 CRITICAL: Your response must be AT LEAST 100 words long. Short responses are not acceptable.
+
+START IMMEDIATELY WITH STORY CONTENT - NO PREAMBLE!`;
+
+            const response = await this.callAI([
+                { role: 'system', content: storySystemPrompt },
+                { role: 'user', content: storyContext }
+            ]);
+
+            console.log('🎭 STORY AI: Generated response length:', response?.length || 0);
+            return response;
+
+        } catch (error) {
+            console.error('🎭 STORY AI: Error generating story response:', error);
+            return this.getStoryFallback(actionData.action);
+        } finally {
+            this.isGeneratingStory = false;
+        }
+    }
+
+    /**
+     * CHOICE AI - Generates contextual action buttons based on current situation
+     */
+    async generateActionChoices(currentStory = '') {
+        if (this.isGeneratingChoices) {
+            console.log('Choice AI already processing, ignoring duplicate request');
+            return this.getGenericOptions();
+        }
+
+        this.isGeneratingChoices = true;
+        console.log('🎯 CHOICE AI: Using rule-based contextual generation (AI bypass)');
+
+        try {
+            // TEMPORARY: Skip AI entirely and use rule-based generation
+            const contextualOptions = this.generateContextualFallbackOptions(currentStory);
+            console.log('🎯 CHOICE AI: Generated', contextualOptions.length, 'contextual options:', contextualOptions);
+            return contextualOptions;
+
+            // TODO: Re-enable AI generation when we can get it to stop meta-commenting
+            /*
+            const character = gameState.getCharacter();
+            const campaign = gameState.getCampaign();
+            
+            // Build context for choice generation
+            const choiceContext = `CURRENT SITUATION:
+${currentStory || this.buildCampaignContext()}
+
+CHARACTER: ${character.name} (${character.class})
+STATS: STR ${character.stats?.str}, DEX ${character.stats?.dex}, CON ${character.stats?.con}, INT ${character.stats?.int}, WIS ${character.stats?.wis}, CHA ${character.stats?.cha}
+
+Generate 4-6 contextual action options that make sense for this situation.`;
+
+            // Choice-specific system prompt
+            const choiceSystemPrompt = `🎯 RESPOND WITH ONLY A LIST OF ACTIONS - NO OTHER TEXT
+
+You generate action options. NO talking, NO explanations, NO thinking out loud.
+
+FORBIDDEN:
+❌ "Okay, let's see..." 
+❌ "The user wants..."
+❌ "So first, I need to..."
+❌ "Let me think..."
+❌ ANY commentary whatsoever
+
+REQUIRED FORMAT - RESPOND WITH EXACTLY THIS:
+Hack the police van's systems
+Trace the anonymous caller
+Approach the van stealthily  
+Search for another exit
+Call for backup
+Hide deeper in shadows
+
+RULES:
+- 4-6 actions only
+- 2-8 words each
+- No explanations
+- Fit the current scene
+- Start response immediately with first action`;
+
+            const response = await this.callAI([
+                { role: 'system', content: choiceSystemPrompt },
+                { role: 'user', content: choiceContext }
+            ]);
+
+            if (response) {
+                // Check if response contains meta-commentary
+                const hasMetaCommentary = response.toLowerCase().includes('okay') || 
+                                        response.toLowerCase().includes('user wants') ||
+                                        response.toLowerCase().includes('let me') ||
+                                        response.toLowerCase().includes('so first');
+                
+                if (hasMetaCommentary) {
+                    console.warn('🎯 CHOICE AI: Response contains meta-commentary, using contextual fallback');
+                    return this.generateContextualFallbackOptions(choiceContext);
+                }
+                
+                // Parse the response into individual options
+                let cleanResponse = response;
+                
+                // Remove any meta-commentary that might have slipped through
+                cleanResponse = cleanResponse
+                    .replace(/^Okay,.*?(?=\n[A-Z])/s, '') // Remove "Okay, let's see..." paragraphs
+                    .replace(/^So.*?(?=\n[A-Z])/s, '')   // Remove "So first..." paragraphs
+                    .replace(/^The user.*?(?=\n[A-Z])/s, '') // Remove "The user wants..." paragraphs
+                    .replace(/^Let me.*?(?=\n[A-Z])/s, '') // Remove "Let me think..." paragraphs
+                    .replace(/^First,.*?(?=\n[A-Z])/s, '') // Remove "First, since..." paragraphs
+                    .trim();
+                
+                const options = cleanResponse
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => {
+                        // Filter out meta-commentary lines
+                        if (line.length === 0) return false;
+                        if (line.startsWith('-')) line = line.substring(1).trim();
+                        if (line.toLowerCase().includes('user wants')) return false;
+                        if (line.toLowerCase().includes('let me')) return false;
+                        if (line.toLowerCase().includes('okay,')) return false;
+                        if (line.toLowerCase().includes('so first')) return false;
+                        if (line.toLowerCase().includes('variety is key')) return false;
+                        return line.length > 0 && line.length < 100; // Reasonable action length
+                    })
+                    .slice(0, 6); // Limit to 6 options max
+
+                console.log('🎯 CHOICE AI: Parsed', options.length, 'clean options:', options);
+                return options.length > 0 ? options : this.getGenericOptions();
+            }
+
+            return this.getGenericOptions();
+            */
+
+        } catch (error) {
+            console.error('🎯 CHOICE AI: Error generating choices:', error);
+            return this.getGenericOptions();
+        } finally {
+            this.isGeneratingChoices = false;
+        }
+    }
+
+    /**
+     * Get fallback story content
+     */
+    getStoryFallback(action) {
+        const fallbacks = [
+            `You ${action.toLowerCase()} with careful consideration. The environment around you shifts subtly in response to your actions. New details become apparent as you focus your attention on the task at hand. The atmosphere grows more intense as possibilities unfold before you.`,
+            `Your decision to ${action.toLowerCase()} proves significant. The world around you responds in unexpected ways, revealing hidden aspects of your surroundings. You sense that your choice has set events in motion that will shape what comes next.`,
+            `As you ${action.toLowerCase()}, the scene around you evolves. Your senses pick up new information about your environment. The consequences of your action begin to manifest, creating new opportunities and challenges that demand your attention.`
+        ];
+        
+        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
+
+    /**
+     * Generate contextual fallback options when AI produces meta-commentary
+     */
+    generateContextualFallbackOptions(context) {
+        console.log('🎯 generateContextualFallbackOptions called with context type:', typeof context);
+        console.log('🎯 Context content (first 200 chars):', String(context).substring(0, 200));
+        
+        const contextLower = String(context || '').toLowerCase();
+        const options = [];
+        
+        console.log('🎯 Generating contextual options for context:', contextLower.substring(0, 200));
+        
+        // CYBERPUNK/HACKER CONTEXT
+        if (contextLower.includes('hacker') || contextLower.includes('morgan')) {
+            // Technology/Hacking options
+            if (contextLower.includes('police') || contextLower.includes('van')) {
+                options.push('Hack the police van systems', 'Intercept police communications', 'Disable van security');
+            }
+            if (contextLower.includes('phone') || contextLower.includes('call') || contextLower.includes('signal')) {
+                options.push('Trace the signal source', 'Block incoming calls', 'Decrypt the message');
+            }
+            if (contextLower.includes('tablet') || contextLower.includes('computer') || contextLower.includes('data')) {
+                options.push('Access encrypted files', 'Run network scan', 'Check system logs');
+            }
+            // Always add core hacker options
+            options.push('Search for vulnerabilities', 'Monitor digital traffic', 'Access security cameras');
+        }
+        
+        // STEALTH/HIDING CONTEXT
+        if (contextLower.includes('hiding') || contextLower.includes('abandoned') || contextLower.includes('shadows')) {
+            options.push('Move to better cover', 'Search for escape routes', 'Hide deeper in shadows');
+            if (contextLower.includes('laundromat') || contextLower.includes('building')) {
+                options.push('Explore the building', 'Look for useful items', 'Check other rooms');
+            }
+        }
+        
+        // INVESTIGATION CONTEXT
+        if (contextLower.includes('mystery') || contextLower.includes('investigation') || contextLower.includes('asset')) {
+            options.push('Examine the evidence', 'Look for more clues', 'Analyze the situation');
+        }
+        
+        // URBAN/STREET CONTEXT
+        if (contextLower.includes('street') || contextLower.includes('rain') || contextLower.includes('city')) {
+            options.push('Survey the area', 'Move to higher ground', 'Find shelter from rain');
+        }
+        
+        // COMMUNICATION CONTEXT
+        if (contextLower.includes('caller') || contextLower.includes('contact') || contextLower.includes('message')) {
+            options.push('Establish secure contact', 'Verify caller identity', 'Send coded message');
+        }
+        
+        // DANGER/THREAT CONTEXT  
+        if (contextLower.includes('danger') || contextLower.includes('threat') || contextLower.includes('pursued')) {
+            options.push('Plan escape route', 'Create diversion', 'Call for backup');
+        }
+        
+        // If we don't have enough specific options, add character-appropriate generics
+        if (options.length < 4) {
+            const character = gameState.getCharacter();
+            const characterClass = character?.class?.toLowerCase() || '';
+            
+            if (characterClass.includes('hacker') || characterClass.includes('tech')) {
+                options.push('Scan for networks', 'Check device security', 'Access local systems');
+            } else if (characterClass.includes('investigator') || characterClass.includes('detective')) {
+                options.push('Search for evidence', 'Interview witnesses', 'Follow leads');
+            } else {
+                // Generic adventure options
+                options.push('Examine surroundings', 'Listen carefully', 'Plan next move');
+            }
+        }
+        
+        // Always ensure we have basic action variety
+        const hasInvestigation = options.some(opt => opt.toLowerCase().includes('examine') || opt.toLowerCase().includes('search') || opt.toLowerCase().includes('look'));
+        const hasMovement = options.some(opt => opt.toLowerCase().includes('move') || opt.toLowerCase().includes('go') || opt.toLowerCase().includes('approach'));
+        const hasInteraction = options.some(opt => opt.toLowerCase().includes('contact') || opt.toLowerCase().includes('call') || opt.toLowerCase().includes('talk'));
+        
+        if (!hasInvestigation) options.push('Examine the area');
+        if (!hasMovement) options.push('Move to safer position');
+        if (!hasInteraction) options.push('Try to make contact');
+        
+        // Remove duplicates and limit to 6
+        const uniqueOptions = [...new Set(options)];
+        const finalOptions = uniqueOptions.slice(0, 6);
+        
+        // ABSOLUTE SAFETY CHECK - never return empty array
+        if (finalOptions.length === 0) {
+            console.warn('🎯 WARNING: No options generated, using absolute fallback');
+            return [
+                'Survey the immediate area carefully', 
+                'Listen for any signs of activity', 
+                'Consider all possible approaches', 
+                'Prepare for the next challenge'
+            ];
+        }
+        
+        console.log('🎯 Generated contextual options:', finalOptions);
+        console.log('🎯 Final options count:', finalOptions.length);
+        return finalOptions;
+    }
+
+    /**
+     * Get contextual emergency options based on character and current situation
+     */
+    getContextualEmergencyOptions() {
+        console.log('🎯 Getting contextual emergency options');
+        
+        const character = gameState.getCharacter();
+        const campaign = gameState.getCampaign();
+        const currentStory = campaign.story_state || '';
+        
+        const characterClass = character?.class?.toLowerCase() || '';
+        const characterName = character?.name || 'Adventurer';
+        const storyLower = currentStory.toLowerCase();
+        
+        let options = [];
+        
+        // Add character-class specific options
+        if (characterClass.includes('hacker') || characterClass.includes('tech')) {
+            options.push(
+                'Scan for electronic signatures',
+                'Check network connectivity', 
+                'Access available systems',
+                'Monitor digital communications'
+            );
+        } else if (characterClass.includes('detective') || characterClass.includes('investigator')) {
+            options.push(
+                'Search for evidence',
+                'Question nearby witnesses',
+                'Follow the trail of clues',
+                'Document the scene'
+            );
+        } else if (characterClass.includes('rogue') || characterClass.includes('thief')) {
+            options.push(
+                'Search for hidden passages',
+                'Pick any available locks',
+                'Move silently through shadows',
+                'Look for valuable items'
+            );
+        } else if (characterClass.includes('warrior') || characterClass.includes('fighter')) {
+            options.push(
+                'Assess potential threats',
+                'Secure the perimeter',
+                'Ready weapons for combat',
+                'Take defensive position'
+            );
+        } else if (characterClass.includes('mage') || characterClass.includes('wizard')) {
+            options.push(
+                'Sense magical energies',
+                'Cast detection spells',
+                'Study arcane patterns',
+                'Prepare magical defenses'
+            );
+        }
+        
+        // Add story-context specific options
+        if (storyLower.includes('tavern') || storyLower.includes('inn')) {
+            options.push('Question the bartender', 'Eavesdrop on conversations', 'Order a drink to blend in');
+        } else if (storyLower.includes('forest') || storyLower.includes('woods')) {
+            options.push('Follow animal tracks', 'Climb a tree for better view', 'Gather useful herbs');
+        } else if (storyLower.includes('dungeon') || storyLower.includes('cave')) {
+            options.push('Check for traps ahead', 'Light a torch for visibility', 'Listen for sounds in the darkness');
+        } else if (storyLower.includes('city') || storyLower.includes('town')) {
+            options.push('Ask locals for information', 'Explore the market square', 'Find the local authorities');
+        } else if (storyLower.includes('abandoned') || storyLower.includes('ruins')) {
+            options.push('Search through the debris', 'Look for signs of recent activity', 'Test the structural integrity');
+        }
+        
+        // Always ensure we have core exploration/interaction options
+        const coreOptions = [
+            'Examine the immediate surroundings',
+            'Listen for any sounds or movement',
+            'Consider all available options',
+            'Take a moment to think strategically'
+        ];
+        
+        // Combine and ensure variety
+        const allOptions = [...options, ...coreOptions];
+        const uniqueOptions = [...new Set(allOptions)];
+        
+        // Take up to 4-5 options for emergency fallback
+        const finalOptions = uniqueOptions.slice(0, Math.min(5, uniqueOptions.length));
+        
+        // Safety check - ensure we always have at least some options
+        if (finalOptions.length === 0) {
+            console.warn('🎯 No contextual options generated, using absolute emergency fallback');
+            return [
+                'Survey the current situation',
+                'Plan the next course of action',
+                'Stay alert for any changes',
+                'Prepare for what comes next'
+            ];
+        }
+        
+        console.log('🎯 Generated contextual emergency options:', finalOptions);
+        return finalOptions;
+    }
+
     /**
      * Get difficulty description
      */
@@ -645,33 +1360,205 @@ Respond with the outcome of this action and what happens next.`;
      * Call AI API
      */
     async callAI(messages) {
+        console.log('🔥 AI CALL STARTED');
+        
+        // Use HuggingFace AI (Primary - prompt-engineered for RPG)
+        if (this.useHuggingFace && this.huggingFaceAI) {
+            console.log('🤗 USING HUGGINGFACE AI - Prompt-engineered for RPG storytelling');
+            
+            try {
+                const lastMessage = messages[messages.length - 1]?.content || '';
+                const isChoiceGeneration = lastMessage.includes('action choices') || 
+                                         lastMessage.includes('choice options') ||
+                                         lastMessage.includes('what can') ||
+                                         lastMessage.includes('options are');
+                
+                let response;
+                if (isChoiceGeneration) {
+                    const choices = await this.huggingFaceAI.generateChoices(lastMessage);
+                    response = Array.isArray(choices) ? choices.join('\n') : choices;
+                } else {
+                    response = await this.huggingFaceAI.generateStory(lastMessage, 'narrative');
+                }
+                
+                if (response && response.length > 20 && this.validateResponseLength(response, 100)) {
+                    console.log('🤗 HUGGINGFACE SUCCESS:', response.length, 'chars,', response.trim().split(/\s+/).length, 'words');
+                    return response;
+                }
+                
+                throw new Error('HuggingFace response too short or failed word count validation');
+                
+            } catch (error) {
+                console.warn('🤗 HUGGINGFACE FAILED, trying Simple AI fallback:', error);
+                // Continue to Simple AI fallback
+            }
+        }
+        
+        // Use Simple AI (Secondary - reliable fallback)
+        if (this.useSimpleAI && this.simpleAI) {
+            console.log('🎯 USING SIMPLE AI - Advanced template generation (fallback)');
+            
+            const lastMessage = messages[messages.length - 1]?.content || '';
+            const isChoiceGeneration = lastMessage.includes('action choices') || lastMessage.includes('choice options');
+            
+            try {
+                const response = await this.simpleAI.simulateAPICall(lastMessage, isChoiceGeneration ? 'choices' : 'story');
+                
+                if (isChoiceGeneration && Array.isArray(response)) {
+                    console.log('🎯 SIMPLE AI CHOICES SUCCESS:', response.length, 'choices');
+                    return response.join('\n');
+                } else if (response && this.validateResponseLength(response, 100)) {
+                    console.log('🎯 SIMPLE AI STORY SUCCESS:', response?.length, 'chars,', response.trim().split(/\s+/).length, 'words');
+                    return response;
+                } else {
+                    console.warn('🎯 SIMPLE AI response failed word count validation, falling back');
+                    throw new Error('Simple AI response too short');
+                }
+            } catch (error) {
+                console.error('🎯 Simple AI error:', error);
+                // Continue to fallback
+            }
+        }
+        
+        // Fallback to Mock AI
+        if (this.mockAI) {
+            console.log('🎭 USING MOCK AI final fallback');
+            
+            const lastMessage = messages[messages.length - 1]?.content || '';
+            const isChoiceGeneration = lastMessage.includes('action choices') || lastMessage.includes('choice options');
+            
+            try {
+                const response = await this.mockAI.simulateAPICall(lastMessage, isChoiceGeneration ? 'choices' : 'story');
+                
+                if (isChoiceGeneration && Array.isArray(response)) {
+                    return response.join('\n');
+                } else {
+                    return response;
+                }
+            } catch (error) {
+                console.error('🎭 Mock AI error:', error);
+            }
+        }
+        
+        // Ultimate fallback
+        console.log('🔥 ALL AI METHODS FAILED - USING HARDCODED FALLBACK');
+        const fallbackResponse = this.generateFallbackResponse();
+        
+        // Validate fallback response length
+        if (this.validateResponseLength(fallbackResponse, 100)) {
+            console.log('🔥 FALLBACK RESPONSE validated successfully');
+            return fallbackResponse;
+        } else {
+            console.warn('🔥 FALLBACK RESPONSE failed validation, but returning anyway as final resort');
+            return fallbackResponse;
+        }
+    }
+    
+    generateFallbackResponse() {
+        const fallbackResponses = [
+            "You step forward carefully, your eyes scanning the area for any signs of danger. The space feels different somehow - charged with possibility, but also risk. The air carries unfamiliar scents and sounds that make you pause and consider your next move more carefully. Something important is about to happen here, though you can't quite put your finger on what it might be. Your instincts tell you that whatever comes next will require both skill and a fair bit of luck to navigate successfully. The environment around you seems to be waiting, holding its breath for your decision. You can feel the weight of the moment pressing down on you, but there's no turning back now. Make a D10 roll to see how things play out!",
+            
+            "The situation develops quickly around you, forcing you to adapt to rapidly changing circumstances. What seemed straightforward moments ago has become more complex, with new variables entering the equation that you hadn't anticipated. Your training kicks in as you assess the scene, looking for advantages while staying alert to potential threats. The stakes feel higher now, and you realize that success isn't guaranteed - it's going to depend on your ability to think on your feet and maybe catch a lucky break. Time seems to slow as you focus on the task at hand, knowing that the next few moments could determine everything. Your heart beats steadily as you prepare to act, knowing that hesitation could be costly. Roll a D12 to determine the outcome of your actions!",
+            
+            "You find yourself in a pivotal moment where everything hangs in the balance. The choices you've made have led to this point, and now it's time to see how they play out. The atmosphere is tense, filled with anticipation as various forces align either for or against your success. You can sense that others - whether friend or foe - are watching closely to see what happens next. Your skills will certainly matter here, but so will fortune's favor. The path ahead isn't clear, but backing down isn't an option. You take a deep breath and steel yourself for whatever comes next, knowing that courage alone might not be enough. Cast a D20 to see what fate has in store!",
+            
+            "The moment of truth arrives faster than expected, catching you in a situation that demands quick thinking and decisive action. What started as a simple task has evolved into something more significant, with consequences that extend beyond what you initially imagined. You can feel the pressure mounting as various elements come together in ways you didn't foresee. Your experience tells you that this is one of those crucial junctures where everything can change in an instant. The smart move is to stay alert and trust your instincts, but you know that even the best-laid plans can go awry. There's a knot of tension in your stomach as you realize how much is riding on what happens next. Roll a D8 to see how your story unfolds!",
+            
+            "Things take an unexpected turn as new complications arise, demanding your immediate attention and careful consideration. The situation has shifted in ways that make your original plan seem inadequate, forcing you to improvise and adapt on the fly. You can feel the weight of responsibility on your shoulders as you realize that others might be counting on your success. The environment around you seems charged with potential energy, as if the world itself is waiting to see what you'll do next. Your pulse quickens as you weigh your options, knowing that whatever choice you make will have lasting consequences. There's no guarantee of success, but you've come too far to give up now. Make a D6 roll to determine how events unfold!",
+            
+            "You reach a critical juncture where skill, preparation, and luck must all come together if you're going to succeed. The challenge before you is real and immediate, requiring your full attention and best effort. Everything you've learned up to this point has prepared you for moments like this, though that doesn't make it any less nerve-wracking. You can sense that success is possible, but it's far from certain - there are too many variables in play to be confident of the outcome. Your hands steady as you focus on the task ahead, drawing on your training and experience while hoping that fortune will smile on your efforts. The next few moments will tell the tale. Roll a D4 to see what happens next!"
+        ];
+        
+        return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+    }
+
+    /**
+     * Show fallback dice outcome when AI fails
+     */
+    showFallbackDiceOutcome(rollData, successLevel) {
+        const result = rollData.result || rollData.total;
+        const diceType = rollData.dice || rollData.type;
+        
+        let outcomeText = '';
+        
+        if (successLevel === 'critical_success') {
+            outcomeText = `Your exceptional roll of ${result} leads to outstanding success! Everything goes better than you could have hoped, opening up new opportunities and possibilities. The favorable outcome puts you in an advantageous position moving forward.`;
+        } else if (successLevel === 'success') {
+            outcomeText = `Your solid roll of ${result} allows you to succeed in your endeavor. Things work out as you intended, and you can proceed with confidence. The positive result gives you momentum to continue.`;
+        } else if (successLevel === 'partial') {
+            outcomeText = `Your roll of ${result} produces mixed results. You achieve some of what you set out to do, but there are complications or unexpected developments that require your attention. Success comes with a twist.`;
+        } else if (successLevel === 'failure') {
+            outcomeText = `Your roll of ${result} doesn't quite get you where you wanted to go. The attempt doesn't work out as planned, forcing you to reconsider your approach or deal with the consequences of the setback.`;
+        } else if (successLevel === 'critical_failure') {
+            outcomeText = `Your unfortunate roll of ${result} leads to significant complications. Not only does your attempt fail, but it creates new challenges that you'll need to overcome. However, even failures can lead to interesting developments.`;
+        }
+        
+        const fullResponse = `${outcomeText} The adventure continues, and your next actions will be crucial in determining how things unfold. Roll a D10 to see what happens next!`;
+        
+        this.displayStoryContent(fullResponse, 'dm-response');
+        this.promptForDiceRoll(fullResponse);
+        
+        console.log('🎲 Fallback dice outcome displayed');
+    }
+    
+    async callGeminiAPI(messages) {
+        
         try {
-            const response = await fetch(this.apiUrl, {
+            // Convert OpenAI-style messages to Gemini format
+            const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
+            const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n\n');
+            
+            const combinedPrompt = systemPrompt ? `${systemPrompt}\n\n${userMessages}` : userMessages;
+            
+            const requestBody = {
+                contents: [{
+                    parts: [{
+                        text: combinedPrompt
+                    }]
+                }],
+                generationConfig: {
+                    maxOutputTokens: this.maxTokens,
+                    temperature: 0.4,
+                    topP: 0.8,
+                    topK: 40
+                }
+            };
+            
+            console.log('🔥 Request body size:', JSON.stringify(requestBody).length);
+            console.log('🔥 Combined prompt (first 200 chars):', combinedPrompt.substring(0, 200));
+            
+            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    model: this.model,
-                    messages: messages,
-                    max_tokens: this.maxTokens,
-                    temperature: 0.4, // Lower temperature for more focused, consistent responses
-                    stream: false
-                })
+                body: JSON.stringify(requestBody)
             });
             
+            console.log('🔥 API Response Status:', response.status);
+            console.log('🔥 API Response OK:', response.ok);
+            
             if (!response.ok) {
-                throw new Error(`AI API error: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('🔥 API Error Response:', errorText);
+                throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
             }
             
             const data = await response.json();
-            const content = data.choices?.[0]?.message?.content;
+            console.log('🔥 API Response Data Keys:', Object.keys(data));
+            console.log('🔥 API Response Candidates Count:', data.candidates?.length);
+            
+            const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            console.log('🔥 API Response Content Length:', content?.length);
+            console.log('🔥 API Response Content (first 200 chars):', content?.substring(0, 200));
+            console.log('🔥 API Response Content (last 200 chars):', content?.substring(Math.max(0, (content?.length || 0) - 200)));
             
             if (!content) {
-                throw new Error('No content in AI response');
+                console.error('🔥 No content in Gemini response, full data:', data);
+                throw new Error('No content in Gemini response');
             }
             
-            // Add to conversation history
+            // Add to conversation history (keep original format for compatibility)
             this.conversationHistory.push(...messages, {
                 role: 'assistant',
                 content: content
@@ -680,10 +1567,12 @@ Respond with the outcome of this action and what happens next.`;
             // Trim history if too long
             this.trimConversationHistory();
             
+            console.log('🔥 GEMINI API CALL COMPLETED SUCCESSFULLY');
             return content;
             
         } catch (error) {
-            logger.error('AI API call failed:', error);
+            console.error('🔥 GEMINI API CALL FAILED:', error);
+            logger.error('Gemini API call failed:', error);
             throw error;
         }
     }
@@ -711,19 +1600,22 @@ Respond with the outcome of this action and what happens next.`;
         
         // Only apply filtering to AI responses, not player actions or dice results
         if (type === 'dm-response' && content && content.length > 0) {
-            console.log('Original AI content:', content);
-            displayContent = this.filterMetaCommentary(content);
-            console.log('Filtered content:', displayContent);
+            console.log('=== DISPLAY STORY CONTENT DEBUG ===');
+            console.log('Original AI content length:', content.length);
+            console.log('Original AI content (first 100 chars):', content.substring(0, 100));
+            console.log('Original AI content (last 100 chars):', content.substring(Math.max(0, content.length - 100)));
             
-            // Final validation - if it still starts with meta language, try emergency extraction
-            if (this.startsWithMetaLanguage(displayContent)) {
-                console.warn('Content still contains meta-language after filtering, attempting emergency extraction');
-                const extracted = this.emergencyStoryExtraction(content);
-                if (extracted && extracted.length > 20) {
-                    displayContent = extracted;
-                    console.log('Emergency extracted content:', displayContent);
-                }
-            }
+            // TEMPORARY: Skip all filtering to test if that's causing truncation
+            console.log('SKIPPING FILTERING FOR TRUNCATION TEST');
+            displayContent = content;
+            
+            // Only do basic cleanup
+            displayContent = displayContent.trim();
+            
+            console.log('Display content length:', displayContent.length);
+            console.log('Display content (first 100 chars):', displayContent.substring(0, 100));
+            console.log('Display content (last 100 chars):', displayContent.substring(Math.max(0, displayContent.length - 100)));
+            console.log('=== END DISPLAY DEBUG ===');
         }
         
         const messageElement = createElement('div', {
@@ -731,7 +1623,13 @@ Respond with the outcome of this action and what happens next.`;
             innerHTML: formatText(displayContent)
         });
         
+        console.log('Created message element innerHTML length:', messageElement.innerHTML.length);
+        console.log('Created message element innerHTML (first 100 chars):', messageElement.innerHTML.substring(0, 100));
+        
         storyContent.appendChild(messageElement);
+        
+        console.log('After appending - storyContent children count:', storyContent.children.length);
+        console.log('After appending - last child innerHTML length:', storyContent.lastElementChild?.innerHTML.length);
         
         // Scroll to bottom
         const storyDisplay = document.getElementById('story-display');
@@ -799,56 +1697,154 @@ Respond with the outcome of this action and what happens next.`;
     filterMetaCommentary(content) {
         if (!content || typeof content !== 'string') return content;
         
-        // TEMPORARILY DISABLED - return original content to debug truncation
-        console.log('Original content length:', content.length);
-        console.log('Full original content:', content);
-        return content;
+        console.log('Filter input - Original content length:', content.length);
+        console.log('Filter input - Full original content:', content);
+        
+        // Re-enable smart filtering now that AI is generating good content
+        // First, try to find the actual story content and extract everything from that point
+        const storyStart = this.findStoryStart(content);
+        if (storyStart && storyStart.index >= 0) {
+            const extractedContent = content.substring(storyStart.index).trim();
+            console.log('Found story content at index:', storyStart.index);
+            console.log('Extracted story content length:', extractedContent.length);
+            console.log('Extracted story content:', extractedContent);
+            
+            // Clean up the extracted content by removing any remaining meta sentences
+            let cleaned = extractedContent;
+            
+            // Remove specific meta sentences that might be mixed in
+            const quickFilters = [
+                /^Okay,.*$/gm,
+                /^So,.*$/gm,
+                /^Wait,.*$/gm,
+                /^Also,.*$/gm,
+                /^Maybe.*$/gm,
+                /^I should.*$/gm,
+                /^I need.*$/gm,
+                /^Need to.*$/gm,
+                /^Don't forget.*$/gm,
+                /^Consider.*$/gm,
+                /.*?(the player|the user).*$/gm,
+            ];
+            
+            quickFilters.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, '');
+            });
+            
+            cleaned = cleaned
+                .replace(/\n\s*\n\s*\n+/g, '\n\n')
+                .trim();
+            
+            if (cleaned.length > 50) {
+                console.log('Final cleaned content length:', cleaned.length);
+                console.log('Final cleaned content:', cleaned);
+                return cleaned;
+            }
+        }
+        
+        // If story extraction failed, fall back to aggressive filtering
+        console.warn('Story extraction failed, using aggressive filtering');
+        
+        let filtered = content;
+        
+        // Remove entire paragraphs that contain planning/meta language
+        const metaPatterns = [
+            // Remove paragraphs starting with meta language
+            /^Okay,[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^So,[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Wait,[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Also,[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Maybe[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^I should[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^I need[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Need to[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Don't forget[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^Consider[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^The player[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+            /^The story[\s\S]*?(?=\n\n|\n[A-Z][a-z]|$)/gm,
+        ];
+        
+        // Apply filters
+        metaPatterns.forEach(pattern => {
+            filtered = filtered.replace(pattern, '');
+        });
+        
+        // Clean up extra whitespace
+        filtered = filtered
+            .replace(/\n\s*\n\s*\n+/g, '\n\n')
+            .trim();
+        
+        // If nothing readable remains, return fallback
+        if (!filtered || filtered.length < 50) {
+            console.warn('Content was mostly meta-commentary, using fallback');
+            filtered = "You examine the situation carefully. The environment around you holds secrets waiting to be discovered. What do you do next?";
+        }
+        
+        console.log('Final filtered content length:', filtered.length);
+        console.log('Final filtered content:', filtered);
+        return filtered;
     }
     
     /**
-     * Generate action options based on current context
+     * Find where the actual story content starts
+     */
+    findStoryStart(content) {
+        const storyMarkers = [
+            // Look for story beginnings
+            { pattern: /The neon glow/i, priority: 1 },
+            { pattern: /The (heavy|wooden|metal|steel|old|ancient) (door|gate|entrance)/i, priority: 1 },
+            { pattern: /As you (examine|look|approach|move|step)/i, priority: 1 },
+            { pattern: /You (see|hear|feel|smell|taste|notice|find|discover)/i, priority: 1 },
+            { pattern: /The (air|room|space|corridor|hallway) (smells|feels|sounds)/i, priority: 1 },
+            { pattern: /^(The|A|An) [a-z]+ (fills|drowns|casts|flickers|hums|echoes|glows|shimmers)/i, priority: 2 },
+            { pattern: /^Suddenly,/i, priority: 2 },
+            { pattern: /[A-Z][a-z]+ (appears|emerges|steps|walks|runs|speaks|whispers|shouts)/i, priority: 3 },
+        ];
+        
+        let bestMatch = null;
+        
+        for (let marker of storyMarkers) {
+            const match = content.match(marker.pattern);
+            if (match) {
+                const index = content.indexOf(match[0]);
+                if (!bestMatch || marker.priority < bestMatch.priority || index < bestMatch.index) {
+                    bestMatch = {
+                        index: index,
+                        match: match[0],
+                        priority: marker.priority
+                    };
+                }
+            }
+        }
+        
+        return bestMatch;
+    }
+    
+    /**
+     * Generate action options based on current context (LEGACY METHOD - now uses Choice AI)
      */
     async generateActionOptions() {
+        console.log('🔄 Legacy generateActionOptions called - redirecting to Choice AI...');
+        
         const actionButtons = document.getElementById('action-buttons');
         if (!actionButtons) return;
         
-        // Clear existing buttons
+        // Show loading state
         actionButtons.innerHTML = '<div class="generating-options">Generating new options...</div>';
         
         try {
             // Get current story context
             const campaign = gameState.getCampaign();
-            const character = gameState.getCharacter();
             const currentStory = campaign.story_state || '';
-            
-            // Generate contextual options based on the story
-            const options = await this.generateContextualOptions(currentStory, character, campaign);
-            
-            // Display the new options
-            actionButtons.innerHTML = options.map(option => `
-                <button class="action-btn" data-action="${option}">
-                    ${option}
-                </button>
-            `).join('');
-            
-            // Bind click events
-            actionButtons.querySelectorAll('.action-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const action = btn.dataset.action;
-                    
-                    // Don't disable all buttons - let the coordination system handle state
-                    eventBus.emit('player:action', { action });
-                });
-            });
-            
-            // Apply current action state styling after buttons are created
-            this.updateActionButtonStates();
+
+            // Action buttons removed - players now type their actions directly
+            console.log('🎯 Action choice generation disabled - players type actions');
             
         } catch (error) {
-            console.error('Failed to generate action options:', error);
+            console.error('Failed to generate action options via Choice AI:', error);
             
-            // Fallback to generic options
-            this.generateFallbackOptions(actionButtons);
+            // Action buttons removed - no need for fallback options
+            console.log('🎯 Fallback action buttons disabled - players type actions');
         }
     }
     
@@ -956,6 +1952,63 @@ Respond with the outcome of this action and what happens next.`;
     /**
      * Show typing indicator
      */
+    showProgressiveLoadingText() {
+        const storyContent = document.getElementById('story-content');
+        if (!storyContent) return;
+        
+        // Remove any existing loading messages
+        const existingLoading = storyContent.querySelectorAll('.loading-message');
+        existingLoading.forEach(msg => msg.remove());
+        
+        // Create loading message element
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'story-entry loading-message';
+        loadingDiv.innerHTML = `
+            <div class="entry-content loading-text">
+                <span class="loading-dots">🎲</span>
+                <span id="loading-text-content">The story unfolds...</span>
+            </div>
+        `;
+        
+        storyContent.appendChild(loadingDiv);
+        storyContent.scrollTop = storyContent.scrollHeight;
+        
+        // Progressive loading messages
+        const loadingMessages = [
+            "The story unfolds...",
+            "Consulting the ancient tomes...",
+            "The dice are rolling...",
+            "Magic weaves through reality...",
+            "Your fate takes shape...",
+            "The adventure continues...",
+            "Epic moments await..."
+        ];
+        
+        let messageIndex = 0;
+        this.loadingInterval = setInterval(() => {
+            const textElement = document.getElementById('loading-text-content');
+            if (textElement && messageIndex < loadingMessages.length - 1) {
+                messageIndex++;
+                textElement.textContent = loadingMessages[messageIndex];
+            }
+        }, 1500);
+    }
+    
+    hideProgressiveLoadingText() {
+        // Clear the loading interval
+        if (this.loadingInterval) {
+            clearInterval(this.loadingInterval);
+            this.loadingInterval = null;
+        }
+        
+        // Remove loading messages
+        const storyContent = document.getElementById('story-content');
+        if (storyContent) {
+            const loadingMessages = storyContent.querySelectorAll('.loading-message');
+            loadingMessages.forEach(msg => msg.remove());
+        }
+    }
+
     showTypingIndicator() {
         const storyContent = document.getElementById('story-content');
         if (!storyContent) return;
@@ -983,6 +2036,9 @@ Respond with the outcome of this action and what happens next.`;
         if (indicator) {
             indicator.remove();
         }
+        
+        // Also hide progressive loading text
+        this.hideProgressiveLoadingText();
     }
     
     /**
@@ -1006,15 +2062,22 @@ Respond with the outcome of this action and what happens next.`;
      * Show fallback response when AI fails
      */
     showFallbackResponse(action) {
-        const fallbackContent = `
-            You ${action.toLowerCase()}. The world responds to your actions in ways both expected and surprising.
-            Your choice has set new events in motion.
-            
-            What do you do next?
-        `;
+        console.log('🔥 SHOWING FALLBACK RESPONSE for action:', action);
         
-        this.displayStoryContent(fallbackContent, 'dm-response');
-        this.generateActionOptions();
+        const fallbackContent = this.generateFallbackResponse();
+        
+        // Display the action and fallback story
+        this.displayStoryContent(action, 'player-action');
+        
+        setTimeout(async () => {
+            this.displayStoryContent(fallbackContent, 'dm-response');
+            
+            // Always prompt for dice roll after fallback response
+            this.promptForDiceRoll(fallbackContent);
+            
+            // Action buttons removed - players now type their actions directly
+            console.log('🔥 Fallback action buttons disabled - players type actions');
+        }, 1000);
         
         showToast('AI temporarily unavailable, using fallback response', 'warning');
     }
@@ -1022,6 +2085,22 @@ Respond with the outcome of this action and what happens next.`;
 
 // Initialize AI manager
 const aiManager = new AIManager();
+
+// Add global debug function for browser console testing
+window.testAI = async function() {
+    console.log('🔧 GLOBAL AI TEST FUNCTION CALLED');
+    if (aiManager) {
+        return await aiManager.debugTest();
+    } else {
+        console.error('🔧 AI Manager not available');
+        return null;
+    }
+};
+
+// Also add direct access to aiManager for debugging
+window.aiManager = aiManager;
+
+console.log('🔧 AI SYSTEM LOADED - Type testAI() in console to test');
 
 // Export to global scope
 window.aiManager = aiManager;

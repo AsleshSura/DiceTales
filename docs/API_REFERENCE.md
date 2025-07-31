@@ -1,261 +1,320 @@
 # DiceTales API Reference
 
-## Overview
-This document provides a comprehensive API reference for all classes, methods, and functions in the DiceTales application.
+Complete code documentation for developers working with the DiceTales codebase.
 
----
+## 📋 Table of Contents
 
-## 🎮 Core Application
+- [Core Classes](#core-classes)
+- [AI System](#ai-system)
+- [Game Logic](#game-logic)
+- [Utility Functions](#utility-functions)
+- [Configuration](#configuration)
+- [Events](#events)
 
-### DiceTalesApp (main.js)
-Main application controller that coordinates all game systems.
+## 🎮 Core Classes
+
+### GameController
+**File**: `js/main.js`
+**Purpose**: Main game coordinator and initialization
 
 #### Constructor
 ```javascript
-new DiceTalesApp()
+new GameController()
 ```
 
 #### Methods
 
 ##### `async init()`
-Initializes the application and all subsystems.
-- **Returns**: `Promise<void>`
-- **Throws**: Error if initialization fails
+Initializes the game system and loads saved state.
+```javascript
+await gameController.init();
+```
 
-##### `showScreen(screenName)`
-Transitions to a specific screen.
-- **Parameters**: `screenName` (string) - Screen identifier
-- **Returns**: `void`
+##### `startNewGame()`
+Begins a new adventure with character creation.
+```javascript
+gameController.startNewGame();
+```
 
-##### `async startNewCampaign(character)`
-Starts a new campaign with the provided character.
-- **Parameters**: `character` (object) - Character data
-- **Returns**: `Promise<void>`
+##### `async processChoice(choiceIndex, choiceText)`
+Processes player choice and generates next story segment.
+```javascript
+await gameController.processChoice(0, "Search the ancient ruins");
+```
+- **Parameters**:
+  - `choiceIndex` (number): Index of chosen option
+  - `choiceText` (string): Text of the chosen action
+- **Returns**: Promise resolving to updated game state
 
-##### `showError(message)`
-Displays an error dialog to the user.
-- **Parameters**: `message` (string) - Error message
-- **Returns**: `void`
+##### `rollDice(statName = null)`
+Performs a D20 roll with optional stat modifier.
+```javascript
+const result = gameController.rollDice('strength');
+// Returns: { roll: 15, modifier: 3, total: 18, isCritical: false }
+```
 
 ---
 
-## 👤 Character Management
+## 🤖 AI System
 
-### CharacterManager (character.js)
-Handles character creation and management.
+### HuggingFaceAI
+**File**: `js/huggingfaceAI.js`
+**Purpose**: Primary AI service using HuggingFace Inference API
 
 #### Constructor
 ```javascript
-new CharacterManager()
+new HuggingFaceAI()
 ```
 
 #### Properties
-- `currentStep` (number) - Current creation step (0-3)
-- `steps` (Array) - Step names ['setting', 'class', 'stats', 'details']
-- `pointBuyPoints` (number) - Available stat points (27)
-- `settings` (object) - Campaign settings data
-- `classes` (object) - Character class data
+```javascript
+{
+    baseUrl: 'https://api-inference.huggingface.co/models/',
+    modelQueue: [
+        'microsoft/DialoGPT-large',
+        'microsoft/DialoGPT-medium',
+        'gpt2-large',
+        'gpt2',
+        'distilgpt2'
+    ],
+    currentModel: 'microsoft/DialoGPT-large',
+    isReady: false,
+    retryCount: 0,
+    maxRetries: 3
+}
+```
 
 #### Methods
 
-##### `showCharacterCreation()`
-Displays the character creation interface.
-- **Returns**: `void`
-- **Side Effects**: Creates UI elements, updates game state
+##### `async generateStory(context, type = 'narrative')`
+Generates story continuation using AI.
+```javascript
+const story = await huggingfaceAI.generateStory(
+    "You enter a dark forest...", 
+    'narrative'
+);
+```
+- **Parameters**:
+  - `context` (string): Current story context
+  - `type` (string): 'narrative', 'character', or 'choice'
+- **Returns**: Promise resolving to generated story text
 
-##### `nextStep()`
-Advances to the next step in character creation.
-- **Returns**: `boolean` - Success status
-- **Validation**: Validates current step before advancing
+##### `async generateChoices(context)`
+Generates action choices for the player.
+```javascript
+const choices = await huggingfaceAI.generateChoices(
+    "You stand before a locked door..."
+);
+// Returns: ["Force the door open", "Search for a key", ...]
+```
 
-##### `prevStep()`
-Returns to the previous step.
-- **Returns**: `void`
+##### `async makeRequest(prompt, options = {})`
+Low-level API request to HuggingFace.
+```javascript
+const response = await huggingfaceAI.makeRequest(
+    "Continue this story: ...",
+    { max_length: 400, temperature: 0.8 }
+);
+```
+- **Parameters**:
+  - `prompt` (string): Text prompt for AI
+  - `options` (object): Generation parameters
+- **Returns**: Promise resolving to raw AI response
 
-##### `completeCreation()`
-Finalizes character creation and starts the game.
-- **Returns**: `void`
-- **Emits**: `characterCreated` event
+### SimpleAI
+**File**: `js/simpleAI.js`
+**Purpose**: Template-based AI fallback system
 
-##### `calculateRemainingPoints()`
-Calculates remaining points in point-buy system.
-- **Returns**: `number` - Points remaining
-- **Formula**: `27 - sum(getStatCost(statValue))`
+#### Constructor
+```javascript
+new SimpleAI()
+```
 
-##### `getStatCost(statValue)`
-Returns point cost for a stat value.
-- **Parameters**: `statValue` (number) - Stat value (8-15)
-- **Returns**: `number` - Point cost (0-9)
+#### Methods
 
-##### `adjustStat(statName, delta)`
-Adjusts a character's ability score.
-- **Parameters**: 
-  - `statName` (string) - Stat name ('str', 'dex', etc.)
-  - `delta` (number) - Change amount (+1 or -1)
-- **Returns**: `boolean` - Success status
+##### `generateStory(context, type, characterStats)`
+Generates story using templates and context analysis.
+```javascript
+const story = simpleAI.generateStory(
+    "Ancient temple context...",
+    'narrative',
+    character.stats
+);
+```
+
+##### `generateChoices(context, characterStats)`
+Creates contextual choices based on situation and character.
+```javascript
+const choices = simpleAI.generateChoices(context, character.stats);
+```
+
+##### `analyzeContext(context)`
+Determines scenario type from story context.
+```javascript
+const scenario = simpleAI.analyzeContext("You hear footsteps approaching...");
+// Returns: { type: 'danger', confidence: 0.8, keywords: ['footsteps', 'approaching'] }
+```
+
+### MockAI
+**File**: `js/mockAI.js`
+**Purpose**: Hardcoded fallback responses
+
+#### Methods
+
+##### `generateStory(context, type)`
+Returns pre-written story segments.
+```javascript
+const story = mockAI.generateStory(context, 'narrative');
+```
+
+##### `generateChoices(context)`
+Returns generic but appropriate action choices.
+```javascript
+const choices = mockAI.generateChoices(context);
+```
 
 ---
 
-## 🎲 Dice System
+## 🎲 Game Logic
 
-### DiceSystem (dice.js)
-3D dice rolling system with physics and animations.
+### Character
+**File**: `js/character.js`
+**Purpose**: Character stats, progression, and abilities
+
+#### Constructor
+```javascript
+new Character(name, initialStats = null)
+```
+
+#### Properties
+```javascript
+{
+    name: "Hero Name",
+    stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+    },
+    hp: 12,
+    maxHP: 12,
+    xp: 0,
+    level: 1,
+    inventory: []
+}
+```
+
+#### Methods
+
+##### `getStatModifier(statName)`
+Calculates D&D-style ability modifier.
+```javascript
+const modifier = character.getStatModifier('strength');
+// For STR 16: returns +3
+```
+- **Formula**: `Math.floor((stat - 10) / 2)`
+
+##### `getMaxHP()`
+Calculates maximum hit points.
+```javascript
+const maxHP = character.getMaxHP();
+```
+- **Formula**: `10 + (CON modifier * 2)`
+
+##### `addXP(amount)`
+Adds experience and handles level ups.
+```javascript
+character.addXP(50);
+```
+
+##### `levelUp()`
+Increases level and allows stat improvement.
+```javascript
+character.levelUp();
+```
+
+##### `takeDamage(amount)`
+Reduces hit points and handles death.
+```javascript
+const isAlive = character.takeDamage(8);
+```
+
+##### `heal(amount)`
+Restores hit points up to maximum.
+```javascript
+character.heal(5);
+```
+
+##### `addItem(item)`
+Adds item to inventory.
+```javascript
+character.addItem({
+    name: "Magic Sword",
+    type: "weapon",
+    bonus: 2,
+    description: "A glowing blade"
+});
+```
+
+### DiceSystem
+**File**: `js/dice.js`
+**Purpose**: Dice rolling and success determination
 
 #### Constructor
 ```javascript
 new DiceSystem()
 ```
 
-#### Properties
-- `availableDice` (object) - Dictionary of dice types
-- `selectedDice` (Array) - Currently selected dice
-- `rollHistory` (Array) - History of all rolls
-- `isRolling` (boolean) - Current rolling state
-
 #### Methods
 
-##### `async rollDice()`
-Rolls all selected dice with animations.
-- **Returns**: `Promise<Array>` - Array of roll results
-- **Animation**: 2-second dice rolling animation
-
-##### `rollSingleDie(diceType)`
-Rolls a single die and returns result.
-- **Parameters**: `diceType` (string) - Die type ('d4', 'd6', etc.)
-- **Returns**: `object` - Roll result
+##### `rollD20(statModifier = 0, bonus = 0)`
+Performs a D20 roll with modifiers.
 ```javascript
-{
-    dice: 'd20',
-    sides: 20,
-    value: 15,
-    timestamp: '2025-07-30T12:34:56.789Z',
-    critical: false,
-    fumble: false
-}
+const result = diceSystem.rollD20(3, 2); // +3 stat, +2 bonus
+// Returns: {
+//     roll: 15,          // Natural die roll (1-20)
+//     modifier: 5,       // Total modifiers applied
+//     total: 20,         // Final result
+//     isCritical: false, // Natural 20?
+//     isFumble: false    // Natural 1?
+// }
 ```
 
-##### `toggleDiceSelection(diceType)`
-Toggles selection of a dice type.
-- **Parameters**: `diceType` (string) - Die type to toggle
-- **Returns**: `void`
-- **Side Effects**: Updates UI, saves preferences
-
-##### `playDiceSound(diceTypes)`
-Plays audio for dice rolling.
-- **Parameters**: `diceTypes` (Array) - Types of dice being rolled
-- **Returns**: `void`
-
----
-
-## 🤖 AI Integration
-
-### AIManager (ai.js)
-HackClub AI integration for dynamic storytelling.
-
-#### Constructor
+##### `checkSuccess(total, difficultyClass = 15)`
+Determines success level against difficulty.
 ```javascript
-new AIManager()
+const check = diceSystem.checkSuccess(18, 15);
+// Returns: {
+//     success: true,
+//     degree: 'success',  // 'critical', 'excellent', 'success', 'partial', 'failure'
+//     margin: 3           // Amount over/under target
+// }
 ```
 
-#### Properties
-- `apiUrl` (string) - AI API endpoint
-- `model` (string) - AI model identifier
-- `conversationHistory` (Array) - Conversation context
-- `maxTokens` (number) - Maximum response tokens
-- `initialized` (boolean) - Initialization status
-
-#### Methods
-
-##### `async initialize()`
-Initializes the AI system and tests connectivity.
-- **Returns**: `Promise<void>`
-- **Fallback**: Continues in offline mode on failure
-
-##### `async startCampaign()`
-Generates opening narrative for new campaign.
-- **Returns**: `Promise<void>`
-- **Context**: Uses character and campaign data
-- **Fallback**: Uses `showFallbackStart()` if AI unavailable
-
-##### `async processPlayerAction(actionData)`
-Processes player actions and generates responses.
-- **Parameters**: `actionData` (object) - Action information
+##### `rollMultiple(count, sides = 20)`
+Rolls multiple dice.
 ```javascript
-{
-    action: "I examine the mysterious rune",
-    character: characterData,
-    context: situationContext
-}
-```
-- **Returns**: `Promise<void>`
-
-##### `async processDiceRoll(rollData)`
-Generates narrative responses to dice rolls.
-- **Parameters**: `rollData` (object) - Dice roll results
-- **Returns**: `Promise<void>`
-- **Integration**: Interprets roll results in story context
-
-##### `buildSystemPrompt()`
-Constructs AI system prompt with game context.
-- **Returns**: `string` - Complete system prompt
-- **Context**: Character stats, campaign setting, difficulty
-
----
-
-## 🔊 Audio System
-
-### AudioManager (audio.js)
-Web Audio API integration for music and sound effects.
-
-#### Constructor
-```javascript
-new AudioManager()
+const rolls = diceSystem.rollMultiple(3, 6); // 3d6
+// Returns: { rolls: [4, 2, 6], total: 12 }
 ```
 
-#### Properties
-- `audioContext` (AudioContext) - Web Audio API context
-- `musicVolume` (number) - Background music volume (0-1)
-- `sfxVolume` (number) - Sound effects volume (0-1)
-- `musicEnabled` (boolean) - Music enabled state
-- `initialized` (boolean) - Initialization status
+##### `rollWithAdvantage(statModifier = 0)`
+Rolls twice, takes higher result.
+```javascript
+const result = diceSystem.rollWithAdvantage(2);
+```
 
-#### Methods
+##### `rollWithDisadvantage(statModifier = 0)`
+Rolls twice, takes lower result.
+```javascript
+const result = diceSystem.rollWithDisadvantage(2);
+```
 
-##### `async init()`
-Initializes Web Audio API after user interaction.
-- **Returns**: `Promise<void>`
-- **Browser Policy**: Waits for user gesture
-- **Auto-start**: Begins background music if enabled
-
-##### `playSFX(soundType)`
-Plays synthesized sound effects.
-- **Parameters**: `soundType` (string) - Sound type
-- **Available Types**: 'click', 'dice', 'success', 'error', 'levelup'
-- **Returns**: `void`
-
-##### `startBackgroundMusic(theme = 'default')`
-Starts themed background music.
-- **Parameters**: `theme` (string) - Music theme
-- **Themes**: 'default', 'adventure', 'combat', 'mystery', 'victory'
-- **Returns**: `void`
-
-##### `setMusicVolume(volume)`
-Sets background music volume.
-- **Parameters**: `volume` (number) - Volume level (0.0-1.0)
-- **Returns**: `void`
-- **Persistence**: Saves to game settings
-
-##### `setSFXVolume(volume)`
-Sets sound effects volume.
-- **Parameters**: `volume` (number) - Volume level (0.0-1.0)
-- **Returns**: `void`
-
----
-
-## 💾 Game State Management
-
-### GameState (gameState.js)
-Centralized state management with persistence.
+### GameState
+**File**: `js/gameState.js`
+**Purpose**: Game state management and persistence
 
 #### Constructor
 ```javascript
@@ -263,308 +322,418 @@ new GameState()
 ```
 
 #### Properties
-- `state` (object) - Complete game state
-- `version` (string) - State version for migration
-- `saveKey` (string) - LocalStorage key
-- `autoSaveInterval` (number) - Auto-save timer
+```javascript
+{
+    currentStory: "",
+    storyHistory: [],
+    character: null,
+    currentChoices: [],
+    gameStartTime: Date.now(),
+    turnCount: 0,
+    lastSaveTime: null
+}
+```
 
 #### Methods
 
-##### `get(path, defaultValue = null)`
-Retrieves nested state values using dot notation.
-- **Parameters**: 
-  - `path` (string) - Dot-separated path
-  - `defaultValue` (any) - Default if not found
-- **Returns**: `any` - Retrieved value
-- **Example**: `gameState.get('character.stats.str', 10)`
-
-##### `set(path, value)`
-Sets nested state values using dot notation.
-- **Parameters**: 
-  - `path` (string) - Dot-separated path
-  - `value` (any) - Value to set
-- **Returns**: `void`
-- **Side Effects**: Triggers auto-save
-
-##### `getCharacter()`
-Returns complete character object.
-- **Returns**: `object` - Character data
-- **Structure**: Name, class, level, stats, health, etc.
-
-##### `setCharacter(characterData)`
-Updates character data.
-- **Parameters**: `characterData` (object) - Character information
-- **Returns**: `void`
-- **Validation**: Validates character data structure
-
-##### `getCampaign()`
-Returns complete campaign object.
-- **Returns**: `object` - Campaign data
-- **Structure**: Setting, difficulty, story state, NPCs, etc.
-
-##### `addToCampaignLog(entry)`
-Adds entry to campaign history.
-- **Parameters**: `entry` (object) - Log entry
-```javascript
-{
-    type: 'story_event',
-    content: 'Event description',
-    timestamp: 'ISO timestamp',
-    character: 'Character name'
-}
-```
-- **Returns**: `void`
-
 ##### `save()`
-Manually saves state to localStorage.
-- **Returns**: `boolean` - Success status
-- **Error Handling**: Graceful failure handling
+Saves current game state to LocalStorage.
+```javascript
+gameState.save();
+```
 
 ##### `load()`
-Loads state from localStorage.
-- **Returns**: `void`
-- **Migration**: Handles version migrations
+Loads game state from LocalStorage.
+```javascript
+const success = gameState.load();
+```
+
+##### `addToHistory(story, choice, result)`
+Records story event in history.
+```javascript
+gameState.addToHistory(
+    "You explore the cave...",
+    "Search for treasure",
+    { success: true, xpGained: 25 }
+);
+```
+
+##### `reset()`
+Clears all game data.
+```javascript
+gameState.reset();
+```
+
+##### `exportSave()`
+Exports save data as JSON string.
+```javascript
+const saveData = gameState.exportSave();
+```
+
+##### `importSave(saveData)`
+Imports save data from JSON string.
+```javascript
+const success = gameState.importSave(jsonString);
+```
 
 ---
 
-## 🎨 UI Management
+## 🎨 User Interface
 
-### UIManager (ui.js)
-User interface management and animations.
+### UIManager
+**File**: `js/ui.js`
+**Purpose**: User interface updates and interactions
 
 #### Constructor
 ```javascript
 new UIManager()
 ```
 
-#### Properties
-- `currentScreen` (string) - Active screen
-- `animations` (Map) - Active animations
-- `modals` (Map) - Open modals
-- `components` (Map) - UI components
+#### Methods
+
+##### `updateStory(storyText, animated = true)`
+Updates the main story display.
+```javascript
+uiManager.updateStory("A new chapter begins...", true);
+```
+
+##### `updateChoices(choices)`
+Renders choice buttons.
+```javascript
+uiManager.updateChoices([
+    "Attack with sword",
+    "Cast a spell",
+    "Try to negotiate",
+    "Flee the scene"
+]);
+```
+
+##### `updateCharacterSheet(character)`
+Updates character stats display.
+```javascript
+uiManager.updateCharacterSheet(character);
+```
+
+##### `showDiceResult(result, animated = true)`
+Displays dice roll result.
+```javascript
+uiManager.showDiceResult({
+    roll: 18,
+    total: 23,
+    isCritical: false
+}, true);
+```
+
+##### `showNotification(message, type = 'info')`
+Shows temporary notification.
+```javascript
+uiManager.showNotification("Level up!", 'success');
+// Types: 'info', 'success', 'warning', 'error'
+```
+
+##### `showModal(title, content, buttons = [])`
+Displays modal dialog.
+```javascript
+uiManager.showModal(
+    "Character Creation",
+    "Distribute your stat points...",
+    [
+        { text: "Confirm", callback: () => { /* ... */ } },
+        { text: "Cancel", callback: () => { /* ... */ } }
+    ]
+);
+```
+
+### AudioManager
+**File**: `js/audio.js`
+**Purpose**: Sound effects and music management
+
+#### Constructor
+```javascript
+new AudioManager()
+```
 
 #### Methods
 
-##### `showScreen(screenId, options = {})`
-Transitions to a specific screen.
-- **Parameters**: 
-  - `screenId` (string) - Target screen
-  - `options` (object) - Transition options
-- **Returns**: `Promise<void>`
-- **Animation**: Smooth screen transitions
-
-##### `animate(element, animationType, options = {})`
-Applies animation to DOM elements.
-- **Parameters**: 
-  - `element` (HTMLElement) - Target element
-  - `animationType` (string) - Animation type
-  - `options` (object) - Animation options
-- **Returns**: `Promise<void>`
-- **Types**: 'fadeIn', 'slideIn', 'scaleIn', 'bounce', etc.
-
-##### `showModal(modalId, content, options = {})`
-Displays modal dialog.
-- **Parameters**: 
-  - `modalId` (string) - Unique modal ID
-  - `content` (string|HTMLElement) - Modal content
-  - `options` (object) - Modal configuration
-- **Returns**: `void`
-
-##### `createButton(text, options = {})`
-Creates styled button component.
-- **Parameters**: 
-  - `text` (string) - Button text
-  - `options` (object) - Button options
-- **Returns**: `HTMLElement` - Button element
-- **Options**: type, size, disabled, icon, onClick
-
----
-
-## 🛠️ Utility Functions
-
-### Core Utilities (utils.js)
-Common helper functions used throughout the application.
-
-#### Random Generation
+##### `playSound(soundName, volume = 1.0)`
+Plays a sound effect.
 ```javascript
-randomInt(min, max)                    // Random integer in range
-generateId(prefix)                     // Unique identifier
-generateRandomName(setting)            // Random name for setting
+audioManager.playSound('dice_roll', 0.7);
 ```
 
-#### Data Manipulation
+##### `playMusic(trackName, loop = true)`
+Plays background music.
 ```javascript
-deepClone(obj)                         // Deep object cloning
-safeJsonParse(jsonString, fallback)    // Safe JSON parsing
-debounce(func, wait)                   // Function debouncing
-throttle(func, limit)                  // Function throttling
+audioManager.playMusic('tavern_theme', true);
 ```
 
-#### D&D Mechanics
+##### `stopAll()`
+Stops all audio.
 ```javascript
-getAbilityModifier(score)              // Calculate ability modifier
-formatModifier(modifier)               // Format modifier for display
-getExperienceForLevel(level)           // Experience required for level
-getLevelFromExperience(exp)            // Calculate level from XP
+audioManager.stopAll();
 ```
 
-#### DOM Utilities
+##### `setMasterVolume(volume)`
+Sets overall volume level.
 ```javascript
-createElement(tag, attributes, content) // Create HTML elements
-sanitizeHtml(html)                     // XSS prevention
-showToast(message, type, duration)     // Toast notifications
-animateElement(element, class, duration) // CSS animations
-```
-
-#### Storage Utilities
-```javascript
-storage.set(key, value)                // Safe localStorage write
-storage.get(key, defaultValue)         // Safe localStorage read
-storage.remove(key)                    // Remove from localStorage
-storage.clear()                        // Clear all localStorage
-```
-
-### Event System
-```javascript
-eventBus.on(event, callback)           // Subscribe to event
-eventBus.emit(event, data)             // Emit event
-eventBus.off(event, callback)          // Unsubscribe
-eventBus.once(event, callback)         // One-time subscription
-```
-
-### Performance Monitoring
-```javascript
-perf.start(label)                      // Start timing
-perf.end(label)                        // End timing and log
-perf.measure(label, fn)                // Time function execution
-perf.measureAsync(label, asyncFn)      // Time async function
-```
-
-### Logging System
-```javascript
-logger.info(message, data)             // Info logging
-logger.warn(message, data)             // Warning logging
-logger.error(message, data)            // Error logging
-logger.debug(message, data)            // Debug logging (dev only)
-logger.getLogs(level)                  // Retrieve logs
+audioManager.setMasterVolume(0.5); // 50% volume
 ```
 
 ---
 
-## 🔔 Event System
+## 🔧 Utility Functions
 
-### Global Events
-Events that can be listened to throughout the application:
+### Utils
+**File**: `js/utils.js`
+**Purpose**: Common utility functions
 
-#### Game State Events
-- `gameState:loaded` - Game state loaded from storage
-- `gameState:saved` - Game state saved to storage
-- `gameState:changed` - Any state modification
+#### `randomChoice(array)`
+Returns random element from array.
+```javascript
+const element = randomChoice(['apple', 'banana', 'cherry']);
+```
 
-#### Character Events
-- `character:created` - Character creation completed
-- `character:updated` - Character data changed
-- `character:levelUp` - Character gained a level
+#### `randomInt(min, max)`
+Returns random integer in range.
+```javascript
+const num = randomInt(1, 100); // 1-100 inclusive
+```
 
-#### Campaign Events
-- `campaign:started` - New campaign began
-- `campaign:updated` - Campaign data changed
-- `story:updated` - Story content updated
+#### `capitalize(string)`
+Capitalizes first letter of string.
+```javascript
+const result = capitalize("hello world"); // "Hello world"
+```
 
-#### Dice Events
-- `dice:rolled` - Dice roll completed
-- `dice:selected` - Dice selection changed
+#### `sanitizeHTML(html)`
+Removes dangerous HTML tags.
+```javascript
+const safe = sanitizeHTML("<script>alert('bad')</script>Hello");
+// Returns: "Hello"
+```
+
+#### `formatTime(milliseconds)`
+Formats time duration.
+```javascript
+const time = formatTime(125000); // "2m 5s"
+```
+
+#### `debounce(func, delay)`
+Creates debounced function.
+```javascript
+const debouncedSave = debounce(() => gameState.save(), 1000);
+```
+
+#### `deepClone(object)`
+Creates deep copy of object.
+```javascript
+const copy = deepClone(character);
+```
+
+#### `generateId(length = 8)`
+Generates random ID string.
+```javascript
+const id = generateId(12); // "a7b2c9d1e4f8"
+```
+
+---
+
+## ⚙️ Configuration
+
+### CONFIG Object
+**File**: `js/config.js`
+**Purpose**: Global configuration settings
+
+```javascript
+const CONFIG = {
+    // AI Settings
+    USE_HUGGINGFACE: true,
+    USE_SIMPLE_AI: true,
+    USE_MOCK_AI: true,
+    HUGGINGFACE_TIMEOUT: 30000,
+    MAX_RETRIES: 3,
+    
+    // Game Settings
+    BASE_HP: 10,
+    XP_PER_LEVEL: 100,
+    MAX_LEVEL: 20,
+    STAT_POINT_POOL: 27,
+    MAX_STAT_VALUE: 18,
+    
+    // UI Settings
+    TYPEWRITER_SPEED: 50,
+    AUTO_SAVE_INTERVAL: 30000,
+    ANIMATION_DURATION: 300,
+    
+    // Audio Settings
+    MASTER_VOLUME: 0.7,
+    SFX_VOLUME: 0.8,
+    MUSIC_VOLUME: 0.5,
+    
+    // Debug Settings
+    DEBUG_MODE: false,
+    SHOW_AI_PROMPTS: false,
+    MOCK_AI_ONLY: false,
+    LOG_PERFORMANCE: false
+};
+```
+
+---
+
+## 📡 Events
+
+### Custom Events
+The game uses custom events for loose coupling between components.
+
+#### Game Events
+```javascript
+// New game started
+document.dispatchEvent(new CustomEvent('game:newGame', {
+    detail: { character: character }
+}));
+
+// Story updated
+document.dispatchEvent(new CustomEvent('game:storyUpdate', {
+    detail: { story: newStory, source: 'ai' }
+}));
+
+// Choice made
+document.dispatchEvent(new CustomEvent('game:choiceMade', {
+    detail: { choice: choiceText, index: choiceIndex }
+}));
+
+// Dice rolled
+document.dispatchEvent(new CustomEvent('game:diceRoll', {
+    detail: { result: rollResult, stat: statUsed }
+}));
+
+// Character updated
+document.dispatchEvent(new CustomEvent('character:update', {
+    detail: { character: character, changes: ['hp', 'xp'] }
+}));
+
+// Level up
+document.dispatchEvent(new CustomEvent('character:levelUp', {
+    detail: { character: character, newLevel: level }
+}));
+```
 
 #### UI Events
-- `ui:screenChanged` - Screen transition completed
-- `ui:modalShown` - Modal dialog opened
-- `ui:modalHidden` - Modal dialog closed
+```javascript
+// Theme changed
+document.dispatchEvent(new CustomEvent('ui:themeChange', {
+    detail: { theme: 'dark' }
+}));
+
+// Modal opened/closed
+document.dispatchEvent(new CustomEvent('ui:modalToggle', {
+    detail: { isOpen: true, modalType: 'character' }
+}));
+```
 
 #### Audio Events
-- `audio:ready` - Audio system initialized
-- `audio:musicChanged` - Background music changed
-
-### Event Data Structures
-
-#### Dice Roll Event Data
 ```javascript
-{
-    id: 'roll_id',
-    timestamp: 'ISO_timestamp',
-    dice: ['d20', 'd6'],
-    results: [
-        { dice: 'd20', value: 15, critical: false, fumble: false },
-        { dice: 'd6', value: 4, critical: false, fumble: false }
-    ],
-    total: 19,
-    critical: false,
-    fumble: false
+// Sound played
+document.dispatchEvent(new CustomEvent('audio:soundPlay', {
+    detail: { sound: 'dice_roll', volume: 0.7 }
+}));
+
+// Music changed
+document.dispatchEvent(new CustomEvent('audio:musicChange', {
+    detail: { track: 'combat_theme', fadeIn: true }
+}));
+```
+
+### Event Listeners
+```javascript
+// Listen for game events
+document.addEventListener('game:storyUpdate', (event) => {
+    console.log('New story:', event.detail.story);
+});
+
+// Listen for character changes
+document.addEventListener('character:update', (event) => {
+    uiManager.updateCharacterSheet(event.detail.character);
+});
+```
+
+---
+
+## 🔍 Error Handling
+
+### Error Types
+```javascript
+// AI Service Errors
+class AIServiceError extends Error {
+    constructor(service, message) {
+        super(`${service}: ${message}`);
+        this.service = service;
+    }
+}
+
+// Game Logic Errors
+class GameLogicError extends Error {
+    constructor(action, message) {
+        super(`Game Logic (${action}): ${message}`);
+        this.action = action;
+    }
+}
+
+// UI Errors
+class UIError extends Error {
+    constructor(component, message) {
+        super(`UI (${component}): ${message}`);
+        this.component = component;
+    }
 }
 ```
 
-#### Character Creation Event Data
+### Error Handling Patterns
 ```javascript
-{
-    character: {
-        name: 'Aragorn',
-        class: 'fighter',
-        level: 1,
-        stats: { str: 15, dex: 13, con: 14, int: 10, wis: 12, cha: 8 },
-        campaign: 'medieval-fantasy'
-    }
+// AI Service error handling
+try {
+    const result = await huggingfaceAI.generateStory(context);
+    return result;
+} catch (error) {
+    console.warn('Primary AI failed, trying fallback:', error);
+    return await simpleAI.generateStory(context);
+}
+
+// Game logic error handling
+try {
+    character.takeDamage(damage);
+} catch (error) {
+    console.error('Character damage error:', error);
+    // Graceful degradation
+    character.hp = Math.max(0, character.hp - 1);
 }
 ```
 
 ---
 
-## 🎯 Integration Examples
+## 📊 Performance Monitoring
 
-### Custom Event Handling
+### Performance Metrics
 ```javascript
-// Listen for dice rolls
-eventBus.on('dice:rolled', (rollData) => {
-    if (rollData.critical) {
-        showToast('Critical Hit!', 'success');
-        audioManager.playSFX('success');
-    }
+// Track AI response times
+const startTime = performance.now();
+const result = await ai.generateStory(context);
+const duration = performance.now() - startTime;
+console.log(`AI response time: ${duration}ms`);
+
+// Monitor memory usage
+const memInfo = performance.memory;
+console.log(`Memory: ${memInfo.usedJSHeapSize / 1024 / 1024}MB`);
+
+// Track render performance
+const observer = new PerformanceObserver((list) => {
+    list.getEntries().forEach((entry) => {
+        console.log(`${entry.name}: ${entry.duration}ms`);
+    });
 });
-
-// Character level up handling
-eventBus.on('character:levelUp', (levelData) => {
-    uiManager.showModal('levelup', `
-        <h2>Level Up!</h2>
-        <p>Welcome to level ${levelData.newLevel}!</p>
-    `);
-});
-```
-
-### State Management Integration
-```javascript
-// Save character progress
-gameState.set('character.experience', newExperience);
-gameState.addToCampaignLog({
-    type: 'experience_gained',
-    content: `Gained ${expAmount} experience`,
-    character: character.name
-});
-
-// Load and use character data
-const character = gameState.getCharacter();
-const healthPercentage = character.health.current / character.health.maximum;
-```
-
-### AI Integration
-```javascript
-// Process player action
-const actionData = {
-    action: "I search for traps",
-    character: gameState.getCharacter(),
-    context: gameState.get('campaign.scene_context')
-};
-
-await aiManager.processPlayerAction(actionData);
+observer.observe({ entryTypes: ['measure'] });
 ```
 
 ---
 
-*This API reference provides comprehensive documentation for integrating with and extending the DiceTales system. All methods include error handling and follow consistent patterns for ease of use.*
+**Need more details?** Check the source code directly or refer to the [Technical Overview](TECHNICAL_OVERVIEW.md) for architectural context.

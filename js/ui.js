@@ -126,6 +126,15 @@ class UIManager {
             saveBtn.addEventListener('click', () => this.saveGame());
         }
         
+        // Debug button (temporary)
+        const debugBtn = document.getElementById('debug-screen-btn');
+        if (debugBtn) {
+            debugBtn.addEventListener('click', () => {
+                console.log('🔧 DEBUG BUTTON CLICKED');
+                this.debugScreenStates();
+            });
+        }
+        
         // Inventory button
         const inventoryBtn = document.getElementById('quick-inventory-btn');
         if (inventoryBtn) {
@@ -137,20 +146,112 @@ class UIManager {
         if (submitBtn) {
             submitBtn.addEventListener('click', () => this.submitPlayerAction());
         }
+        
+        // Dice input selection buttons
+        this.setupDiceInputHandlers();
+    }
+    
+    /**
+     * Setup dice input handlers for the new combined system
+     */
+    setupDiceInputHandlers() {
+        const diceButtons = document.querySelectorAll('.dice-btn');
+        const resultDisplay = document.getElementById('input-dice-result');
+        
+        // Store dice roll result for submission
+        this.pendingDiceRoll = null;
+        
+        diceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const diceType = button.dataset.dice;
+                this.rollInputDice(diceType, resultDisplay);
+                
+                // Highlight selected die
+                diceButtons.forEach(btn => btn.style.background = 'var(--accent-primary)');
+                button.style.background = 'var(--success-color)';
+            });
+        });
+    }
+    
+    /**
+     * Roll dice in the input section
+     */
+    rollInputDice(diceType, display) {
+        const diceNumber = parseInt(diceType.substring(1));
+        const result = Math.floor(Math.random() * diceNumber) + 1;
+        
+        // Store the roll result
+        this.pendingDiceRoll = {
+            dice: diceType,
+            result: result,
+            max: diceNumber,
+            critical: result === diceNumber,
+            fumble: result === 1 && diceNumber === 20,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Determine result quality
+        let resultColor = 'var(--text-primary)';
+        let resultText = `Rolled ${result}`;
+        let emoji = '🎯';
+        
+        if (this.pendingDiceRoll.critical) {
+            resultColor = 'var(--success-color)';
+            resultText = diceNumber === 20 ? '🌟 Critical Success!' : '🌟 Maximum Roll!';
+            emoji = '🌟';
+        } else if (this.pendingDiceRoll.fumble) {
+            resultColor = 'var(--error-color)';
+            resultText = '💀 Critical Failure!';
+            emoji = '💀';
+        } else if (result >= diceNumber * 0.75) {
+            resultColor = 'var(--success-color)';
+            resultText = '✨ Great Roll!';
+            emoji = '✨';
+        } else if (result <= diceNumber * 0.25) {
+            resultColor = 'var(--warning-color)';
+            resultText = '😅 Could be better...';
+            emoji = '😅';
+        }
+        
+        // Display the result
+        display.innerHTML = `
+            <div style="color: ${resultColor}; font-weight: bold; font-size: 1.2rem;">
+                ${emoji} ${diceType.toUpperCase()}: ${result} / ${diceNumber}
+            </div>
+            <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.8;">
+                ${resultText}
+            </div>
+        `;
+        
+        console.log('🎲 Input dice rolled:', this.pendingDiceRoll);
     }
     
     /**
      * Open modal by ID
      */
     openModal(modalId) {
+        console.log('🔧 Opening modal:', modalId);
+        
+        // Debug: Check current game screen visibility before opening modal
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen) {
+            console.log('🔧 Game screen before modal:', {
+                display: gameScreen.style.display,
+                active: gameScreen.classList.contains('active'),
+                visible: gameScreen.offsetWidth > 0 && gameScreen.offsetHeight > 0
+            });
+        }
+        
         const modal = document.getElementById(modalId);
         if (!modal) {
             logger.warn(`Modal not found: ${modalId}`);
+            console.error('🔧 Modal element not found:', modalId);
             return;
         }
         
         // Close any existing modal
         if (this.activeModal) {
+            console.log('🔧 Closing existing modal:', this.activeModal);
             this.closeModal(this.activeModal);
         }
         
@@ -163,6 +264,16 @@ class UIManager {
             firstFocusable.focus();
         }
         
+        // Debug: Check game screen visibility after opening modal
+        if (gameScreen) {
+            console.log('🔧 Game screen after modal opened:', {
+                display: gameScreen.style.display,
+                active: gameScreen.classList.contains('active'),
+                visible: gameScreen.offsetWidth > 0 && gameScreen.offsetHeight > 0
+            });
+        }
+        
+        console.log('🔧 Modal opened successfully:', modalId);
         logger.debug(`Opened modal: ${modalId}`);
     }
     
@@ -170,16 +281,124 @@ class UIManager {
      * Close modal by ID
      */
     closeModal(modalId) {
+        console.log('🔧 Closing modal:', modalId);
+        
+        // Debug: Check game screen before closing modal
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen) {
+            console.log('🔧 Game screen before close:', {
+                display: gameScreen.style.display,
+                active: gameScreen.classList.contains('active'),
+                visible: gameScreen.offsetWidth > 0 && gameScreen.offsetHeight > 0
+            });
+        }
+        
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('active');
+            console.log('🔧 Modal classes after close:', modal.className);
+        } else {
+            console.error('🔧 Modal element not found when closing:', modalId);
         }
         
         if (this.activeModal === modalId) {
             this.activeModal = null;
         }
         
+        // Ensure the underlying screen is still visible after closing modal
+        this.ensureScreenVisibility();
+        
+        // Debug: Check game screen after ensuring visibility
+        if (gameScreen) {
+            console.log('🔧 Game screen after ensureScreenVisibility:', {
+                display: gameScreen.style.display,
+                active: gameScreen.classList.contains('active'),
+                visible: gameScreen.offsetWidth > 0 && gameScreen.offsetHeight > 0
+            });
+        }
+        
+        console.log('🔧 Modal closed successfully:', modalId);
         logger.debug(`Closed modal: ${modalId}`);
+    }
+    
+    /**
+     * Ensure the current screen is visible (fixes blank screen issue)
+     */
+    ensureScreenVisibility() {
+        console.log('🔧 Checking screen visibility...');
+        
+        // Get the current screen from gameManager if available
+        const currentScreen = window.gameManager?.currentScreen || 'game';
+        console.log('🔧 Current screen should be:', currentScreen);
+        
+        // Common screen IDs to check
+        const screenIds = ['game-screen', 'character-creation', 'campaign-selection'];
+        
+        let visibleScreen = null;
+        
+        // Check current state of all screens
+        screenIds.forEach(screenId => {
+            const screen = document.getElementById(screenId);
+            if (screen) {
+                const isVisible = screen.style.display !== 'none' && screen.classList.contains('active');
+                console.log(`🔧 Screen ${screenId}: display=${screen.style.display}, active=${screen.classList.contains('active')}, visible=${isVisible}`);
+                if (isVisible) {
+                    visibleScreen = screen;
+                }
+            }
+        });
+        
+        // If no screen is visible, default to game screen
+        if (!visibleScreen) {
+            console.log('🔧 No visible screen found, restoring game screen');
+            const gameScreen = document.getElementById('game-screen');
+            if (gameScreen) {
+                gameScreen.style.display = 'grid';
+                gameScreen.classList.add('active');
+                console.log('🔧 Fixed blank screen - restored game screen visibility');
+                
+                // Also make sure the parent container is visible
+                const gameContainer = gameScreen.parentElement;
+                if (gameContainer) {
+                    gameContainer.style.display = 'block';
+                }
+            } else {
+                console.error('🔧 Game screen element not found!');
+            }
+        } else {
+            console.log('🔧 Screen visibility is okay, found visible screen:', visibleScreen.id);
+        }
+    }
+    
+    /**
+     * Debug function to check all screen states
+     */
+    debugScreenStates() {
+        console.log('🔧 === SCREEN DEBUG INFO ===');
+        console.log('🔧 Active Modal:', this.activeModal);
+        console.log('🔧 Current Screen:', this.currentScreen);
+        
+        const screens = document.querySelectorAll('.screen, #game-screen, #character-creation-screen, #campaign-selection-screen, #intro-screen');
+        screens.forEach(screen => {
+            const isVisible = screen.offsetWidth > 0 && screen.offsetHeight > 0;
+            console.log(`🔧 ${screen.id}: display=${screen.style.display}, active=${screen.classList.contains('active')}, visible=${isVisible}, classes=${screen.className}`);
+        });
+        
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            const isVisible = modal.offsetWidth > 0 && modal.offsetHeight > 0;
+            console.log(`🔧 ${modal.id}: active=${modal.classList.contains('active')}, visible=${isVisible}, classes=${modal.className}`);
+        });
+        
+        // Check game state
+        if (window.gameState) {
+            console.log('🔧 Game State:', {
+                hasCurrentCampaign: !!window.gameState.getCurrentCampaign(),
+                campaignName: window.gameState.getCurrentCampaign()?.name || 'None'
+            });
+        }
+        
+        console.log('🔧 === END SCREEN DEBUG ===');
     }
     
     /**
@@ -626,10 +845,21 @@ class UIManager {
      * Open campaign log modal
      */
     openCampaignLogModal() {
+        console.log('🔧 Opening campaign log modal');
+        
         const content = document.getElementById('campaign-log-content');
         if (content) {
-            content.innerHTML = this.renderCampaignLog();
+            try {
+                content.innerHTML = this.renderCampaignLog();
+                console.log('🔧 Campaign log content rendered successfully');
+            } catch (error) {
+                console.error('🔧 Error rendering campaign log:', error);
+                content.innerHTML = '<p class="error-state">Error loading campaign log. Please try again.</p>';
+            }
+        } else {
+            console.error('🔧 Campaign log content element not found');
         }
+        
         this.openModal('campaign-log-modal');
     }
     
@@ -715,16 +945,38 @@ class UIManager {
             return;
         }
         
+        // Check if dice has been rolled
+        if (!this.pendingDiceRoll) {
+            showToast('Please roll a die first before submitting your action', 'warning');
+            return;
+        }
+        
         // Clear input
         input.value = '';
+        
+        // Reset dice display
+        const diceDisplay = document.getElementById('input-dice-result');
+        if (diceDisplay) {
+            diceDisplay.innerHTML = 'Select a die and roll to see your result';
+        }
+        
+        // Reset dice button colors
+        const diceButtons = document.querySelectorAll('.dice-btn');
+        diceButtons.forEach(btn => btn.style.background = 'var(--accent-primary)');
         
         // Add to input history
         gameState.addToInputHistory(action);
         
-        // Emit action event
-        eventBus.emit('player:action', { action });
+        // Emit action event with dice roll included
+        eventBus.emit('player:action', { 
+            action: action,
+            diceRoll: this.pendingDiceRoll
+        });
         
-        logger.info('Player action submitted:', action);
+        logger.info('Player action with dice submitted:', { action, dice: this.pendingDiceRoll });
+        
+        // Clear the pending dice roll
+        this.pendingDiceRoll = null;
     }
     
     /**
@@ -850,3 +1102,4 @@ const uiManager = new UIManager();
 
 // Export to global scope
 window.uiManager = uiManager;
+window.debugScreens = () => uiManager.debugScreenStates();

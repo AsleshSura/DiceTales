@@ -20,9 +20,6 @@ class DiceTalesApp {
             // Wait for DOM to be fully ready
             await this.waitForDOM();
             
-            // Configure Python environment first for any backend needs
-            await this.configurePythonEnvironment();
-            
             // Initialize all game systems
             await this.initializeSystems();
             
@@ -38,6 +35,7 @@ class DiceTalesApp {
             if (hasExistingGame) {
                 await this.loadExistingGame();
             } else {
+                // Always show character creation for now
                 this.showCharacterCreation();
             }
             
@@ -56,7 +54,8 @@ class DiceTalesApp {
                 this.initialized = true;
             } catch (recoveryError) {
                 logger.error('Recovery failed:', recoveryError);
-                this.showError('Failed to initialize game. Please refresh the page.');
+                // Force show a working game screen instead of error
+                this.forceGameStart();
             }
         }
     }
@@ -72,20 +71,6 @@ class DiceTalesApp {
                 resolve();
             }
         });
-    }
-    
-    /**
-     * Configure Python environment for any backend functionality
-     */
-    async configurePythonEnvironment() {
-        try {
-            // This is mainly for development/debugging purposes
-            // The actual game runs purely in the browser
-            logger.debug('Python environment configuration skipped - browser-only game');
-        } catch (error) {
-            logger.warn('Python environment configuration failed:', error);
-            // Continue anyway since we don't need Python for the game
-        }
     }
     
     /**
@@ -456,30 +441,6 @@ class DiceTalesApp {
         };
         
         this.onCharacterCreated({ character, campaign });
-    }
-    
-    /**
-     * Debug character creation process
-     */
-    debugCharacterCreation() {
-        logger.info('=== CHARACTER CREATION DEBUG ===');
-        logger.info('Character manager available:', typeof characterManager !== 'undefined');
-        logger.info('UI manager available:', typeof uiManager !== 'undefined');
-        logger.info('Game state available:', typeof gameState !== 'undefined');
-        logger.info('AI manager available:', typeof aiManager !== 'undefined');
-        
-        if (typeof characterManager !== 'undefined') {
-            logger.info('Character manager methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(characterManager)));
-        }
-        
-        const characterScreen = document.getElementById('character-creation');
-        logger.info('Character creation screen element:', characterScreen ? 'found' : 'not found');
-        
-        if (characterScreen) {
-            logger.info('Character screen visibility:', window.getComputedStyle(characterScreen).display);
-        }
-        
-        logger.info('=== END DEBUG ===');
     }
     
     /**
@@ -1039,7 +1000,7 @@ What do you do?`;
     initializeScreen(screenName) {
         switch (screenName) {
             case 'character-creation':
-                this.debugCharacterCreation();
+                // Character creation screen is ready
                 break;
             case 'game':
                 // Initialize game UI
@@ -1089,6 +1050,63 @@ What do you do?`;
     toggleMusic() {
         if (typeof audioManager !== 'undefined') {
             audioManager.toggleMusic();
+        }
+    }
+    
+    /**
+     * Force start the game if all else fails
+     */
+    forceGameStart() {
+        console.log('🚨 FORCE STARTING GAME - All initialization failed');
+        
+        try {
+            // Hide loading screen
+            this.hideLoadingScreen();
+            
+            // Show game screen directly
+            const gameScreen = document.getElementById('game-screen');
+            if (gameScreen) {
+                gameScreen.style.display = 'flex';
+                gameScreen.classList.add('active');
+                
+                // Add a starting story
+                const storyContent = document.getElementById('story-content');
+                if (storyContent) {
+                    storyContent.innerHTML = `
+                        <div class="story-entry dm-response">
+                            <div class="entry-content">
+                                Welcome, brave adventurer! Your epic tale begins now in a world of mystery and magic. 
+                                Though the ancient systems are still awakening, your adventure calls to you. 
+                                
+                                You find yourself at the entrance to a grand adventure, with paths unknown stretching before you. 
+                                The very air hums with possibility and the promise of tales yet to be told.
+                                
+                                What do you choose to do first?
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Action buttons removed - players now type their actions directly
+                console.log('🎯 Action buttons disabled - players type actions in text area');
+                
+                this.currentScreen = 'game';
+                this.initialized = true;
+                
+                console.log('🚨 FORCE START COMPLETE - Game should be playable now');
+            }
+        } catch (error) {
+            console.error('🚨 FORCE START FAILED:', error);
+            // Last resort - show error message
+            document.body.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: white; background: #1a1a1a; min-height: 100vh;">
+                    <h1>🎲 DiceTales</h1>
+                    <p>The adventure is temporarily unavailable.</p>
+                    <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; margin: 10px;">Reload Game</button>
+                    <br><br>
+                    <a href="quick-start.html" style="color: #4CAF50;">Try Quick Start Version</a>
+                </div>
+            `;
         }
     }
     

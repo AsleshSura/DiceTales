@@ -603,6 +603,51 @@ class GameState {
             setting: this.state.campaign.setting || 'None'
         };
     }
+
+    /**
+     * Set campaign data
+     */
+    setCampaign(campaignData) {
+        this.set('campaign', campaignData);
+        this.save();
+        logger.info('Campaign data updated', campaignData);
+    }
+
+    /**
+     * Load game state (alias for load method for compatibility)
+     */
+    loadGameState() {
+        return this.load();
+    }
+
+    /**
+     * Add choice to campaign log
+     */
+    addChoice(action, response) {
+        this.push('campaign.choices', {
+            timestamp: new Date().toISOString(),
+            action: action,
+            response: response
+        });
+        this.save();
+    }
+
+    /**
+     * Add entry to campaign log
+     */
+    addToCampaignLog(entry) {
+        if (!this.state.campaign.campaign_log) {
+            this.state.campaign.campaign_log = [];
+        }
+        
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            ...entry
+        };
+        
+        this.push('campaign.campaign_log', logEntry);
+        this.save();
+    }
 }
 
 // Create global game state instance

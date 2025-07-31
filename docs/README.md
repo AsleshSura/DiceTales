@@ -1,46 +1,95 @@
 # DiceTales Documentation
 
-Welcome to the DiceTales documentation! This directory contains comprehensive documentation for all components of the DiceTales AI-powered D&D game.
+Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fantasy RPG adventure game that runs entirely in your browser.
 
-## 📁 Documentation Structure
+## 📚 Documentation Overview
 
-### Core Documentation
-- [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) - High-level project architecture and design decisions
-- [`API_REFERENCE.md`](API_REFERENCE.md) - Complete API reference for all classes and functions
-- [`SETUP_GUIDE.md`](SETUP_GUIDE.md) - Installation and setup instructions
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [**Setup Guide**](SETUP_GUIDE.md) | Quick start and installation instructions | All Users |
+| [**Game Guide**](GAME_GUIDE.md) | How to play DiceTales effectively | Players |
+| [**Technical Overview**](TECHNICAL_OVERVIEW.md) | Architecture and system design | Developers |
+| [**API Reference**](API_REFERENCE.md) | Code documentation and APIs | Developers |
+| [**Deployment Guide**](DEPLOYMENT_GUIDE.md) | How to deploy your own instance | Developers |
+| [**Contributing Guide**](CONTRIBUTING.md) | How to contribute to the project | Contributors |
 
-### Component Documentation
-- [`javascript/`](javascript/) - JavaScript modules documentation
-- [`css/`](css/) - CSS stylesheets documentation
-- [`html/`](html/) - HTML structure documentation
+## 🎲 What is DiceTales?
 
-### Technical Documentation
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) - System architecture and data flow
-- [`DEVELOPMENT_GUIDE.md`](DEVELOPMENT_GUIDE.md) - Development workflow and best practices
-- [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) - Common issues and solutions
+DiceTales is a web-based tabletop RPG experience that combines:
 
-## 🎮 Quick Start
+- **AI-Powered Storytelling**: HuggingFace models generate dynamic narratives
+- **Character Progression**: Manage stats, health, and inventory
+- **Interactive Choices**: Make decisions that shape your adventure
+- **Dice Rolling System**: D20-based mechanics for skill checks and combat
+- **No Installation Required**: Runs entirely in modern web browsers
+- **No API Keys Needed**: Uses free HuggingFace Inference API
 
-1. **Project Overview**: Start with [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) to understand the game's architecture
-2. **Setup**: Follow [`SETUP_GUIDE.md`](SETUP_GUIDE.md) to get the game running
-3. **Development**: Use [`DEVELOPMENT_GUIDE.md`](DEVELOPMENT_GUIDE.md) for development workflows
-4. **API Reference**: Consult [`API_REFERENCE.md`](API_REFERENCE.md) for detailed function documentation
+## 🚀 Quick Links
 
-## 🔍 Finding Documentation
+- **[Play Now](../index.html)** - Start your adventure immediately
+- **[GitHub Repository](https://github.com/AsleshSura/DiceTales)** - Source code and issues
+- **[Setup Guide](SETUP_GUIDE.md)** - Get started in 5 minutes
+- **[Game Guide](GAME_GUIDE.md)** - Learn how to play effectively
 
-- **Looking for a specific function?** → [`API_REFERENCE.md`](API_REFERENCE.md)
-- **Need to understand the architecture?** → [`ARCHITECTURE.md`](ARCHITECTURE.md)
-- **Having issues?** → [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)
-- **Want to contribute?** → [`DEVELOPMENT_GUIDE.md`](DEVELOPMENT_GUIDE.md)
+## 🏗️ Architecture
 
-## 📊 Project Statistics
+```
+DiceTales/
+├── index.html          # Main game interface
+├── css/               # Styling and responsive design
+├── js/                # Core game logic
+│   ├── main.js        # Game controller
+│   ├── ai.js          # AI coordination layer
+│   ├── huggingfaceAI.js # Primary AI service
+│   ├── simpleAI.js    # Template-based fallback
+│   ├── character.js   # Character system
+│   ├── dice.js        # Dice rolling mechanics
+│   ├── gameState.js   # Save/load functionality
+│   └── ui.js          # User interface
+└── docs/              # This documentation
+```
 
-- **Total JavaScript Files**: 9
-- **Total CSS Files**: 4
-- **Total HTML Files**: 1
-- **Lines of Code**: ~3000+
-- **Core Systems**: 7 (AI, Audio, Character, Dice, Game State, UI, Utils)
+## 🔧 Technology Stack
+
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
+- **AI**: HuggingFace Inference API (DialoGPT-large, GPT-2)
+- **Storage**: LocalStorage for game saves
+- **Deployment**: Static hosting (GitHub Pages, Netlify, Vercel)
+- **No Dependencies**: Zero npm packages or build tools required
+
+## 🎯 Key Features
+
+### AI-Powered Narrative
+- Multiple AI model fallbacks for reliability
+- RPG-optimized prompt engineering
+- Dynamic choice generation based on context
+- Advanced response processing and filtering
+
+### Character System
+- Six core stats (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)
+- Health and experience tracking
+- Inventory management
+- Character creation and customization
+
+### Game Mechanics
+- D20-based skill checks and combat
+- Save/load game functionality
+- Responsive design for all devices
+- Audio feedback and atmospheric sounds
+
+## 📝 License
+
+This project is open source under the MIT License. See the main repository for full license details.
+
+## 🤝 Contributing
+
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Setting up the development environment
+- Code style and standards
+- Submitting pull requests
+- Reporting bugs and feature requests
 
 ---
 
-*Last Updated: July 30, 2025*
+*Built with ❤️ for tabletop RPG enthusiasts and AI technology lovers.*

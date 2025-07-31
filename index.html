@@ -65,6 +65,9 @@
                     <button id="save-game-btn" class="nav-btn" title="Save Game">
                         <span class="icon">💾</span>
                     </button>
+                    <button id="debug-screen-btn" class="nav-btn" title="Debug Screen" style="background: rgba(255,0,0,0.2);">
+                        <span class="icon">🔧</span>
+                    </button>
                 </nav>
             </div>
         </header>
@@ -120,7 +123,12 @@
             <section class="story-section">
                 <div class="story-display" id="story-display">
                     <div class="story-content" id="story-content">
-                        <!-- AI-generated story content will appear here -->
+                        <div class="story-waiting" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.4;">📖</div>
+                            <h3 style="margin-bottom: 15px; color: var(--text-primary);">Your Adventure Awaits</h3>
+                            <p style="margin-bottom: 25px; font-size: 1.1rem; opacity: 0.8;">Create your character to begin your epic tale</p>
+                            <p style="font-size: 0.9rem; opacity: 0.6;">📜 Stories will unfold here as you make choices and shape your destiny</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -130,15 +138,15 @@
                 <!-- Dice Rolling Area -->
                 <div class="dice-container" id="dice-container">
                     <div class="dice-display" id="dice-display">
-                        <div class="dice-waiting">
-                            <p>🎲 Dice rolls will appear here when requested by the game master</p>
+                        <div class="dice-waiting" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.6;">🎲</div>
+                            <p style="margin-bottom: 15px; font-size: 1.1rem;">Action History</p>
+                            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Recent dice rolls and outcomes will appear here</p>
+                            <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.6;">
+                                💡 Tip: Roll your dice in the input section below before submitting actions!
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons" id="action-buttons">
-                    <!-- AI-generated action options will appear here -->
                 </div>
 
                 <!-- Free Input -->
@@ -150,8 +158,25 @@
                             placeholder="Describe what you want to do..."
                             rows="3"
                         ></textarea>
+                        
+                        <!-- Dice Selection and Roll -->
+                        <div class="dice-input-section" style="margin: 15px 0; padding: 15px; background: var(--surface-secondary); border-radius: 8px; border: 2px solid var(--border-color);">
+                            <label style="display: block; font-weight: bold; margin-bottom: 10px; color: var(--text-primary);">🎲 Choose your dice and roll:</label>
+                            <div class="dice-selection" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <button class="dice-btn" data-dice="d4" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D4</button>
+                                <button class="dice-btn" data-dice="d6" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D6</button>
+                                <button class="dice-btn" data-dice="d8" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D8</button>
+                                <button class="dice-btn" data-dice="d10" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D10</button>
+                                <button class="dice-btn" data-dice="d12" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D12</button>
+                                <button class="dice-btn" data-dice="d20" style="padding: 8px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">D20</button>
+                            </div>
+                            <div class="dice-result-display" id="input-dice-result" style="min-height: 40px; padding: 10px; background: var(--background-dark); border-radius: 4px; border: 1px solid var(--border-color); text-align: center; color: var(--text-secondary);">
+                                Select a die and roll to see your result
+                            </div>
+                        </div>
+                        
                         <button id="submit-action-btn" class="btn btn-primary submit-btn">
-                            Submit Action
+                            Submit Action & Roll
                         </button>
                     </div>
                 </div>
@@ -236,6 +261,12 @@
     </div>
 
     <!-- JavaScript Files -->
+    <script src="js/config.js"></script>
+    <!-- Optional local config (git-ignored, for development) -->
+    <script src="js/config.local.js" onerror="console.log('Local config not found - using default config')"></script>
+    <script src="js/simpleAI.js"></script>
+    <script src="js/huggingfaceAI.js"></script>
+    <script src="js/mockAI.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/gameState.js"></script>
     <script src="js/character.js"></script>

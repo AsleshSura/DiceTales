@@ -1,0 +1,28 @@
+# DiceTales .gitignore
+# Keep sensitive files out of version control
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# API Keys and Config
+js/config.local.js
+config.local.js
+
+# Node modules (if you add them later)
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

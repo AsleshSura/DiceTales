@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiceTales - Quick Start</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/character.css">
+    <link rel="stylesheet" href="css/dice.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div id="app" class="app">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="dice-icon">🎲</span>
+                    DiceTales
+                </h1>
+                <nav class="app-nav">
+                    <button class="nav-btn" onclick="showCharacter()">Character</button>
+                    <button class="nav-btn" onclick="showInventory()">Inventory</button>
+                    <button class="nav-btn" onclick="showSettings()">Settings</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Game Screen -->
+        <main class="screen game-screen active" id="game-screen">
+            <div class="game-layout">
+                <!-- Story Panel -->
+                <section class="story-panel">
+                    <div class="story-content" id="story-content">
+                        <div class="story-entry dm-response">
+                            <div class="entry-content">
+                                Welcome, brave adventurer! Your tale begins in a mysterious tavern where shadows dance in the candlelight and whispers of ancient treasures fill the air. 
+                                
+                                The barkeeper, a grizzled dwarf with knowing eyes, slides a weathered map across the wooden table toward you. "This," he says with a grin, "is your ticket to adventure beyond your wildest dreams. But beware - the path ahead is fraught with danger and mystery."
+                                
+                                What do you choose to do?
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Action Panel -->
+                <section class="action-panel">
+                    <div class="action-buttons" id="action-buttons">
+                        <button class="action-btn" onclick="takeAction('Examine the map closely')">🔍 Examine the map closely</button>
+                        <button class="action-btn" onclick="takeAction('Ask the barkeeper about the dangers')">💬 Ask about the dangers</button>
+                        <button class="action-btn" onclick="takeAction('Order a drink and gather information')">🍺 Order a drink first</button>
+                        <button class="action-btn" onclick="takeAction('Leave the tavern immediately')">🚪 Leave the tavern</button>
+                        <button class="action-btn" onclick="testDiceRoll()" style="background: #DAA520;">🎲 Test Dice Roll</button>
+                    </div>
+                    
+                    <!-- Dice Display -->
+                    <div class="dice-display" id="dice-display">
+                        <div class="dice-waiting" style="text-align: center; padding: 20px; color: var(--text-secondary, #888);">
+                            <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.6;">🎲</div>
+                            <p style="margin-bottom: 15px; font-size: 1.1rem;">Ready for adventure!</p>
+                            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Dice rolls will appear here when the game master calls for them</p>
+                            <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.6;">
+                                💡 Tip: Try asking for a skill check or saying "I want to roll dice"!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Action Input -->
+                    <div class="manual-action">
+                        <textarea id="manual-action-input" placeholder="Describe what you want to do..." rows="2"></textarea>
+                        <button class="btn-submit" onclick="submitManualAction()">Submit Action</button>
+                    </div>
+                </section>
+
+                <!-- Character Info -->
+                <aside class="character-info">
+                    <h3>Character</h3>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span class="stat-label">HP:</span>
+                            <span class="stat-value">20/20</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Level:</span>
+                            <span class="stat-value">1</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Class:</span>
+                            <span class="stat-value">Adventurer</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        /* Additional loading animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .loading-message {
+            opacity: 0.8;
+            border-left: 3px solid #DAA520;
+            background: rgba(218, 165, 32, 0.1);
+        }
+        
+        .roll-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/simpleAI.js"></script>
+    <script src="js/huggingfaceAI.js"></script>
+    <script src="js/mockAI.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/dice.js"></script>
+    <script src="js/ai.js"></script>
+
+    <script>
+        let aiManager = null;
+        
+        // Initialize AI when page loads
+        window.addEventListener('load', async () => {
+            console.log('Initializing AI system...');
+            try {
+                if (typeof AIManager !== 'undefined') {
+                    aiManager = new AIManager();
+                    console.log('AI Manager initialized successfully');
+                } else {
+                    console.log('AI Manager not available, using fallback responses');
+                }
+            } catch (error) {
+                console.error('AI initialization failed:', error);
+            }
+        });
+
+        function addStoryEntry(content, type = 'dm-response') {
+            const storyContent = document.getElementById('story-content');
+            const entry = document.createElement('div');
+            entry.className = `story-entry ${type}`;
+            entry.innerHTML = `<div class="entry-content">${content}</div>`;
+            storyContent.appendChild(entry);
+            storyContent.scrollTop = storyContent.scrollHeight;
+        }
+
+        async function takeAction(action) {
+            console.log('Taking action:', action);
+            
+            // Add player action to story
+            addStoryEntry(action, 'player-action');
+            
+            // Disable buttons temporarily
+            const buttons = document.querySelectorAll('.action-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Show enhanced loading with progressive text
+            const loadingId = showProgressiveLoading();
+            
+            try {
+                let response = '';
+                
+                if (aiManager) {
+                    // Try to get AI response with timeout
+                    const aiPromise = aiManager.generateResponse([
+                        { role: 'system', content: 'You are a masterful dungeon master. Continue this adventure with engaging narrative and end with a question or choice.' },
+                        { role: 'user', content: `The player chose to: ${action}. Continue the story with vivid detail and end with options for what to do next.` }
+                    ]);
+                    
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('AI timeout')), 10000)
+                    );
+                    
+                    response = await Promise.race([aiPromise, timeoutPromise]);
+                } else {
+                    // Fallback response - sometimes include dice rolls
+                    const shouldIncludeDice = Math.random() < 0.4; // 40% chance
+                    const fallbacks = [
+                        `Your decision to ${action.toLowerCase()} leads to unexpected consequences. The world around you shifts and changes as new possibilities emerge. Ancient magic seems to respond to your choice, opening doors that were previously hidden. What will you do next?`,
+                        `As you ${action.toLowerCase()}, the environment reacts in surprising ways. The air shimmers with mysterious energy, and you sense that your actions have set important events in motion. ${shouldIncludeDice ? 'This action might require a skill check. Consider rolling the dice to determine the outcome!' : ''} How do you wish to proceed?`,
+                        `Your choice to ${action.toLowerCase()} reveals new paths forward. The very fabric of reality seems to bend around your decision, creating opportunities both wondrous and dangerous. ${shouldIncludeDice ? 'Make a D20 roll to see how fate responds to your boldness!' : ''} What course of action will you take?`,
+                        `The tension builds as you ${action.toLowerCase()}. Something significant is about to happen - you can feel it in the air. The outcome of this moment could change everything. ${shouldIncludeDice ? 'Roll a D20 to determine your fate!' : ''} What do you do?`
+                    ];
+                    response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+                }
+                
+                // Remove loading message
+                hideProgressiveLoading(loadingId);
+                
+                // Add AI response
+                addStoryEntry(response, 'dm-response');
+                
+                // Check for dice roll requests in the response
+                checkForDiceRolls(response);
+                
+                // Generate new action buttons
+                generateNewActions();
+                
+            } catch (error) {
+                console.error('Error generating response:', error);
+                
+                // Remove loading and show fallback
+                hideProgressiveLoading(loadingId);
+                
+                addStoryEntry('The tavern falls silent as you contemplate your next move. The candlelight flickers mysteriously, and you sense that your adventure is far from over. What will you do?', 'dm-response');
+                generateNewActions();
+            } finally {
+                // Re-enable buttons
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+        
+        function showProgressiveLoading() {
+            const loadingMessages = [
+                "🎲 The story unfolds...",
+                "📜 Consulting the ancient tomes...",
+                "✨ Magic weaves through reality...",
+                "🗡️ Your fate takes shape...",
+                "🏰 The adventure continues..."
+            ];
+            
+            let messageIndex = 0;
+            const loadingId = 'loading-' + Date.now();
+            
+            // Add initial loading message
+            const storyContent = document.getElementById('story-content');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'story-entry loading-message';
+            loadingDiv.id = loadingId;
+            loadingDiv.innerHTML = `
+                <div class="entry-content" style="color: #DAA520; font-style: italic; animation: pulse 2s ease-in-out infinite;">
+                    <span style="display: inline-block; animation: spin 1.5s linear infinite; margin-right: 8px;">🎲</span>
+                    <span id="${loadingId}-text">${loadingMessages[0]}</span>
+                </div>
+            `;
+            storyContent.appendChild(loadingDiv);
+            storyContent.scrollTop = storyContent.scrollHeight;
+            
+            // Update message periodically
+            const interval = setInterval(() => {
+                const textElement = document.getElementById(loadingId + '-text');
+                if (textElement && messageIndex < loadingMessages.length - 1) {
+                    messageIndex++;
+                    textElement.textContent = loadingMessages[messageIndex];
+                }
+            }, 1500);
+            
+            // Store interval for cleanup
+            loadingDiv.dataset.interval = interval;
+            
+            return loadingId;
+        }
+        
+        function hideProgressiveLoading(loadingId) {
+            const loadingDiv = document.getElementById(loadingId);
+            if (loadingDiv) {
+                // Clear interval
+                const interval = loadingDiv.dataset.interval;
+                if (interval) {
+                    clearInterval(interval);
+                }
+                // Remove element
+                loadingDiv.remove();
+            }
+        }
+        
+        function checkForDiceRolls(response) {
+            // Patterns to detect dice roll requests
+            const dicePatterns = [
+                /roll\s+a?\s*(d\d+)/gi,
+                /make\s+a?\s*(d\d+)\s+roll/gi,
+                /(d\d+)\s+check/gi,
+                /(d\d+)\s+saving\s+throw/gi,
+                /roll\s+(\d+d\d+)/gi,
+                /(\d*)d(\d+)/gi,
+                /skill\s+check/gi,
+                /make\s+a\s+roll/gi
+            ];
+            
+            let foundDice = null;
+            
+            // Check each pattern
+            for (let pattern of dicePatterns) {
+                const matches = response.match(pattern);
+                if (matches) {
+                    if (matches[0].includes('d20') || matches[0].includes('skill') || matches[0].includes('check')) {
+                        foundDice = 'd20';
+                        break;
+                    } else if (matches[0].includes('d6')) {
+                        foundDice = 'd6';
+                        break;
+                    }
+                }
+            }
+            
+            // Default to d20 if any dice patterns found
+            if (!foundDice && dicePatterns.some(pattern => pattern.test(response))) {
+                foundDice = 'd20';
+            }
+            
+            if (foundDice) {
+                showDiceRoll(foundDice);
+            }
+        }
+        
+        function showDiceRoll(diceType) {
+            const container = document.getElementById('dice-display');
+            if (!container) return;
+            
+            const diceNames = {
+                'd4': 'D4', 'd6': 'D6', 'd8': 'D8', 'd10': 'D10', 
+                'd12': 'D12', 'd20': 'D20', 'd100': 'D100'
+            };
+            
+            const diceEmojis = {
+                'd4': '🔺', 'd6': '⚀', 'd8': '♦️', 'd10': '🔟', 
+                'd12': '🟢', 'd20': '🎲', 'd100': '💯'
+            };
+            
+            container.innerHTML = `
+                <div class="dice-request" style="text-align: center; padding: 25px; background: linear-gradient(145deg, rgba(218, 165, 32, 0.1), rgba(218, 165, 32, 0.05)); border: 2px solid #DAA520; border-radius: 12px; margin: 15px 0; animation: slideInUp 0.5s ease-out; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+                    <div class="dice-prompt" style="margin-bottom: 20px; padding: 12px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; border-left: 4px solid #2196F3;">
+                        <strong style="color: #2196F3; font-size: 1.1rem;">🎲 Dice Roll Required!</strong>
+                        <p style="margin: 8px 0 0 0; color: #666; font-size: 0.9rem;">The fate of your action depends on this roll...</p>
+                    </div>
+                    <div class="dice-visual" style="margin-bottom: 20px;">
+                        <div class="dice-icon" style="font-size: 4rem; margin-bottom: 8px; text-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: pulse 2s ease-in-out infinite;">${diceEmojis[diceType]}</div>
+                        <div class="dice-label" style="font-size: 1.5rem; font-weight: bold; color: #DAA520; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${diceNames[diceType]}</div>
+                    </div>
+                    <button class="roll-btn" onclick="rollDice('${diceType}')" style="padding: 15px 35px; font-size: 1.2rem; background: linear-gradient(135deg, #DAA520, #B8860B); color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(218, 165, 32, 0.4); font-weight: bold;">
+                        🎲 Roll ${diceNames[diceType]}
+                    </button>
+                    <div class="dice-result" id="dice-result" style="display: none; margin-top: 20px;"></div>
+                </div>
+            `;
+        }
+        
+        function rollDice(diceType) {
+            const diceNumber = parseInt(diceType.substring(1));
+            const result = Math.floor(Math.random() * diceNumber) + 1;
+            
+            const resultContainer = document.getElementById('dice-result');
+            const rollButton = document.querySelector('.roll-btn');
+            
+            if (rollButton) {
+                rollButton.disabled = true;
+                rollButton.innerHTML = '🎲 Rolling...';
+                rollButton.style.opacity = '0.6';
+            }
+            
+            // Enhanced rolling animation
+            if (resultContainer) {
+                resultContainer.style.display = 'block';
+                resultContainer.innerHTML = `
+                    <div style="font-size: 3rem; animation: spin 0.1s linear infinite;">🎲</div>
+                    <p style="color: #666; margin-top: 10px; font-size: 1rem;">Rolling the dice...</p>
+                `;
+            }
+            
+            // Show enhanced result after animation
+            setTimeout(() => {
+                if (resultContainer) {
+                    const isMax = result === diceNumber;
+                    const isMin = result === 1;
+                    const isCritical = diceNumber === 20;
+                    
+                    let resultColor = '#DAA520';
+                    let resultBg = 'rgba(218, 165, 32, 0.1)';
+                    let resultText = `Rolled ${result}`;
+                    let emoji = '🎯';
+                    
+                    if (isMax) {
+                        resultColor = '#4CAF50';
+                        resultBg = 'rgba(76, 175, 80, 0.15)';
+                        resultText = isCritical ? 'Critical Success!' : 'Maximum Roll!';
+                        emoji = '🌟';
+                    } else if (isMin && isCritical) {
+                        resultColor = '#f44336';
+                        resultBg = 'rgba(244, 67, 54, 0.15)';
+                        resultText = 'Critical Failure!';
+                        emoji = '💀';
+                    } else if (result >= diceNumber * 0.75) {
+                        resultColor = '#4CAF50';
+                        resultText = 'Great Roll!';
+                        emoji = '✨';
+                    } else if (result <= diceNumber * 0.25) {
+                        resultColor = '#FF9800';
+                        resultText = 'Could be better...';
+                        emoji = '😅';
+                    }
+                    
+                    resultContainer.innerHTML = `
+                        <div style="background: ${resultBg}; border-radius: 10px; padding: 25px; border: 2px solid ${resultColor}; animation: bounceIn 0.6s ease-out; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-size: 4rem; font-weight: bold; color: ${resultColor}; text-shadow: 0 3px 6px rgba(0,0,0,0.2); margin-bottom: 10px;">
+                                ${result}
+                            </div>
+                            <div style="font-size: 1.3rem; font-weight: 600; color: ${resultColor}; margin-bottom: 8px;">
+                                ${emoji} ${resultText}
+                            </div>
+                            <div style="font-size: 1rem; color: #666; opacity: 0.8;">
+                                ${diceType.toUpperCase()} result: ${result}/${diceNumber}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add result to story with enhanced styling
+                    addStoryEntry(`🎲 <strong>Dice Roll:</strong> You rolled a <span style="color: ${resultColor}; font-weight: bold;">${result}</span> on the ${diceType.toUpperCase()}! ${emoji} ${resultText}`, 'dice-result');
+                    
+                    // Re-enable button
+                    if (rollButton) {
+                        rollButton.innerHTML = '🔄 Roll Again';
+                        rollButton.disabled = false;
+                        rollButton.style.opacity = '1';
+                        rollButton.style.background = 'linear-gradient(135deg, #B8860B, #8B6914)';
+                    }
+                }
+            }, 2000);
+        }
+
+        function generateNewActions() {
+            const actionButtons = document.getElementById('action-buttons');
+            
+            // Get the last story entry to understand context
+            const storyEntries = document.querySelectorAll('.story-entry');
+            const lastEntry = storyEntries[storyEntries.length - 1];
+            const lastText = lastEntry ? lastEntry.textContent.toLowerCase() : '';
+            
+            let actions = [];
+            
+            // Generate context-aware actions based on the story
+            if (lastText.includes('tavern') || lastText.includes('bar')) {
+                actions = [
+                    '🍺 Order another drink and listen to rumors',
+                    '� Offer to buy information from patrons',
+                    '🎯 Challenge someone to a game of skill',
+                    '🕵️ Discreetly eavesdrop on conversations'
+                ];
+            } else if (lastText.includes('map') || lastText.includes('treasure')) {
+                actions = [
+                    '🗺️ Study the map for hidden details',
+                    '💎 Research the treasure\'s history',
+                    '⚔️ Prepare weapons and supplies',
+                    '🤝 Seek trustworthy companions'
+                ];
+            } else if (lastText.includes('danger') || lastText.includes('threat')) {
+                actions = [
+                    '🛡️ Take a defensive stance',
+                    '🏃 Look for an escape route',
+                    '⚡ Strike first before they react',
+                    '🤔 Try to negotiate or reason'
+                ];
+            } else if (lastText.includes('mysterious') || lastText.includes('strange')) {
+                actions = [
+                    '🔍 Investigate the mystery further',
+                    '📚 Recall any relevant knowledge',
+                    '✋ Proceed with extreme caution',
+                    '💭 Trust your instincts'
+                ];
+            } else {
+                // Generic but still immersive actions
+                actions = [
+                    '� Take bold, decisive action',
+                    '🤔 Consider all options carefully', 
+                    '� Engage with those around you',
+                    '🔍 Search for hidden opportunities'
+                ];
+            }
+            
+            actionButtons.innerHTML = actions.map(action => 
+                `<button class="action-btn" onclick="takeAction('${action.replace('🔍 ', '').replace('💬 ', '').replace('🎲 ', '').replace('🛡️ ', '')}')">${action}</button>`
+            ).join('');
+        }
+
+        function submitManualAction() {
+            const input = document.getElementById('manual-action-input');
+            const submitBtn = input.nextElementSibling;
+            const action = input.value.trim();
+            
+            if (action) {
+                // Show processing feedback
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '✨ Processing...';
+                submitBtn.style.opacity = '0.6';
+                
+                takeAction(action);
+                input.value = '';
+                
+                // Reset button after a delay
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit Action';
+                    submitBtn.style.opacity = '1';
+                }, 2000);
+            }
+        }
+        
+        function showCharacter() {
+            alert('Character sheet coming soon!');
+        }
+        
+        function showInventory() {
+            alert('Inventory coming soon!');
+        }
+        
+        function showSettings() {
+            alert('Settings coming soon!');
+        }
+        
+        function testDiceRoll() {
+            addStoryEntry('The barkeeper looks at you seriously. "This requires a skill check to determine the outcome!"', 'dm-response');
+            showDiceRoll('d20');
+        }
+    </script>
+</body>
+</html>

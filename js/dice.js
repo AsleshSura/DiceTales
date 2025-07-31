@@ -25,6 +25,8 @@ class DiceSystem {
             'd100': 'D100'
         };
         
+        this.isDiceRequestActive = false; // Track if dice request is currently active
+        
         this.init();
     }
     
@@ -35,11 +37,113 @@ class DiceSystem {
                 this.detectAndShowDiceRequest(content);
             });
             
-            // Clear dice display when new story content starts
+            // Listen for forced dice roll requests (always show dice after AI responses)
+            eventBus.on('force:dice:show', (data) => {
+                console.log('🎲 Forced dice show event received:', data);
+                console.log('🎲 Data.diceType:', data.diceType);
+                console.log('🎲 Calling showDiceRequest with:', [data.diceType || 'd20']);
+                this.showDiceRequest([data.diceType || 'd20']);
+            });
+            
+            // Clear dice display when new story content starts (disabled during active game)
             eventBus.on('story:new', () => {
-                this.clearDiceDisplay();
+                // Only clear if no active dice request is pending
+                if (!this.isDiceRequestActive) {
+                    console.log('🎲 story:new event - clearing dice display');
+                    this.clearDiceDisplay();
+                } else {
+                    console.log('🎲 story:new event - keeping dice display (active request)');
+                }
+            });
+            
+            // Show thinking state when AI is processing
+            eventBus.on('ai:thinking', () => {
+                this.showThinkingState();
+                
+                // Set a timeout to clear thinking state if it gets stuck
+                if (this.thinkingTimeout) {
+                    clearTimeout(this.thinkingTimeout);
+                }
+                this.thinkingTimeout = setTimeout(() => {
+                    const container = document.getElementById('dice-display');
+                    if (container && container.innerHTML.includes('analyzing')) {
+                        console.log('🎲 Thinking state timeout - clearing');
+                        this.clearDiceDisplay();
+                    }
+                }, 10000); // 10 second timeout
+            });
+            
+            // Show ready state when AI finishes
+            eventBus.on('ai:complete', () => {
+                if (this.thinkingTimeout) {
+                    clearTimeout(this.thinkingTimeout);
+                    this.thinkingTimeout = null;
+                }
+                
+                // Only clear if we're still in thinking state
+                const container = document.getElementById('dice-display');
+                if (container && container.innerHTML.includes('analyzing')) {
+                    this.clearDiceDisplay();
+                }
             });
         }
+        
+        // Also initialize the dice display immediately (but not with default state during game)
+        // Only show default state if no game is active
+        if (!gameState || !gameState.getCampaign || !gameState.getCampaign().id) {
+            this.clearDiceDisplay();
+        }
+        
+        // Watch for skill check notifications
+        this.watchForSkillCheckNotifications();
+        
+        // Test if dice display exists
+        setTimeout(() => {
+            const container = document.getElementById('dice-display');
+            if (container) {
+                console.log('🎲 Dice system initialized successfully');
+            } else {
+                console.warn('🎲 Dice display container not found');
+            }
+        }, 1000);
+    }
+    
+    /**
+     * Watch for skill check notifications and auto-trigger dice
+     * Currently disabled to prevent false triggers - only manual detection through AI responses
+     */
+    watchForSkillCheckNotifications() {
+        // Temporarily disabled - the DOM watching was too aggressive
+        // and triggered on any mention of dice/roll/skill check in the story
+        console.log('🎲 DOM watching disabled - using AI response detection only');
+        
+        /* DISABLED CODE:
+        // Observer to watch for new elements being added to the DOM
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if this is a SPECIFIC skill check notification (not story text)
+                        const text = node.textContent || '';
+                        // Only trigger on very specific notification patterns
+                        if (node.classList && (node.classList.contains('skill-check-notification') || 
+                                               node.classList.contains('dice-request-notification'))) {
+                            console.log('🎲 Auto-detected skill check notification, showing D20');
+                            setTimeout(() => {
+                                this.showDiceRequest(['d20']);
+                            }, 500);
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Start observing the document
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        */
     }
     
     /**
@@ -48,21 +152,54 @@ class DiceSystem {
     detectAndShowDiceRequest(content) {
         if (!content || typeof content !== 'string') return;
         
-        // Look for dice roll patterns in the AI response
-        const dicePatterns = [
-            /roll\s+a?\s*(d\d+)/gi,
-            /make\s+a?\s*(d\d+)\s+roll/gi,
-            /(d\d+)\s+check/gi,
-            /(d\d+)\s+saving\s+throw/gi,
-            /roll\s+(\d+d\d+)/gi,
-            /(\d*)d(\d+)/gi
+        console.log('🎲 Checking content for dice requests:', content.substring(0, 100));
+        
+        // First check for exclusion patterns - these indicate the AI is just telling a story, not requesting rolls
+        const exclusionPatterns = [
+            /you see.*dice/gi,
+            /tavern.*dice/gi,
+            /gambling.*dice/gi,
+            /players.*dice/gi,
+            /game.*dice/gi,
+            /rolled.*dice/gi,
+            /past.*roll/gi,
+            /previous.*roll/gi,
+            /story.*skill/gi,
+            /tale.*skill/gi,
+            /once.*skill/gi,
+            /consider.*rolling/gi,  // "Consider rolling" is a suggestion, not a command
+            /might.*require/gi,     // "might require" is conditional, not definitive
+            /could.*roll/gi,        // "could roll" is optional, not required
+            /may.*need/gi,          // "may need" is conditional
+            /think.*about/gi        // "think about rolling" is contemplative
+        ];
+        
+        // If any exclusion patterns match, don't show dice
+        for (let pattern of exclusionPatterns) {
+            if (pattern.test(content)) {
+                console.log('🎲 Exclusion pattern matched - not showing dice for story content:', pattern.source);
+                return;
+            }
+        }
+        
+        // Only look for DIRECT, IMPERATIVE dice roll commands - very specific patterns
+        const explicitDicePatterns = [
+            /^roll\s+a?\s*(d\d+)/gi,        // "Roll a d20" at start of sentence
+            /\.\s*roll\s+a?\s*(d\d+)/gi,    // "Roll a d20" after a period
+            /!\s*roll\s+a?\s*(d\d+)/gi,     // "Roll a d20" after exclamation
+            /now\s+roll\s+a?\s*(d\d+)/gi,   // "Now roll a d20"
+            /you\s+must\s+roll\s+a?\s*(d\d+)/gi, // "You must roll a d20"
+            /roll\s+(\d+d\d+)\s+now/gi,     // "Roll 1d20 now"
+            /time\s+to\s+roll\s+a?\s*(d\d+)/gi  // "Time to roll a d20"
         ];
         
         let foundDice = [];
+        let foundGenericRoll = false;
         
-        dicePatterns.forEach(pattern => {
+        explicitDicePatterns.forEach(pattern => {
             const matches = content.matchAll(pattern);
             for (let match of matches) {
+                console.log('🎲 Found EXPLICIT dice pattern match:', match[0]);
                 if (match[1]) {
                     let diceType = match[1].toLowerCase();
                     if (!diceType.startsWith('d')) {
@@ -71,93 +208,197 @@ class DiceSystem {
                     if (this.diceImages[diceType] && !foundDice.includes(diceType)) {
                         foundDice.push(diceType);
                     }
+                } else {
+                    // Generic roll pattern found
+                    foundGenericRoll = true;
                 }
             }
         });
         
-        // If we found dice requests, show them
+        // If no specific dice found but generic patterns detected, default to D20
+        if (foundDice.length === 0 && foundGenericRoll) {
+            foundDice.push('d20');
+        }
+        
+        // If we found dice requests, show them immediately
         if (foundDice.length > 0) {
+            console.log('🎲 Found EXPLICIT dice requests:', foundDice);
             this.showDiceRequest(foundDice);
+        } else {
+            console.log('🎲 No explicit dice requests found in content');
         }
     }
-    
+
     /**
      * Show the requested dice with a roll button
      */
     showDiceRequest(diceTypes) {
         const container = document.getElementById('dice-display');
-        if (!container) return;
+        if (!container) {
+            console.warn('🎲 Dice display container not found');
+            return;
+        }
+        
+        this.isDiceRequestActive = true; // Mark dice request as active
         
         const firstDice = diceTypes[0];
         const diceNumber = parseInt(firstDice.substring(1));
         
+        console.log('🎲 Showing dice request for:', firstDice);
+        
         container.innerHTML = `
-            <div class="dice-request">
-                <div class="dice-visual">
-                    <div class="dice-icon large">${this.diceImages[firstDice]}</div>
-                    <div class="dice-label">${this.diceNames[firstDice]}</div>
+            <div class="dice-request" style="animation: slideInUp 0.5s ease-out;">
+                <div class="dice-prompt" style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; border-left: 4px solid #2196F3;">
+                    <strong style="color: #2196F3;">🎲 Dice Roll Required!</strong>
+                    <p style="margin: 5px 0 0 0; color: var(--text-secondary);">The outcome depends on your roll...</p>
                 </div>
-                <button class="btn btn-primary roll-btn" onclick="diceSystem.rollRequestedDice('${firstDice}')">
+                <div class="dice-visual">
+                    <div class="dice-icon large" style="font-size: 4rem; text-shadow: 0 4px 8px rgba(0,0,0,0.3);">${this.diceImages[firstDice]}</div>
+                    <div class="dice-label" style="font-size: 1.5rem; font-weight: bold; color: var(--accent-primary);">${this.diceNames[firstDice]}</div>
+                </div>
+                <button class="btn btn-primary roll-btn" onclick="diceSystem.rollRequestedDice('${firstDice}')" style="padding: 15px 30px; font-size: 1.2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover)); border: none; border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                     🎲 Roll ${this.diceNames[firstDice]}
                 </button>
-                <div class="dice-result" id="dice-result" style="display: none;"></div>
             </div>
         `;
+        
+        // Add hover effect to roll button
+        const rollBtn = container.querySelector('.roll-btn');
+        if (rollBtn) {
+            rollBtn.addEventListener('mouseenter', () => {
+                rollBtn.style.transform = 'translateY(-2px)';
+                rollBtn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+            });
+            rollBtn.addEventListener('mouseleave', () => {
+                rollBtn.style.transform = 'translateY(0)';
+                rollBtn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+            });
+        }
     }
     
     /**
      * Roll the requested dice and show result
      */
     async rollRequestedDice(diceType) {
+        console.log('🎲 Rolling dice:', diceType);
         const diceNumber = parseInt(diceType.substring(1));
         const result = this.rollDie(diceNumber);
+        console.log('🎲 Dice result:', result);
         
-        const resultContainer = document.getElementById('dice-result');
+        // Use the proper dice-display container instead of dice-result
+        const diceDisplay = document.getElementById('dice-display');
         const rollButton = document.querySelector('.roll-btn');
         
-        if (rollButton) rollButton.disabled = true;
+        console.log('🎲 Dice display container found:', !!diceDisplay);
+        console.log('🎲 Roll button found:', !!rollButton);
         
-        // Animate the roll
-        if (resultContainer) {
-            resultContainer.style.display = 'block';
-            resultContainer.innerHTML = `
-                <div class="rolling-animation">🎲</div>
-            `;
+        if (!diceDisplay) {
+            console.error('🎲 Dice display container not found!');
+            return;
         }
         
-        // Show result after animation
+        if (rollButton) {
+            rollButton.disabled = true;
+            rollButton.innerHTML = '🎲 Rolling...';
+            rollButton.style.opacity = '0.6';
+        }
+        
+        // Show rolling animation in the proper container
+        diceDisplay.innerHTML = `
+            <div class="rolling-animation" style="font-size: 3rem; animation: spin 0.1s linear infinite; text-align: center;">🎲</div>
+            <p style="color: var(--text-secondary); margin-top: 10px; text-align: center;">Rolling the dice...</p>
+        `;
+        
+        // Show result after animation with enhanced visuals
         setTimeout(() => {
-            if (resultContainer) {
-                const isMax = result === diceNumber;
-                const isMin = result === 1;
-                
-                resultContainer.innerHTML = `
-                    <div class="result-number ${isMax ? 'critical-success' : isMin ? 'critical-failure' : ''}">
+            console.log('🎲 Showing result after timeout');
+            
+            const isMax = result === diceNumber;
+            const isMin = result === 1;
+            const isCritical = diceNumber === 20;
+            
+            console.log('🎲 Result calculations:', { result, diceNumber, isMax, isMin, isCritical });
+            
+            let resultColor = 'var(--text-primary)';
+            let resultBg = 'var(--surface-secondary)';
+            let resultText = `Rolled ${result}`;
+            let emoji = '🎯';
+            
+            if (isMax) {
+                resultColor = 'var(--success-color)';
+                resultBg = 'rgba(76, 175, 80, 0.1)';
+                resultText = isCritical ? '🌟 Critical Success!' : '🌟 Maximum Roll!';
+                emoji = '🌟';
+            } else if (isMin && isCritical) {
+                resultColor = 'var(--error-color)';
+                resultBg = 'rgba(244, 67, 54, 0.1)';
+                resultText = '💀 Critical Failure!';
+                emoji = '💀';
+            } else if (result >= diceNumber * 0.75) {
+                resultColor = 'var(--success-color)';
+                resultText = '✨ Great Roll!';
+                emoji = '✨';
+            } else if (result <= diceNumber * 0.25) {
+                resultColor = 'var(--warning-color)';
+                resultText = '😅 Could be better...';
+                emoji = '😅';
+            }
+            
+            const resultHTML = `
+                <div class="dice-result-display" style="background: ${resultBg}; border-radius: 12px; padding: 25px; border: 3px solid ${resultColor}; animation: bounceIn 0.6s ease-out; margin: 15px 0; text-align: center; width: 100%;">
+                    <div class="dice-result-header" style="margin-bottom: 15px;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">🎲 ${this.diceNames[diceType]} RESULT</div>
+                    </div>
+                    <div class="result-number" style="font-size: 4rem; font-weight: bold; color: ${resultColor}; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 15px;">
                         ${result}
                     </div>
-                    <div class="result-text">
-                        ${isMax ? '🌟 Maximum Roll!' : isMin ? '💀 Minimum Roll!' : `Rolled ${result}`}
+                    <div class="result-text" style="font-size: 1.3rem; font-weight: 600; color: ${resultColor}; margin-bottom: 15px;">
+                        ${emoji} ${resultText}
                     </div>
-                `;
-                
-                // Show toast notification
-                const message = `Rolled ${result} on ${this.diceNames[diceType]}${isMax ? ' (Max!)' : isMin ? ' (Min!)' : ''}`;
-                if (window.showToast) {
-                    showToast(message, isMax ? 'success' : isMin ? 'error' : 'info');
-                }
-                
-                // Add to game state if available
-                if (typeof gameState !== 'undefined' && gameState.addToRollHistory) {
-                    gameState.addToRollHistory({
-                        dice: diceType,
-                        result: result,
-                        timestamp: new Date().toISOString(),
-                        critical: isMax,
-                        fumble: isMin && diceNumber === 20
-                    });
-                }
+                    <div class="result-details" style="font-size: 1rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        Roll: ${result} out of ${diceNumber} possible
+                    </div>
+                </div>
+            `;
+            
+            console.log('🎲 Setting result HTML in dice-display container');
+            diceDisplay.innerHTML = resultHTML;
+            
+            // Add to game state if available
+            if (typeof gameState !== 'undefined' && gameState.addToRollHistory) {
+                gameState.addToRollHistory({
+                    dice: diceType,
+                    result: result,
+                    timestamp: new Date().toISOString(),
+                    critical: isMax,
+                    fumble: isMin && diceNumber === 20
+                });
             }
-        }, 1500);
+            
+            // Emit dice roll event for AI system
+            if (typeof eventBus !== 'undefined') {
+                eventBus.emit('dice:rolled', {
+                    dice: diceType,
+                    result: result,
+                    total: result,
+                    type: this.diceNames[diceType],
+                    critical: isMax,
+                    fumble: isMin && diceNumber === 20,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Mark dice request as complete
+            this.isDiceRequestActive = false;
+            
+            // Re-enable button with new text
+            if (rollButton) {
+                rollButton.innerHTML = '🔄 Roll Again';
+                rollButton.disabled = false;
+                rollButton.style.opacity = '1';
+                rollButton.style.background = 'var(--secondary-color)';
+            }
+        }, 1000); // Shorter timeout for better UX
     }
     
     /**
@@ -168,22 +409,110 @@ class DiceSystem {
     }
     
     /**
+     * Show a status message in the dice area (can be used for general feedback)
+     */
+    showStatusMessage(message, type = 'info') {
+        const container = document.getElementById('dice-display');
+        if (container) {
+            let icon = '🎲';
+            let color = 'var(--text-secondary)';
+            
+            switch(type) {
+                case 'success':
+                    icon = '✅';
+                    color = 'var(--success-color)';
+                    break;
+                case 'warning':
+                    icon = '⚠️';
+                    color = 'var(--warning-color)';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    color = 'var(--error-color)';
+                    break;
+                case 'processing':
+                    icon = '⏳';
+                    color = 'var(--accent-primary)';
+                    break;
+            }
+            
+            container.innerHTML = `
+                <div class="dice-status" style="text-align: center; padding: 20px; color: ${color};">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">${icon}</div>
+                    <p style="font-size: 1rem; margin: 0;">${message}</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Show thinking/processing state
+     */
+    showThinkingState() {
+        const container = document.getElementById('dice-display');
+        if (container) {
+            // Don't show thinking state if there's already a dice request active
+            if (container.innerHTML.includes('dice-request') || container.innerHTML.includes('Roll D')) {
+                console.log('🎲 Dice request already active, not showing thinking state');
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="dice-thinking" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                    <div style="font-size: 2rem; margin-bottom: 10px; animation: pulse 2s infinite;">🎭</div>
+                    <p style="margin-bottom: 10px; font-size: 1rem;">Game Master is analyzing the situation...</p>
+                    <div style="display: flex; justify-content: center; gap: 5px; margin-bottom: 15px;">
+                        <div class="thinking-dot" style="width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.32s;"></div>
+                        <div class="thinking-dot" style="width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.16s;"></div>
+                        <div class="thinking-dot" style="width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; opacity: 0.7;">Preparing dice rolls if needed...</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
      * Clear the dice display
      */
     clearDiceDisplay() {
         const container = document.getElementById('dice-display');
         if (container) {
             container.innerHTML = `
-                <div class="dice-waiting">
-                    <p>🎲 Dice rolls will appear here when requested by the game master</p>
+                <div class="dice-waiting" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                    <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.6;">🎲</div>
+                    <p style="margin-bottom: 15px; font-size: 1.1rem;">Ready for adventure!</p>
+                    <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Dice rolls will appear here when the game master calls for them</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="diceSystem.testDiceRoll('d20')" style="padding: 8px 16px; font-size: 0.9rem;">
+                            🎲 Test D20
+                        </button>
+                        <button class="btn btn-secondary" onclick="diceSystem.testDiceRoll('d6')" style="padding: 8px 16px; font-size: 0.9rem;">
+                            ⚀ Test D6
+                        </button>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.6;">
+                        💡 Tip: The system will automatically detect when dice rolls are needed!
+                    </div>
                 </div>
             `;
         }
+    }
+    
+    /**
+     * Manually trigger a dice roll for testing
+     */
+    testDiceRoll(diceType = 'd20') {
+        console.log('🎲 Testing dice roll:', diceType);
+        this.showDiceRequest([diceType]);
     }
 }
 
 // Initialize dice system
 const diceSystem = new DiceSystem();
 
-// Export to global scope
+// Export to global scope for easy access
 window.diceSystem = diceSystem;
+
+// Also add a global status function for convenience
+window.showDiceStatus = (message, type) => diceSystem.showStatusMessage(message, type);

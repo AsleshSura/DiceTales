@@ -437,46 +437,6 @@ class CharacterManager {
     }
     
     /**
-     * Debug method to test navigation
-     */
-    debugTestNavigation() {
-        console.log('CharacterManager: Debug test navigation called');
-        console.log('CharacterManager: Current step:', this.currentStep);
-        console.log('CharacterManager: Total steps:', this.steps.length);
-        
-        // Force enable next button for testing
-        const nextBtn = document.getElementById('next-step-btn');
-        if (nextBtn) {
-            nextBtn.disabled = false;
-            nextBtn.style.pointerEvents = 'auto';
-            nextBtn.style.opacity = '1';
-            console.log('CharacterManager: Next button force enabled');
-        } else {
-            console.log('CharacterManager: Next button not found');
-        }
-    }
-    
-    /**
-     * Debug method to test ability score names for different settings
-     */
-    debugTestAbilityScores() {
-        console.log('🎯 Testing ability score names for all settings:');
-        
-        Object.entries(this.settings).forEach(([settingKey, setting]) => {
-            console.log(`\n📚 ${setting.name} (${settingKey}):`);
-            Object.entries(setting.abilityScores).forEach(([statKey, info]) => {
-                console.log(`  ${statKey}: ${info.name} (${info.abbr}) - ${info.description}`);
-            });
-        });
-        
-        console.log('\n🔄 Current setting ability scores:');
-        const current = this.getCurrentAbilityScores();
-        Object.entries(current).forEach(([statKey, info]) => {
-            console.log(`  ${statKey}: ${info.name} (${info.abbr}) - ${info.description}`);
-        });
-    }
-    
-    /**
      * Render step indicator
      */
     renderStepIndicator() {
@@ -1993,8 +1953,5 @@ const characterManager = new CharacterManager();
 // Export to global scope
 window.characterManager = characterManager;
 
-// Debug functions for testing
-window.debugCharacterManager = characterManager;
-window.debugTestNavigation = () => characterManager.debugTestNavigation();
-window.debugForceNextStep = () => characterManager.nextStep();
-window.debugTestAbilityScores = () => characterManager.debugTestAbilityScores();
+// Export character manager globally
+window.characterManager = characterManager;
