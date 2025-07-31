@@ -676,10 +676,54 @@ body {
     font-size: var(--font-size-base);
 }
 
-.action-btn:hover {
+.action-btn:hover:not(:disabled) {
     background: var(--primary-color);
     border-color: var(--primary-light);
     transform: translateX(4px);
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--background-medium);
+    color: var(--text-muted);
+}
+
+.action-btn.selected-pending {
+    background: var(--warning-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+.action-btn.ready-to-submit {
+    background: var(--success-color);
+    border-color: var(--secondary-color);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.action-btn .status {
+    font-size: 0.8rem;
+    font-style: italic;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.generating-options {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    color: var(--text-secondary);
+    text-align: center;
+    font-style: italic;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
 }
 
 /* ===== INPUT SECTION ===== */
@@ -1584,6 +1628,98 @@ button:focus {
     content: "⚠️";
     margin-right: 8px;
     font-size: 16px;
+}
+
+.success-toast {
+    background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+}
+
+.success-toast::before {
+    content: "🎉";
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Story Content Styling */
+.story-entry {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    background: var(--background-light);
+    border-left: 4px solid var(--secondary-color);
+}
+
+.story-entry.intro {
+    background: linear-gradient(135deg, var(--background-light), var(--background-medium));
+    border-left-color: var(--secondary-light);
+    font-size: var(--font-size-lg);
+}
+
+.story-entry.player-action {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    border-left-color: var(--primary-light);
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.story-entry.narrative {
+    background: var(--background-light);
+    border-left-color: var(--secondary-color);
+}
+
+.story-entry.dice-result {
+    background: linear-gradient(135deg, var(--success-color), #66BB6A);
+    border-left-color: var(--secondary-light);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: var(--font-size-lg);
+}
+
+.story-entry.suggestion {
+    background: linear-gradient(135deg, var(--info-color), #42A5F5);
+    border-left-color: var(--secondary-color);
+    color: white;
+    font-style: italic;
+}
+
+.story-entry.dm-response {
+    background: linear-gradient(135deg, var(--background-medium), var(--background-light));
+    border-left-color: var(--secondary-color);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+}
+
+.story-text {
+    line-height: 1.7;
+    margin-bottom: var(--spacing-sm);
+    white-space: pre-line;
+}
+
+.story-timestamp {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-align: right;
+    font-style: italic;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs);
+}
+
+.stat-name {
+    font-weight: bold;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.stat-value {
+    font-weight: bold;
+    color: var(--text-primary);
 }
 
 /* Mobile responsive */

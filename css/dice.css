@@ -1,52 +1,134 @@
 /* ===== DICE SYSTEM STYLES ===== */
 
-/* ===== 3D DICE CONTAINER ===== */
-.dice-3d-container {
-    perspective: 1000px;
+/* ===== DICE DISPLAY CONTAINER ===== */
+.dice-container {
+    background: var(--surface-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+    border: 1px solid var(--accent-primary);
+    box-shadow: var(--shadow-medium);
+}
+
+.dice-display {
+    min-height: 120px;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 120px;
-    margin: var(--spacing-lg) 0;
 }
 
-.dice-3d {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    margin: 0 var(--spacing-sm);
-    transform-style: preserve-3d;
-    transition: transform 0.1s ease;
+.dice-waiting {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.dice-request {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--surface-primary);
+    border-radius: var(--border-radius-md);
+    border: 2px solid var(--accent-primary);
+}
+
+.dice-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.dice-icon.large {
+    font-size: 4rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    animation: pulse 2s infinite;
+}
+
+.dice-label {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.roll-btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
     cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-small);
 }
 
-.dice-3d.rolling {
-    animation: rollDice 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+.roll-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
 }
 
-.dice-3d.d4 {
-    width: 50px;
-    height: 50px;
+.roll-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.dice-3d.d6 {
-    width: 60px;
-    height: 60px;
+.dice-result {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--surface-secondary);
+    border-radius: var(--border-radius-md);
+    margin-top: var(--spacing-md);
 }
 
-.dice-3d.d8 {
-    width: 55px;
-    height: 55px;
+.rolling-animation {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
 }
 
-.dice-3d.d10 {
-    width: 55px;
-    height: 55px;
+.result-number {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
 }
 
-.dice-3d.d12 {
-    width: 65px;
-    height: 65px;
+.result-number.critical-success {
+    color: var(--success-color);
+    text-shadow: 0 0 10px var(--success-color);
+}
+
+.result-number.critical-failure {
+    color: var(--error-color);
+    text-shadow: 0 0 10px var(--error-color);
+}
+
+.result-text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .dice-3d.d20 {

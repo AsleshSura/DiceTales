@@ -1795,28 +1795,70 @@ class CharacterManager {
      * Complete character creation
      */
     completeCreation() {
+        console.log('CharacterManager: Attempting to complete character creation...');
+        
         if (!this.canProceedToNextStep()) {
-            showToast('Please complete all required fields', 'warning');
+            console.log('CharacterManager: Cannot proceed - validation failed');
+            this.showStepValidationMessage();
             return;
         }
         
+        console.log('CharacterManager: All validation passed, completing character creation...');
+        
         // Finalize character creation
         this.finalizeCharacter();
+        
+        // Clear any validation toasts
+        this.clearValidationToast();
         
         // Hide creation screen and show game
         const creationScreen = document.getElementById('character-creation');
         const gameScreen = document.getElementById('game-screen');
         
-        if (creationScreen) creationScreen.style.display = 'none';
-        if (gameScreen) gameScreen.style.display = 'grid';
+        console.log('CharacterManager: Switching screens...');
+        console.log('CharacterManager: Creation screen found:', !!creationScreen);
+        console.log('CharacterManager: Game screen found:', !!gameScreen);
         
+        if (creationScreen) {
+            creationScreen.style.display = 'none';
+            creationScreen.classList.remove('active');
+        }
+        if (gameScreen) {
+            gameScreen.style.display = 'grid';
+            gameScreen.classList.add('active');
+        }
+        
+        // Update game state
         gameState.setCurrentScreen('game');
         
         // Start the campaign
+        console.log('CharacterManager: Emitting campaign:start event...');
         eventBus.emit('campaign:start');
         
-        showToast('Character created successfully! 🎉', 'success');
-        logger.info('Character creation completed', gameState.getCharacter());
+        // Show success message using our toast system
+        setTimeout(() => {
+            const successToast = document.createElement('div');
+            successToast.className = 'validation-toast success-toast';
+            successToast.innerHTML = '🎉 Character created successfully!';
+            document.body.appendChild(successToast);
+            
+            requestAnimationFrame(() => {
+                successToast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                if (successToast.parentNode) {
+                    successToast.classList.remove('show');
+                    setTimeout(() => {
+                        if (successToast.parentNode) {
+                            successToast.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }, 500);
+        
+        console.log('CharacterManager: Character creation completed', gameState.getCharacter());
     }
     
     /**

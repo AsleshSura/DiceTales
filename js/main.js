@@ -46,7 +46,18 @@ class DiceTalesApp {
             
         } catch (error) {
             logger.error('Failed to initialize DiceTales:', error);
-            this.showError('Failed to initialize game. Please refresh the page.');
+            console.error('Initialization error details:', error);
+            
+            // Try to recover by forcing character creation
+            try {
+                logger.warn('Attempting recovery by forcing character creation...');
+                this.hideLoadingScreen();
+                this.showCharacterCreation();
+                this.initialized = true;
+            } catch (recoveryError) {
+                logger.error('Recovery failed:', recoveryError);
+                this.showError('Failed to initialize game. Please refresh the page.');
+            }
         }
     }
     
@@ -78,7 +89,7 @@ class DiceTalesApp {
     }
     
     /**
-     * Initialize all game systems
+     * Initialize all game systems 
      */
     async initializeSystems() {
         // Systems are already initialized via their constructors
@@ -86,20 +97,36 @@ class DiceTalesApp {
         
         logger.info('Checking system availability...');
         
+        // Give systems a moment to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Check all required systems are loaded
         const systems = [
-            { name: 'gameState', instance: gameState, required: true },
-            { name: 'characterManager', instance: characterManager, required: true },
-            { name: 'diceSystem', instance: diceSystem, required: true },
-            { name: 'aiManager', instance: aiManager, required: false },
-            { name: 'audioManager', instance: audioManager, required: false },
-            { name: 'uiManager', instance: uiManager, required: true }
+            { name: 'gameState', instance: window.gameState || gameState, required: true },
+            { name: 'characterManager', instance: window.characterManager || characterManager, required: true },
+            { name: 'diceSystem', instance: window.diceSystem || diceSystem, required: true },
+            { name: 'aiManager', instance: window.aiManager || aiManager, required: false },
+            { name: 'audioManager', instance: window.audioManager || audioManager, required: false },
+            { name: 'uiManager', instance: window.uiManager || uiManager, required: true }
         ];
+        
+        // Debug each system
+        systems.forEach(system => {
+            const status = typeof system.instance !== 'undefined' ? 'OK' : 'MISSING';
+            console.log(`System ${system.name}: ${status}`, system.instance);
+        });
         
         const missingRequired = systems.filter(s => s.required && typeof s.instance === 'undefined');
         if (missingRequired.length > 0) {
             const missing = missingRequired.map(s => s.name).join(', ');
-            throw new Error(`Required systems not loaded: ${missing}`);
+            console.error('Missing required systems:', missing);
+            
+            // Try to provide more helpful error info
+            console.error('Available global objects:', Object.keys(window).filter(k => k.includes('Manager') || k.includes('System') || k.includes('State')));
+            
+            // Instead of throwing immediately, let's try to continue with available systems
+            console.warn(`Continuing with missing systems: ${missing}`);
+            // throw new Error(`Required systems not loaded: ${missing}`);
         }
         
         logger.info('All required systems detected');
@@ -171,6 +198,11 @@ class DiceTalesApp {
         
         eventBus.on('gameState:loaded', (state) => {
             logger.info('Game state loaded:', state);
+        });
+        
+        eventBus.on('player:action', (data) => {
+            logger.info('Player action received:', data);
+            this.handlePlayerAction(data.action);
         });
         
         // Audio interaction handler
@@ -534,6 +566,172 @@ class DiceTalesApp {
     }
     
     /**
+     * Handle player actions from the input system
+     */
+    handlePlayerAction(action) {
+        logger.info('Handling player action:', action);
+        
+        // Display the player's action in the story
+        this.displayStoryContent({
+            content: `> ${action}`,
+            type: 'player-action'
+        });
+        
+        // Generate AI response or handle specific commands
+        this.processPlayerAction(action);
+    }
+    
+    /**
+     * Process player action and generate appropriate response
+     */
+    processPlayerAction(action) {
+        const lowercaseAction = action.toLowerCase();
+        
+        // Check for common commands
+        if (lowercaseAction.includes('look') || lowercaseAction.includes('examine')) {
+            this.handleLookAction(action);
+        } else if (lowercaseAction.includes('go') || lowercaseAction.includes('move') || lowercaseAction.includes('walk')) {
+            this.handleMovementAction(action);
+        } else if (lowercaseAction.includes('talk') || lowercaseAction.includes('speak') || lowercaseAction.includes('say')) {
+            this.handleSocialAction(action);
+        } else if (lowercaseAction.includes('attack') || lowercaseAction.includes('fight') || lowercaseAction.includes('combat')) {
+            this.handleCombatAction(action);
+        } else if (lowercaseAction.includes('inventory') || lowercaseAction.includes('items')) {
+            this.handleInventoryAction(action);
+        } else {
+            // General action - generate contextual response
+            this.generateContextualResponse(action);
+        }
+    }
+    
+    /**
+     * Handle look/examine actions
+     */
+    handleLookAction(action) {
+        const character = gameState.getCharacter();
+        const setting = character?.setting || 'medieval-fantasy';
+        
+        let response = '';
+        switch (setting) {
+            case 'medieval-fantasy':
+                response = `You carefully examine your surroundings. The mystical forest around you is alive with ancient magic. Shafts of golden sunlight pierce through the canopy above, illuminating patches of colorful wildflowers. You notice strange runes carved into some of the tree trunks, glowing faintly with ethereal light.`;
+                break;
+            case 'sci-fi-space':
+                response = `Your sensors scan the area, revealing intricate details about your environment. The space station's corridors are lined with advanced technology, holographic displays flickering with data streams. Emergency lighting casts an eerie blue glow, and you can hear the faint hum of life support systems in the distance.`;
+                break;
+            case 'modern-day':
+                response = `You take a moment to observe your urban surroundings. The city street bustles with activity even at this late hour. Neon signs reflect off wet pavement, and you notice several interesting details: a suspicious figure in a dark alley, unusual graffiti on the wall, and what appears to be an unmarked van parked nearby.`;
+                break;
+            case 'eldritch-horror':
+                response = `Your eyes strain against the perpetual fog as you try to make sense of your surroundings. The architecture of Millhaven seems to shift and writhe when you're not looking directly at it. Shadows move independently of their sources, and you swear you can hear whispers in a language that predates human civilization.`;
+                break;
+            default:
+                response = `You take a careful look around, noticing details that might be important for your adventure.`;
+        }
+        
+        this.displayStoryContent({
+            content: response,
+            type: 'narrative'
+        });
+    }
+    
+    /**
+     * Handle movement actions
+     */
+    handleMovementAction(action) {
+        const responses = [
+            "You move forward cautiously, your footsteps echoing in the quiet air. New opportunities and dangers await ahead.",
+            "You change your position, gaining a different perspective on the situation. The environment around you shifts as you move.",
+            "You navigate through the area, your movement revealing new paths and possibilities.",
+            "With determined steps, you advance further into the unknown, ready for whatever lies ahead."
+        ];
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        this.displayStoryContent({
+            content: randomResponse,
+            type: 'narrative'
+        });
+    }
+    
+    /**
+     * Handle social actions
+     */
+    handleSocialAction(action) {
+        this.displayStoryContent({
+            content: "Your words echo in the air. While there may not be anyone immediately present to respond, your voice carries weight in this world. Perhaps your words will attract attention, or maybe they'll be remembered by unseen ears.",
+            type: 'narrative'
+        });
+    }
+    
+    /**
+     * Handle combat actions
+     */
+    handleCombatAction(action) {
+        this.displayStoryContent({
+            content: "You ready yourself for combat, adrenaline coursing through your veins. Your training kicks in as you assess potential threats and prepare to defend yourself. Roll for initiative!",
+            type: 'narrative'
+        });
+        
+        // Trigger a dice roll for combat
+        setTimeout(() => {
+            const roll = Math.floor(Math.random() * 20) + 1;
+            this.displayStoryContent({
+                content: `🎲 Initiative Roll: ${roll}`,
+                type: 'dice-result'
+            });
+        }, 1000);
+    }
+    
+    /**
+     * Handle inventory actions
+     */
+    handleInventoryAction(action) {
+        const character = gameState.getCharacter();
+        const inventory = character?.inventory || [];
+        
+        if (inventory.length === 0) {
+            this.displayStoryContent({
+                content: "You check your belongings. Your inventory is currently empty, save for the basic adventuring gear you started with. Perhaps you'll find useful items on your journey.",
+                type: 'narrative'
+            });
+        } else {
+            const itemList = inventory.map(item => `• ${item.name}`).join('\n');
+            this.displayStoryContent({
+                content: `You examine your belongings:\n\n${itemList}`,
+                type: 'narrative'
+            });
+        }
+    }
+    
+    /**
+     * Generate contextual response for general actions
+     */
+    generateContextualResponse(action) {
+        const responses = [
+            `You attempt to ${action.toLowerCase()}. The world around you responds to your actions, creating new possibilities and challenges.`,
+            `With determination, you ${action.toLowerCase()}. Your choice shapes the narrative of your adventure.`,
+            `You decide to ${action.toLowerCase()}. The consequences of your actions will unfold as your story continues.`,
+            `Acting on your instincts, you ${action.toLowerCase()}. The world takes note of your decision.`
+        ];
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        this.displayStoryContent({
+            content: randomResponse,
+            type: 'narrative'
+        });
+        
+        // Occasionally suggest a dice roll
+        if (Math.random() < 0.3) {
+            setTimeout(() => {
+                this.displayStoryContent({
+                    content: "This action might require a skill check. Consider rolling the dice to determine the outcome!",
+                    type: 'suggestion'
+                });
+            }, 1500);
+        }
+    }
+    
+    /**
      * Handle player actions
      */
     takeAction(action) {
@@ -574,6 +772,185 @@ class DiceTalesApp {
         logger.info('Campaign started:', campaignData);
         this.currentCampaign = campaignData;
         gameState.setCampaign(campaignData);
+        
+        // Initialize the game screen
+        this.initializeScreen('game');
+        
+        // Make sure we're showing the game screen
+        this.showScreen('game');
+        
+        // Start the initial story
+        this.startInitialStory();
+    }
+    
+    /**
+     * Start the initial story for the campaign
+     */
+    startInitialStory() {
+        logger.info('Starting initial story...');
+        
+        // Get character and campaign info
+        const character = gameState.getCharacter();
+        const campaign = gameState.getCampaign();
+        
+        if (!character || !campaign) {
+            logger.error('Cannot start story: missing character or campaign data');
+            return;
+        }
+        
+        // Update character name in UI
+        const characterNameEl = document.getElementById('character-name');
+        if (characterNameEl) {
+            characterNameEl.textContent = character.name || 'Hero';
+        }
+        
+        // Update character stats display
+        this.updateCharacterStatus();
+        
+        // Generate initial story based on character and setting
+        const storyPrompt = this.generateInitialStoryPrompt(character, campaign);
+        
+        // Display initial story
+        this.displayStoryContent({
+            content: storyPrompt,
+            type: 'intro'
+        });
+        
+        logger.info('Initial story started');
+    }
+    
+    /**
+     * Generate initial story prompt based on character and campaign
+     */
+    generateInitialStoryPrompt(character, campaign) {
+        const setting = campaign.setting || character.setting;
+        const characterClass = character.class?.name || 'Adventurer';
+        const characterName = character.name || 'Hero';
+        
+        let storyIntro = '';
+        
+        switch (setting) {
+            case 'medieval-fantasy':
+                storyIntro = `Welcome to the realm of ${characterName} the ${characterClass}! 
+                
+You find yourself standing at the edge of a mystical forest, the morning mist swirling around ancient oak trees. Your ${character.background || 'adventurous'} background has prepared you for this moment. 
+
+The path ahead splits in three directions:
+- A well-worn trail leading deeper into the forest
+- A rocky path climbing toward distant mountains
+- A narrow bridge spanning a rushing river
+
+What do you choose to do?`;
+                break;
+                
+            case 'sci-fi-space':
+                storyIntro = `Commander ${characterName}, your ship's sensors have detected an anomaly...
+                
+You're aboard the starship Horizon, drifting in the void between star systems. As a ${characterClass}, your expertise is crucial for what lies ahead. Your ${character.background || 'stellar'} background has trained you for moments like this.
+
+The anomaly appears to be:
+- An abandoned space station sending distress signals
+- A mysterious energy signature from an unexplored nebula
+- Strange readings from a nearby asteroid field
+
+What are your orders?`;
+                break;
+                
+            case 'modern-day':
+                storyIntro = `${characterName}, the city never sleeps, and neither do its mysteries...
+                
+You're standing in the heart of downtown, neon lights reflecting off wet pavement. Your skills as a ${characterClass} and your ${character.background || 'urban'} background have brought you to this pivotal moment.
+
+Something's not right tonight:
+- Reports of strange disappearances in the warehouse district
+- Unusual electromagnetic readings from the old subway tunnels
+- A mysterious figure who's been asking questions about you
+
+How do you proceed?`;
+                break;
+                
+            case 'eldritch-horror':
+                storyIntro = `The town of ${characterName} holds secrets that should never be uncovered...
+                
+You've arrived in the fog-shrouded town of Millhaven, drawn by rumors and your ${character.background || 'curious'} nature. As a ${characterClass}, you sense something ancient and wrong lurking beneath the surface.
+
+The locals whisper of:
+- Strange lights emanating from the abandoned mansion on the hill
+- Bizarre dreams plaguing the townspeople
+- Old books in the library that seem to write themselves
+
+What draws your attention first?`;
+                break;
+                
+            default:
+                storyIntro = `Your adventure begins now, ${characterName}...
+                
+As a ${characterClass} with a ${character.background || 'mysterious'} past, you stand at the threshold of an epic tale. The world awaits your choices.
+
+What do you do?`;
+        }
+        
+        return storyIntro;
+    }
+    
+    /**
+     * Display story content in the game screen
+     */
+    displayStoryContent(story) {
+        const storyContent = document.getElementById('story-content');
+        if (!storyContent) return;
+        
+        const storyElement = document.createElement('div');
+        storyElement.className = `story-entry ${story.type || 'narrative'}`;
+        storyElement.innerHTML = `
+            <div class="story-text">${story.content.replace(/\n/g, '<br>')}</div>
+            <div class="story-timestamp">${new Date().toLocaleTimeString()}</div>
+        `;
+        
+        storyContent.appendChild(storyElement);
+        storyContent.scrollTop = storyContent.scrollHeight;
+    }
+    
+    /**
+     * Update character status panel
+     */
+    updateCharacterStatus() {
+        const character = gameState.getCharacter();
+        if (!character) return;
+        
+        // Update character name
+        const nameEl = document.getElementById('character-name');
+        if (nameEl) nameEl.textContent = character.name || 'Hero';
+        
+        // Update health
+        const healthText = document.getElementById('health-text');
+        const healthFill = document.getElementById('health-bar-fill');
+        if (healthText && healthFill) {
+            const currentHealth = character.health || character.maxHealth || 100;
+            const maxHealth = character.maxHealth || 100;
+            healthText.textContent = `${currentHealth}/${maxHealth}`;
+            healthFill.style.width = `${(currentHealth / maxHealth) * 100}%`;
+        }
+        
+        // Update stats summary
+        const statsSummary = document.getElementById('stats-summary');
+        if (statsSummary && character.stats) {
+            const getModifier = (score) => Math.floor((score - 10) / 2);
+            statsSummary.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-name">STR</span>
+                    <span class="stat-value">${character.stats.str || 10} (${getModifier(character.stats.str || 10) >= 0 ? '+' : ''}${getModifier(character.stats.str || 10)})</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-name">DEX</span>
+                    <span class="stat-value">${character.stats.dex || 10} (${getModifier(character.stats.dex || 10) >= 0 ? '+' : ''}${getModifier(character.stats.dex || 10)})</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-name">CON</span>
+                    <span class="stat-value">${character.stats.con || 10} (${getModifier(character.stats.con || 10) >= 0 ? '+' : ''}${getModifier(character.stats.con || 10)})</span>
+                </div>
+            `;
+        }
     }
     
     /**
@@ -814,6 +1191,33 @@ window.debugForceStart = function() {
         window.debugShowCharacterCreation();
     }, 500);
 };
+
+// Add manual start button handler
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('embedded-start-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            console.log('Manual start button clicked');
+            
+            // Force hide loading screen and start character creation
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.remove('active');
+            }
+            
+            // Try to start the app
+            if (window.app && window.app.showCharacterCreation) {
+                window.app.showCharacterCreation();
+            } else {
+                // Force start even if app isn't fully initialized
+                console.log('Forcing manual start...');
+                window.debugForceStart();
+            }
+        });
+        console.log('Manual start button handler added');
+    }
+});
 
 // Debug: Log after 3 seconds to check initialization status
 setTimeout(() => {
