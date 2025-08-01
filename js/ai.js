@@ -1315,6 +1315,16 @@ RULES:
             console.log('🤗 USING HUGGINGFACE AI - Prompt-engineered for RPG storytelling');
             
             try {
+                // Get character and setting data for enhanced context
+                const character = gameState.getCharacter();
+                const campaign = gameState.getCampaign();
+                let settingData = null;
+                
+                // Get setting details from character manager if available
+                if (typeof characterManager !== 'undefined' && campaign.setting) {
+                    settingData = characterManager.settings[campaign.setting];
+                }
+                
                 const lastMessage = messages[messages.length - 1]?.content || '';
                 const isChoiceGeneration = lastMessage.includes('action choices') || 
                                          lastMessage.includes('choice options') ||
@@ -1323,10 +1333,10 @@ RULES:
                 
                 let response;
                 if (isChoiceGeneration) {
-                    const choices = await this.huggingFaceAI.generateChoices(lastMessage);
+                    const choices = await this.huggingFaceAI.generateChoices(lastMessage, character, settingData);
                     response = Array.isArray(choices) ? choices.join('\n') : choices;
                 } else {
-                    response = await this.huggingFaceAI.generateStory(lastMessage, 'narrative');
+                    response = await this.huggingFaceAI.generateStory(lastMessage, 'narrative', character, settingData);
                 }
                 
                 if (response && response.length > 20 && this.validateResponseLength(response, 100)) {

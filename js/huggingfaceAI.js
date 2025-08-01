@@ -1,6 +1,13 @@
 /**
- * HuggingFace AI Service
+ * HuggingFace AI Service - Enhanced D&D Dungeon Master
  * Free AI models with no API key required!
+ * 
+ * Enhanced with authentic D&D dungeon master capabilities:
+ * - Warm, descriptive storytelling that emphasizes fun and collaboration
+ * - Natural integration of dice roll suggestions and game mechanics
+ * - Focus on heroic moments and meaningful player choices
+ * - Maintains the inclusive, welcoming tone of a great DM
+ * - Incorporates classic D&D elements like skill checks and character agency
  */
 
 class HuggingFaceAI {
@@ -22,22 +29,81 @@ class HuggingFaceAI {
             'distilgpt2'                    // Lightweight final option
         ];
         
-        // RPG-optimized prompts with proper instruction formatting
-        this.storyPrompts = {
-            narrative: `You are a masterful dungeon master telling an epic fantasy story. Continue this adventure with vivid imagery and engaging narrative. Write 2-3 sentences that advance the story:
-
-Context: `,
-            
-            choice: `You are a dungeon master creating action choices for a fantasy RPG. Based on the current situation, provide exactly 4 distinct, creative action options. Format as a numbered list:
-
-Situation: `,
-            
-            character: `You are describing an encounter in a fantasy RPG. Create an atmospheric description of this character meeting. Focus on mood and tension:
-
-Scene: `
-        };
-
         this.init();
+    }
+
+    /**
+     * Generate setting-appropriate story prompts based on campaign data
+     */
+    getStoryPrompt(type, settingData = null) {
+        const settingName = settingData?.name || 'Medieval Fantasy';
+        const settingDesc = settingData?.description || 'classic fantasy adventure';
+        const technology = settingData?.technology || 'Medieval';
+        const magic = settingData?.magic || 'High fantasy';
+        const themes = settingData?.themes ? settingData.themes.join(', ') : 'heroic adventures';
+        const dmHint = settingData?.dm_personality_hint || 'Focus on classic fantasy tropes and epic adventures.';
+        
+        const basePrompts = {
+            narrative: `You are a warm, descriptive, and engaging Dungeons & Dragons dungeon master running a ${settingName} campaign. Your setting is: ${settingDesc}
+
+CAMPAIGN DETAILS:
+- Technology Level: ${technology}
+- Magic System: ${magic}  
+- Main Themes: ${themes}
+- DM Style: ${dmHint}
+
+Your primary goals are to ensure the player has fun while creating an immersive, collaborative storytelling experience appropriate to this setting. 
+
+As a skilled DM, you should:
+- Be descriptive and paint vivid scenes using all five senses that fit the ${settingName} setting
+- Maintain a warm, encouraging tone that makes the player feel welcome
+- Incorporate dice roll results naturally into the narrative when appropriate
+- Focus on collaborative storytelling where the player's choices matter
+- Create opportunities for heroic moments and character growth within the ${settingName} world
+- Balance challenge with fun, ensuring the story remains engaging
+- Remember that D&D is about shared imagination and having a great time together
+- Honor the themes and tone of ${settingName}: ${themes}
+
+Continue this adventure with rich, atmospheric storytelling that brings the ${settingName} world to life:
+
+Current Situation: `,
+            
+            choice: `You are an experienced D&D dungeon master presenting action options for a ${settingName} campaign. The setting is: ${settingDesc}
+
+Setting Details: Technology (${technology}), Magic (${magic}), Themes (${themes})
+
+Create exactly 4 distinct, engaging choices that reflect different approaches a D&D character might take in this ${settingName} setting. Each option should:
+- Suggest potential dice rolls that might be involved (like Perception, Athletics, Persuasion, etc.)
+- Be appropriate to the ${technology} technology level and ${magic} magic system
+- Reflect the themes of: ${themes}
+- Offer different risk/reward scenarios
+- Appeal to different character types and playstyles
+- Sound fun and heroic within the ${settingName} context
+
+Format as a numbered list based on this situation:
+
+Current Scenario: `,
+            
+            character: `You are a D&D dungeon master introducing an NPC encounter in a ${settingName} campaign. The setting is: ${settingDesc}
+
+Setting Context: Technology (${technology}), Magic (${magic}), Themes (${themes})
+
+Create an atmospheric, welcoming description that brings this character to life within the ${settingName} world. Focus on:
+- Rich sensory details appropriate to the ${settingName} setting (appearance, voice, mannerisms, environment)
+- The mood and emotional tone of the encounter that fits ${themes}
+- Hints about the character's personality and motivations within this world
+- Creating intrigue while maintaining a warm, inviting atmosphere
+- Elements that reflect the ${technology} technology and ${magic} magic levels
+
+Describe this encounter:
+
+Scene Setup: `
+        };
+        
+        return basePrompts[type] || basePrompts.narrative;
+    }
+
+    async init() {
     }
 
     async init() {
@@ -164,7 +230,108 @@ Scene: `
         }
     }
 
-    async generateStory(context, type = 'narrative') {
+    /**
+     * Build enhanced context that incorporates character and setting data for plot generation
+     */
+    buildEnhancedContext(baseContext, characterData = null, settingData = null) {
+        let enhancedContext = baseContext;
+        
+        // Get current game state if not provided
+        if (!characterData && typeof gameState !== 'undefined') {
+            characterData = gameState.getCharacter();
+        }
+        if (!settingData && typeof gameState !== 'undefined') {
+            const campaign = gameState.getCampaign();
+            // Get setting details from character manager if available
+            if (typeof characterManager !== 'undefined' && campaign.setting) {
+                settingData = characterManager.settings[campaign.setting];
+            }
+        }
+        
+        // Build campaign context with character and setting information
+        let campaignContext = '';
+        
+        if (settingData) {
+            campaignContext += `\n\n📖 CAMPAIGN SETTING: ${settingData.name}\n`;
+            campaignContext += `Setting Description: ${settingData.description}\n`;
+            campaignContext += `Technology Level: ${settingData.technology || 'Medieval'}\n`;
+            campaignContext += `Magic System: ${settingData.magic || 'High fantasy'}\n`;
+            campaignContext += `Themes: ${settingData.themes ? settingData.themes.join(', ') : 'Classic adventure'}\n`;
+            
+            if (settingData.dm_personality_hint) {
+                campaignContext += `\n🎭 DUNGEON MASTER GUIDANCE: ${settingData.dm_personality_hint}\n`;
+            }
+        }
+        
+        if (characterData) {
+            campaignContext += `\n⚔️ PLAYER CHARACTER: ${characterData.name || 'The Hero'}\n`;
+            campaignContext += `Class: ${characterData.class || 'Adventurer'} (Level ${characterData.level || 1})\n`;
+            
+            if (characterData.background) {
+                campaignContext += `Background: ${characterData.background}\n`;
+            }
+            
+            if (characterData.stats) {
+                const stats = characterData.stats;
+                campaignContext += `Ability Scores: `;
+                const statNames = settingData?.abilityScores || {
+                    str: {abbr: 'STR'}, dex: {abbr: 'DEX'}, con: {abbr: 'CON'},
+                    int: {abbr: 'INT'}, wis: {abbr: 'WIS'}, cha: {abbr: 'CHA'}
+                };
+                
+                const statStrings = [];
+                for (const [key, value] of Object.entries(stats)) {
+                    const abbr = statNames[key]?.abbr || key.toUpperCase();
+                    statStrings.push(`${abbr} ${value}`);
+                }
+                campaignContext += statStrings.join(', ') + '\n';
+            }
+            
+            if (characterData.health) {
+                campaignContext += `Health: ${characterData.health.current}/${characterData.health.maximum}\n`;
+            }
+        }
+        
+        // Get current campaign state if available
+        if (typeof gameState !== 'undefined') {
+            const campaign = gameState.getCampaign();
+            
+            if (campaign.current_location) {
+                campaignContext += `\n🗺️ CURRENT LOCATION: ${campaign.current_location}\n`;
+            }
+            
+            if (campaign.current_quest) {
+                campaignContext += `🎯 ACTIVE QUEST: ${campaign.current_quest.title || campaign.current_quest}\n`;
+            }
+            
+            // Include recent campaign history for continuity
+            if (campaign.campaign_log && campaign.campaign_log.length > 0) {
+                campaignContext += `\n📜 RECENT EVENTS:\n`;
+                const recentEvents = campaign.campaign_log.slice(-3); // Last 3 events
+                recentEvents.forEach(event => {
+                    if (event.content) {
+                        const shortContent = event.content.length > 100 
+                            ? event.content.substring(0, 100) + '...' 
+                            : event.content;
+                        campaignContext += `- ${shortContent}\n`;
+                    }
+                });
+            }
+            
+            // Include known NPCs for continuity
+            if (campaign.npcs_encountered && campaign.npcs_encountered.length > 0) {
+                campaignContext += `\n👥 KNOWN CHARACTERS:\n`;
+                campaign.npcs_encountered.slice(-5).forEach(npc => { // Last 5 NPCs
+                    campaignContext += `- ${npc.name}: ${npc.relationship || 'neutral'}\n`;
+                });
+            }
+        }
+        
+        // Combine base context with enhanced campaign context
+        return campaignContext ? `${enhancedContext}${campaignContext}` : enhancedContext;
+    }
+
+    async generateStory(context, type = 'narrative', characterData = null, settingData = null) {
         console.log('🤗 GENERATING STORY:', type);
         
         let attempt = 0;
@@ -175,67 +342,104 @@ Scene: `
                 // Clean and prepare the context
                 const cleanContext = this.cleanContext(context);
                 
-                // Build enhanced RPG-optimized prompt for longer responses
-                let promptTemplate = this.storyPrompts[type] || this.storyPrompts.narrative;
+                // Build enhanced context with character and setting information
+                const enhancedContext = this.buildEnhancedContext(cleanContext, characterData, settingData);
+                
+                // Get setting-appropriate prompt
+                const promptTemplate = this.getStoryPrompt(type, settingData);
                 let fullPrompt;
                 
                 if (type === 'narrative') {
-                    fullPrompt = `${promptTemplate}${cleanContext}
+                    fullPrompt = `${promptTemplate}${enhancedContext}
 
-Current adventure: ${cleanContext}
+As a masterful D&D dungeon master with years of experience, continue this adventure with the immersive storytelling that makes tabletop gaming legendary. Channel the best DMs who paint worlds with words and make every moment feel cinematic.
 
-As an expert dungeon master, continue this epic fantasy story with a rich, detailed narrative of at least 200 characters. Your response must include:
+🎲 DICE & MECHANICS: Weave dice roll outcomes naturally into the narrative (e.g., "Your sharp eyes catch a glint of metal behind the tapestry" or "Despite your careful steps, a loose stone betrays your position")
 
-1. VIVID ENVIRONMENTAL DETAILS: Describe what the character sees, hears, smells, and feels in the scene
-2. ATMOSPHERIC TENSION: Build suspense, mystery, or excitement appropriate to the situation  
-3. STORY PROGRESSION: Advance the plot with new discoveries, encounters, or developments
-4. SENSORY IMMERSION: Include specific details about lighting, sounds, textures, temperatures
-5. CHARACTER AGENCY: Set up clear opportunities for the player to make meaningful choices
+🌟 RICH ATMOSPHERE: Create a multi-sensory experience - describe the musty scent of ancient corridors, the echo of footsteps on stone, the weight of anticipation in the air, the play of torchlight on damp walls
 
-Write your response as if you're narrating an immersive fantasy novel. Make it atmospheric, engaging, and detailed. Minimum 200 characters required.
+🎭 DUNGEON MASTER VOICE: Write with the enthusiasm and warmth of a DM who loves their craft - be descriptive but personal, dramatic but welcoming, mysterious but encouraging
 
-IMPORTANT: Your response MUST end with a direct question or present a clear decision point for the player. Examples:
-- "What do you do?"
-- "How do you proceed?"
-- "Which path will you choose?"
-- "What is your next move?"
+⚔️ HEROIC MOMENTS: Set up scenarios where the player can make meaningful choices, showcase their abilities, and feel genuinely heroic
 
-Detailed story continuation:`;
+🗺️ WORLD BUILDING: Include environmental details, atmospheric elements, and subtle hints about the larger world that make the setting feel alive and authentic
+
+🎯 COLLABORATIVE STORYTELLING: Remember you're not just telling a story - you're facilitating an adventure where the player is the protagonist
+
+📚 DESCRIPTIVE DEPTH: Aim for rich, evocative descriptions that would make a player lean forward with excitement and feel truly immersed in the world
+
+Write a vivid, engaging continuation (minimum 300 characters) that captures the magic of sitting around a table with friends, rolling dice, and creating unforgettable stories together.
+
+IMPORTANT: Always end with an intriguing question, choice, or moment that naturally invites the player to respond and engage with the story.
+
+Continue the adventure with rich detail:`;
                 } else if (type === 'character') {
-                    fullPrompt = `${promptTemplate}${cleanContext}
+                    fullPrompt = `${promptTemplate}${enhancedContext}
 
-Create a detailed encounter description with rich atmosphere and character details. Include physical appearance, mannerisms, environment, and mood. Make it vivid and immersive. Minimum 150 characters required.
+As a veteran D&D dungeon master renowned for bringing NPCs to life, create an encounter that players will remember long after the session ends. Think of the most memorable characters from great campaigns.
 
-IMPORTANT: End with a question about how the player responds to this encounter.
+🎭 LIVING CHARACTER: This NPC should feel like a real person with genuine personality, motivations, quirks, and a distinct voice that fits the campaign setting
 
-Detailed encounter:`;
+🌟 IMMERSIVE SCENE: Paint the complete picture - their appearance, mannerisms, the space they occupy, ambient sounds, lighting, even the air quality around them
+
+🎲 INTERACTIVE POTENTIAL: Subtly hint at how different character approaches might work (Insight to read their true intentions, Persuasion to gain their trust, Intimidation if needed, etc.)
+
+🗺️ WORLD INTEGRATION: Make this character feel authentically part of the campaign world with details that connect to the setting's themes and atmosphere
+
+🎯 STORY HOOKS: Layer in potential plot threads, information, or opportunities that could lead to interesting developments
+
+📚 SENSORY RICHNESS: Include specific details that engage multiple senses - how they smell, the texture of their clothing, the sound of their voice, their physical presence
+
+🎪 MEMORABLE QUALITIES: Give them something distinctive that will stick in the player's mind - a unique speech pattern, unusual habit, or compelling contradiction
+
+Create an atmospheric encounter description (minimum 250 characters) that brings this character to life in a way that would make any D&D player excited to roleplay the interaction.
+
+IMPORTANT: End with a compelling question about how the player wishes to approach or interact with this character.
+
+Describe this memorable encounter:`;
                 } else {
-                    fullPrompt = `${promptTemplate}${cleanContext}
+                    fullPrompt = `${promptTemplate}${enhancedContext}
 
-Continue this fantasy adventure with rich, detailed descriptions that paint a vivid picture. Include environmental details, atmospheric elements, and story progression. Minimum 200 characters required.
+As an experienced D&D dungeon master who understands that great campaigns are built on rich storytelling and meaningful player agency, continue this adventure with the depth and engagement that makes tabletop gaming magical.
 
-IMPORTANT: Your response must end with a question or choice for the player.
+🎲 SEAMLESS MECHANICS: Naturally integrate dice rolls, skill checks, and game mechanics into the narrative flow without breaking immersion
 
-Detailed continuation:`;
+🌟 ATMOSPHERIC MASTERY: Create scenes that feel cinematic yet intimate - use lighting, weather, architecture, sounds, and environmental details to set the perfect mood
+
+🎭 AUTHENTIC VOICE: Maintain that perfect DM tone that's simultaneously dramatic and approachable, mysterious and reassuring, challenging and supportive
+
+⚔️ MEANINGFUL CHOICES: Present situations where player decisions truly matter and different approaches can lead to different outcomes
+
+🗺️ LIVING WORLD: Make the setting feel dynamic and responsive, where the world continues to exist and evolve beyond the immediate scene
+
+🎯 COLLABORATIVE SPIRIT: Remember that you're facilitating the player's story, not just telling your own - create space for their character to shine
+
+📚 NARRATIVE DEPTH: Build layers into your descriptions - immediate details, hidden elements, and subtle foreshadowing that rewards careful attention
+
+Write a richly detailed continuation (minimum 300 characters) that captures the essence of what makes D&D special - the perfect blend of structure and improvisation, challenge and triumph, mystery and revelation.
+
+IMPORTANT: Always conclude with an engaging prompt that makes the player eager to respond and continue shaping the story.
+
+Continue the epic tale:`;
                 }
                 
                 console.log('🤗 Using enhanced prompt:', fullPrompt.substring(0, 150) + '...');
                 
                 const response = await this.makeRequest(fullPrompt, {
-                    max_length: type === 'narrative' ? 800 : 500,  // Significantly increased
-                    max_new_tokens: type === 'narrative' ? 600 : 400,  // Ensure new content generation
-                    temperature: 0.9 + (attempt * 0.05),   // Increase creativity on retries
-                    top_p: 0.95,        // More diverse vocabulary
-                    repetition_penalty: 1.1,  // Reduced to allow natural repetition
+                    max_length: type === 'narrative' ? 1200 : 800,  // Significantly increased for more detail
+                    max_new_tokens: type === 'narrative' ? 900 : 600,  // Ensure substantial new content generation
+                    temperature: 0.85 + (attempt * 0.05),   // Slightly more focused but still creative
+                    top_p: 0.92,        // Balanced vocabulary diversity
+                    repetition_penalty: 1.15,  // Moderate repetition control
                     do_sample: true,
-                    min_length: type === 'narrative' ? 200 : 150,  // Minimum length requirement
+                    min_length: type === 'narrative' ? 300 : 250,  // Higher minimum for more descriptive content
                     pad_token_id: 50256
                 });
 
                 const processed = this.postProcessStoryResponse(response, type);
                 
                 // If processed response is too short, try again with different prompt
-                if (processed && processed.length < 200 && attempt < maxAttempts - 1) {
+                if (processed && processed.length < 300 && attempt < maxAttempts - 1) {
                     console.log('🤗 Response too short (' + processed.length + ' chars), retrying with enhanced prompt...');
                     attempt++;
                     continue;
@@ -256,34 +460,52 @@ Detailed continuation:`;
         return this.getFallbackResponse(type);
     }
 
-    async generateChoices(context) {
+    async generateChoices(context, characterData = null, settingData = null) {
         console.log('🤗 GENERATING CHOICES');
         
         try {
             const cleanContext = this.cleanContext(context);
             
-            const prompt = `You are an expert dungeon master creating action choices for an epic fantasy RPG. The player faces this situation:
+            // Build enhanced context with character and setting information
+            const enhancedContext = this.buildEnhancedContext(cleanContext, characterData, settingData);
+            
+            const prompt = `You are a masterful D&D dungeon master with a gift for creating compelling action choices that make players excited to roll dice. The current situation is:
 
-${cleanContext}
+${enhancedContext}
 
-Generate exactly 4 diverse, detailed action choices. Each choice should be:
-- 15-30 words long with specific details
-- Represent different approaches (combat, stealth, magic, social, investigation)
-- Start with a clear action verb
-- Include tactical considerations or interesting consequences
+Create exactly 4 diverse, atmospheric action choices that capture the essence of great D&D gameplay. Each choice should:
 
-Format as numbered list:
+🎲 DICE ANTICIPATION: Clearly suggest what exciting dice rolls might be needed (Athletics for climbing, Stealth for sneaking, Persuasion for talking, Investigation for searching, etc.)
 
-1. Attack`;
+⚔️ STRATEGIC VARIETY: Represent fundamentally different D&D approaches:
+   - Combat/Direct Action (for the bold warrior types)
+   - Stealth/Subterfuge (for the sneaky rogue types) 
+   - Social/Diplomatic (for the charismatic leader types)
+   - Magic/Investigation (for the clever scholar types)
+
+🌟 VIVID IMAGERY: Use descriptive language that helps players visualize exactly what their character would be doing
+
+🎯 HEROIC POTENTIAL: Make each option sound like it could lead to an epic, memorable moment worthy of retelling
+
+📚 ATMOSPHERIC DETAIL: Include environmental elements or sensory details that enhance immersion
+
+🎭 CHARACTER AGENCY: Ensure each choice gives the player meaningful control over the story direction
+
+Remember: Great D&D choices make players lean forward with anticipation, excited to see what their dice will decide!
+
+Format as a numbered list with rich, evocative descriptions (20-40 words each):
+
+1. `;
 
             console.log('🤗 Using enhanced choice prompt:', prompt.substring(0, 100) + '...');
 
             const response = await this.makeRequest(prompt, {
-                max_length: 250,  // Increased for longer choices
-                temperature: 0.75,  // Balanced creativity for choices
-                top_p: 0.88,
-                repetition_penalty: 1.25,  // Ensure variety
-                do_sample: true
+                max_length: 400,  // Increased for more detailed choices
+                temperature: 0.8,  // Good creativity for varied choices
+                top_p: 0.9,
+                repetition_penalty: 1.3,  // Ensure strong variety between choices
+                do_sample: true,
+                min_length: 200  // Ensure substantial choice descriptions
             });
 
             const choices = this.parseChoices(response);
@@ -357,7 +579,7 @@ Format as numbered list:
         const hasEngagingEnd = /\b(what do you|how do you|which|where do you|will you|do you|can you|would you)\b/i.test(cleaned.slice(-50));
         
         if (!hasQuestion && !hasEngagingEnd) {
-            // Add an engaging question based on the content and context
+            // Add an engaging D&D-style question based on the content and context
             const questionOptions = [
                 " What do you do?",
                 " How do you proceed?", 
@@ -365,20 +587,22 @@ Format as numbered list:
                 " Which path will you take?",
                 " How do you respond?",
                 " What action do you take?",
-                " What will you do next?",
-                " How do you handle this situation?"
+                " Roll for initiative - what's your plan?",
+                " Time to make a choice - what do you decide?"
             ];
             
-            // Choose question based on content
+            // Choose question based on content with D&D flavor
             let selectedQuestion;
             if (cleaned.includes('path') || cleaned.includes('direction') || cleaned.includes('way')) {
                 selectedQuestion = " Which path will you take?";
             } else if (cleaned.includes('approach') || cleaned.includes('near') || cleaned.includes('ahead')) {
                 selectedQuestion = " How do you proceed?";
-            } else if (cleaned.includes('danger') || cleaned.includes('threat') || cleaned.includes('enemy')) {
+            } else if (cleaned.includes('danger') || cleaned.includes('threat') || cleaned.includes('enemy') || cleaned.includes('combat')) {
                 selectedQuestion = " What action do you take?";
-            } else if (cleaned.includes('speaks') || cleaned.includes('says') || cleaned.includes('voice')) {
+            } else if (cleaned.includes('speaks') || cleaned.includes('says') || cleaned.includes('voice') || cleaned.includes('NPC')) {
                 selectedQuestion = " How do you respond?";
+            } else if (cleaned.includes('roll') || cleaned.includes('check') || cleaned.includes('dice')) {
+                selectedQuestion = " What's your next move?";
             } else {
                 // Random selection for other cases
                 selectedQuestion = questionOptions[Math.floor(Math.random() * questionOptions.length)];
@@ -397,8 +621,8 @@ Format as numbered list:
             }
         }
 
-        // More lenient RPG content check - accept if it has basic adventure elements
-        const hasRpgElements = cleaned.match(/\b(you|your|the|a|an|ancient|mystical|chamber|path|adventure|magic|dragon|sword|crystal|temple|forest|cave|treasure|quest|danger|shadow|light|power|stone|door|corridor|room|hall|stairs|wall|ground|air|darkness|bright|dim|glow|sound|voice|whisper|echo|wind|water|fire|cold|warm|feel|see|hear|smell|taste|move|walk|step|turn|look|find|discover|reveal|hidden|secret|mysterious|strange|eerie|ominous|peaceful|quiet|loud|distant|near|far|high|low|deep|wide|narrow|long|short|old|new|ancient|modern|magical|enchanted|cursed|blessed|sacred|evil|good|dark|bright)\b/i);
+        // Enhanced D&D content check - accept if it has RPG/fantasy elements including dice mechanics
+        const hasRpgElements = cleaned.match(/\b(you|your|the|a|an|roll|dice|check|skill|ability|strength|dexterity|constitution|intelligence|wisdom|charisma|perception|investigation|stealth|athletics|persuasion|deception|intimidation|insight|ancient|mystical|chamber|path|adventure|magic|dragon|sword|crystal|temple|forest|cave|treasure|quest|danger|shadow|light|power|stone|door|corridor|room|hall|stairs|wall|ground|air|darkness|bright|dim|glow|sound|voice|whisper|echo|wind|water|fire|cold|warm|feel|see|hear|smell|taste|move|walk|step|turn|look|find|discover|reveal|hidden|secret|mysterious|strange|eerie|ominous|peaceful|quiet|loud|distant|near|far|high|low|deep|wide|narrow|long|short|old|new|ancient|modern|magical|enchanted|cursed|blessed|sacred|evil|good|dark|bright|character|player|dungeon|master|DM|initiative|combat|spell|weapon|armor|shield|potion|scroll)\b/i);
         
         if (!hasRpgElements) {
             console.log('🤗 Response lacks RPG elements, using fallback');
@@ -466,23 +690,23 @@ Format as numbered list:
         
         const fallbacks = {
             narrative: [
-                "You find yourself in a mysterious location. The air feels different here, charged with possibility. You notice details that weren't there before - a distant sound, shifting shadows, or perhaps a faint scent on the breeze. Something has changed, and it's time to decide your next move. What do you do?",
+                "The ancient stones beneath your feet seem to whisper secrets as you pause, your breath creating small clouds in the cool, musty air. Your keen senses pick up the subtle dance of shadows cast by flickering torchlight - each movement revealing new textures in the weathered walls around you. A Perception check reveals that the faint echo of your footsteps suggests a vast chamber lies ahead, while the air carries hints of aged parchment and something metallic... perhaps copper or old blood. The weight of adventure presses against your shoulders like an invisible cloak. What do you choose to do in this moment pregnant with possibility?",
                 
-                "The path ahead is unclear, but you sense opportunity. Your surroundings offer several possibilities - you could explore further, rest and observe, or try a completely different approach. The choice is yours, and each option could lead to something unexpected. How do you proceed?",
+                "Time seems to slow as your character draws upon years of hard-won experience, muscles tensed and ready for action. The environment around you pulses with potential - every shadow could hide treasure or danger, every sound might herald friend or foe. Your Investigation check might uncover crucial details about the ornate carvings on the nearby walls, while your battle-honed Insight whispers that multiple paths forward exist, each with its own risks and rewards. The very air crackles with the electricity of impending adventure. How do you choose to proceed through this crossroads of fate?",
 
-                "A moment of quiet settles around you, giving you time to think. The situation has shifted, and new possibilities have emerged. You feel that whatever you do next could be significant to your journey. What action do you take?"
+                "The dice of destiny have rolled you to this pivotal moment in your tale, where heroes are forged and legends begin. Your weathered hands tighten around familiar gear as you survey the scene - torchlight dancing across surfaces that have witnessed countless stories, the taste of anticipation sharp on your tongue. This feels like one of those moments where a crucial Wisdom saving throw might be needed, or perhaps where those carefully hoarded abilities could turn the tide of your entire adventure. The silence stretches like a held breath, waiting for your next move. What decisive action do you take to shape your destiny?"
             ],
             
             character: [
-                "A figure approaches from the shadows. They seem neither threatening nor completely friendly - just... present. Their eyes show curiosity about you, and they appear to be waiting for some kind of response. How do you react?",
+                "A figure emerges from the interplay of light and shadow, their footsteps creating a rhythm that speaks neither of hostility nor friendship - simply the measured pace of someone who has stories to tell. Your sharp Insight check suggests they're another complex soul navigating this intricate tapestry of adventure, their weathered clothing and knowing eyes hinting at experience both bitter and sweet. The air between you crackles with potential - this seems like a perfect moment for your social skills to shine, whether through silver-tongued Persuasion, clever Deception, or commanding Intimidation. The encounter feels ripe with possibility. How do you choose to engage with this mysterious figure?",
 
-                "Someone new has entered the scene. Their intentions aren't immediately clear, but they've noticed you and seem interested in what you're doing here. The next move appears to be yours. What do you say or do?"
+                "An intriguing NPC materializes in your path like a character from a well-loved story, their presence immediately shifting the energy of the scene. They carry themselves with the quiet confidence of someone who has learned to read situations quickly, and their eyes hold that particular gleam that suggests they've noticed you long before you spotted them. This moment practically calls for roleplay - perhaps a Charisma check to create a memorable first impression, or an Investigation check to discern their true intentions before committing to an approach. The scene awaits your choice like an unwritten page. What's your opening move in this dance of personalities?"
             ],
             
             choice: [
-                "Several paths lie before you. Each one offers its own potential rewards and risks. You'll need to choose carefully - your decision here could shape what happens next. Which direction calls to you?",
+                "Multiple pathways stretch before you like the branching corridors of an ancient dungeon, each one practically humming with the promise of different dice rolls and distinct adventures. The rough stone path to your left whispers of Athletics checks and physical challenges, while the shadow-draped passage to your right suggests opportunities for Stealth and subterfuge. Straight ahead, intricate symbols carved into weathered stone hint at mysteries that would reward Investigation and scholarly pursuits. Your character's unique strengths could truly shine in any direction - the question is which path calls most strongly to your adventurous heart? Where do you direct your steps?",
 
-                "The situation presents multiple options. You could take the direct approach, try something more subtle, or find a completely different solution. What's your strategy?"
+                "The classic D&D crossroads spreads before you like a master's carefully crafted encounter, each option gleaming with different risk-reward scenarios that could become legendary moments in your adventure. You could embrace the warrior's direct approach - perhaps an Athletics check to overcome physical obstacles or a bold Combat encounter to test your mettle. Alternatively, the rogue's path beckons with opportunities for Sleight of Hand or Stealth, while the social character might find success through silver-tongued Persuasion or clever Deception. And then there's always the wild card - creative use of magic, tools, or pure improvisation that makes D&D sessions truly memorable. The dice are ready to sing their song of chance and skill. What strategy captures your imagination?"
             ]
         };
 
@@ -497,10 +721,10 @@ Format as numbered list:
 
     getFallbackChoices() {
         return [
-            "Investigate the mysterious object ahead",
-            "Approach cautiously and observe",
-            "Search for an alternative path",
-            "Use your special abilities"
+            "Investigate the scene thoroughly with a keen Perception check, studying every shadow and detail for hidden clues or potential dangers",
+            "Approach with confident determination, ready to roll Initiative if the situation escalates into combat or requires quick reflexes", 
+            "Use masterful Stealth to scout ahead unseen, gathering intelligence while remaining hidden in the shadows like a ghost",
+            "Think creatively and employ your character's unique abilities in an innovative way that reflects their personality and specialized skills"
         ];
     }
 

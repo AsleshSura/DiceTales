@@ -104,6 +104,61 @@
     color: white;
 }
 
+/* Locked steps */
+.step-indicator-item.locked {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    position: relative;
+}
+
+.step-indicator-item.locked .step-number {
+    background: var(--background-light);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+.step-indicator-item.locked .step-name {
+    color: var(--text-muted);
+}
+
+.step-indicator-item.locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    pointer-events: none;
+}
+
+.lock-icon {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 12px;
+    background: var(--background-dark);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Accessible steps (clickable) */
+.step-indicator-item.accessible:hover:not(.active):not(.locked) {
+    transform: translateY(-2px);
+    transition: transform var(--transition-fast);
+}
+
+.step-indicator-item.accessible:hover:not(.active):not(.locked) .step-number {
+    background: var(--primary-color-hover);
+    border-color: var(--primary-color-hover);
+}
+
 /* ===== CREATION STEPS ===== */
 .creation-step {
     display: none;

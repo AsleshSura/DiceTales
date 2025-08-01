@@ -290,9 +290,9 @@ class CharacterManager {
             creationScreen.style.display = 'flex';
             creationScreen.classList.add('active');
             
-            // Render content
+            // Render content and ensure proper step validation
             this.renderCharacterCreation();
-            this.showStep(0);
+            this.enforceSequentialCompletion();
             
             console.log('CharacterManager: Character creation setup complete');
         } else {
@@ -303,7 +303,7 @@ class CharacterManager {
             setTimeout(() => {
                 console.log('CharacterManager: DOM updated, rendering character creation...');
                 this.renderCharacterCreation();
-                this.showStep(0);
+                this.enforceSequentialCompletion();
                 console.log('CharacterManager: Character creation setup complete');
             }, 50);
         }
@@ -375,7 +375,7 @@ class CharacterManager {
                 completeBtn.addEventListener('click', () => {
                     console.log('CharacterManager: Complete button clicked!');
                     console.log('CharacterManager: Current step:', this.currentStep);
-                    console.log('CharacterManager: Can proceed?', this.canProceedToNextStep());
+                    console.log('CharacterManager: Can proceed?', this.canProceedToNextStepSilent());
                     this.completeCreation();
                 });
             }
@@ -437,7 +437,7 @@ class CharacterManager {
     }
     
     /**
-     * Render step indicator
+     * Render step indicator with navigation controls
      */
     renderStepIndicator() {
         const indicator = document.getElementById('step-indicator');
@@ -450,12 +450,31 @@ class CharacterManager {
             'details': 'Details'
         };
         
-        indicator.innerHTML = this.steps.map((step, index) => `
-            <div class="step-indicator-item ${index === this.currentStep ? 'active' : ''} ${index < this.currentStep ? 'completed' : ''}">
-                <div class="step-number">${index < this.currentStep ? '✓' : index + 1}</div>
-                <span class="step-name">${stepNames[step]}</span>
-            </div>
-        `).join('');
+        indicator.innerHTML = this.steps.map((step, index) => {
+            const isCompleted = index < this.currentStep;
+            const isActive = index === this.currentStep;
+            const isAccessible = index <= this.currentStep; // Can only access current or previous steps
+            
+            return `
+                <div class="step-indicator-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isAccessible ? 'accessible' : 'locked'}" 
+                     data-step="${index}" 
+                     ${isAccessible ? 'style="cursor: pointer;"' : 'style="cursor: not-allowed; opacity: 0.5;"'}>
+                    <div class="step-number">${isCompleted ? '✓' : index + 1}</div>
+                    <span class="step-name">${stepNames[step]}</span>
+                    ${!isAccessible ? '<div class="lock-icon">🔒</div>' : ''}
+                </div>
+            `;
+        }).join('');
+        
+        // Add click event listeners for accessible steps
+        indicator.querySelectorAll('.step-indicator-item.accessible').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const targetStep = parseInt(e.currentTarget.dataset.step);
+                if (targetStep <= this.currentStep) {
+                    this.goToStep(targetStep);
+                }
+            });
+        });
     }
     
     /**
@@ -808,7 +827,7 @@ class CharacterManager {
                 // Clear validation toast if name is now valid
                 if (e.target.value.trim().length > 0) {
                     setTimeout(() => {
-                        if (this.canProceedToNextStep()) {
+                        if (this.canProceedToNextStepSilent()) {
                             this.clearValidationToast();
                         }
                     }, 100);
@@ -834,7 +853,7 @@ class CharacterManager {
                 // Clear validation toast if background is now selected
                 if (backgroundKey) {
                     setTimeout(() => {
-                        if (this.canProceedToNextStep()) {
+                        if (this.canProceedToNextStepSilent()) {
                             this.clearValidationToast();
                         }
                     }, 100);
@@ -854,7 +873,7 @@ class CharacterManager {
                     // Clear validation toast if trait is now filled and all requirements met
                     if (e.target.value.trim().length > 0) {
                         setTimeout(() => {
-                            if (this.canProceedToNextStep()) {
+                            if (this.canProceedToNextStepSilent()) {
                                 this.clearValidationToast();
                             }
                         }, 100);
@@ -916,7 +935,7 @@ class CharacterManager {
         
         // Clear validation toast if all requirements are now met
         setTimeout(() => {
-            if (this.canProceedToNextStep()) {
+            if (this.canProceedToNextStepSilent()) {
                 this.clearValidationToast();
             }
         }, 100);
@@ -959,7 +978,7 @@ class CharacterManager {
         
         // Clear validation toast if all requirements are now met
         setTimeout(() => {
-            if (this.canProceedToNextStep()) {
+            if (this.canProceedToNextStepSilent()) {
                 this.clearValidationToast();
             }
         }, 100);
@@ -1506,21 +1525,106 @@ class CharacterManager {
     }
     
     /**
+     * Enforce sequential step completion - user must complete each step in order
+     */
+    enforceSequentialCompletion() {
+        console.log('CharacterManager: Enforcing sequential completion');
+        
+        // Find the furthest step the user can legitimately access
+        let maxAccessibleStep = 0;
+        const originalStep = this.currentStep;
+        
+        // Check each step in order to find where user should be
+        for (let i = 0; i < this.steps.length; i++) {
+            this.currentStep = i; // Temporarily set current step to check validation
+            
+            // Check if this step can be considered complete
+            if (this.isStepComplete(i)) {
+                maxAccessibleStep = i + 1; // Can access next step
+            } else {
+                maxAccessibleStep = i; // This step is incomplete, stop here
+                break;
+            }
+        }
+        
+        // Restore current step to the maximum accessible step
+        this.currentStep = Math.min(originalStep, maxAccessibleStep);
+        
+        // If user was somehow ahead, bring them back to the proper step
+        this.currentStep = Math.min(this.currentStep, maxAccessibleStep);
+        
+        console.log('CharacterManager: Max accessible step:', maxAccessibleStep);
+        console.log('CharacterManager: Setting current step to:', this.currentStep);
+        
+        this.showStep(this.currentStep);
+    }
+
+    /**
+     * Check if a specific step is complete (without validation messages)
+     */
+    isStepComplete(stepIndex) {
+        const stepName = this.steps[stepIndex];
+        
+        switch (stepName) {
+            case 'setting':
+                const setting = gameState.get('campaign.setting');
+                return !!setting;
+            case 'class':
+                const characterClass = gameState.get('character.class');
+                return !!characterClass;
+            case 'stats':
+                const remainingPoints = this.calculateRemainingPoints();
+                return remainingPoints === 0;
+            case 'details':
+                const character = gameState.get('character');
+                if (!character?.name?.trim()) return false;
+                if (!character?.background) return false;
+                const requiredTraits = ['personality', 'ideal', 'bond', 'flaw'];
+                return requiredTraits.every(trait => {
+                    const value = character?.[trait]?.trim();
+                    return value && value.length > 0;
+                });
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Navigate to a specific step (only allows backward navigation or current step)
+     */
+    goToStep(stepIndex) {
+        if (stepIndex < 0 || stepIndex >= this.steps.length) {
+            console.warn('CharacterManager: Invalid step index:', stepIndex);
+            return;
+        }
+        
+        // Only allow navigation to current or previous steps
+        if (stepIndex > this.currentStep) {
+            this.showValidationToast('Please complete the current step before proceeding!');
+            return;
+        }
+        
+        console.log('CharacterManager: Navigating to step:', stepIndex, this.steps[stepIndex]);
+        this.currentStep = stepIndex;
+        this.showStep(this.currentStep);
+    }
+
+    /**
      * Navigate to next step
      */
     nextStep() {
         console.log('CharacterManager: nextStep() called');
         console.log('CharacterManager: Current step:', this.currentStep);
-        console.log('CharacterManager: Can proceed?', this.canProceedToNextStep());
         
-        if (this.canProceedToNextStep()) {
+        // Use silent check first
+        if (this.canProceedToNextStepSilent()) {
             this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
             console.log('CharacterManager: Moving to step:', this.currentStep);
             this.showStep(this.currentStep);
         } else {
             console.log('CharacterManager: Cannot proceed to next step');
-            // Show a message to the user about what's missing
-            this.showStepValidationMessage();
+            // Now show validation messages since user tried to proceed
+            this.canProceedToNextStep(); // This will show the appropriate toast message
         }
     }
     
@@ -1549,7 +1653,50 @@ class CharacterManager {
     }
     
     /**
-     * Check if can proceed to next step
+     * Check if can proceed to next step (silent version - no toast messages)
+     */
+    canProceedToNextStepSilent() {
+        const stepName = this.steps[this.currentStep];
+        console.log('CharacterManager: Checking if can proceed from step (silent):', stepName);
+        
+        switch (stepName) {
+            case 'setting':
+                const setting = gameState.get('campaign.setting');
+                return !!setting;
+            case 'class':
+                const characterClass = gameState.get('character.class');
+                return !!characterClass;
+            case 'stats':
+                const remainingPoints = this.calculateRemainingPoints();
+                return remainingPoints === 0;
+            case 'details':
+                const character = gameState.get('character');
+                
+                // Check name
+                if (!character?.name?.trim()) {
+                    return false;
+                }
+                
+                // Check background
+                if (!character?.background) {
+                    return false;
+                }
+                
+                // Check character traits (personality, ideal, bond, flaw)
+                const requiredTraits = ['personality', 'ideal', 'bond', 'flaw'];
+                const hasAllTraits = requiredTraits.every(trait => {
+                    const value = character?.[trait]?.trim();
+                    return value && value.length > 0;
+                });
+                
+                return hasAllTraits;
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Check if can proceed to next step (with validation messages for user feedback)
      */
     canProceedToNextStep() {
         const stepName = this.steps[this.currentStep];
@@ -1559,49 +1706,66 @@ class CharacterManager {
             case 'setting':
                 const setting = gameState.get('campaign.setting');
                 console.log('CharacterManager: Campaign setting:', setting);
-                // For now, allow proceeding even without selection (for testing)
-                return true; // Change this back to !!setting when working properly
+                if (!setting) {
+                    this.showValidationToast('Please select a campaign setting before continuing!');
+                    return false;
+                }
+                return true;
             case 'class':
                 const characterClass = gameState.get('character.class');
                 console.log('CharacterManager: Character class:', characterClass);
-                return !!characterClass;
+                if (!characterClass) {
+                    this.showValidationToast('Please select a character class before continuing!');
+                    return false;
+                }
+                return true;
             case 'stats':
                 const remainingPoints = this.calculateRemainingPoints();
                 console.log('CharacterManager: Remaining points:', remainingPoints);
-                return remainingPoints >= 0;
+                if (remainingPoints !== 0) {
+                    if (remainingPoints > 0) {
+                        this.showValidationToast(`Please allocate all your ability points! You have ${remainingPoints} points remaining.`);
+                    } else {
+                        this.showValidationToast(`You have exceeded your point budget by ${Math.abs(remainingPoints)} points!`);
+                    }
+                    return false;
+                }
+                return true;
             case 'details':
                 // Check mandatory fields: name, background, and character traits
                 const character = gameState.get('character');
                 
                 // Check name
                 if (!character?.name?.trim()) {
-                    console.log('CharacterManager: Name is required');
+                    this.showValidationToast('Please enter your character name!');
                     return false;
                 }
                 
                 // Check background
                 if (!character?.background) {
-                    console.log('CharacterManager: Background is required');
+                    this.showValidationToast('Please select a character background!');
                     return false;
                 }
                 
                 // Check character traits (personality, ideal, bond, flaw)
                 const requiredTraits = ['personality', 'ideal', 'bond', 'flaw'];
-                const hasAllTraits = requiredTraits.every(trait => {
+                const missingTraits = [];
+                
+                requiredTraits.forEach(trait => {
                     const value = character?.[trait]?.trim();
-                    const hasValue = value && value.length > 0;
-                    if (!hasValue) {
-                        console.log(`CharacterManager: ${trait} is required`);
+                    if (!value || value.length === 0) {
+                        missingTraits.push(trait.charAt(0).toUpperCase() + trait.slice(1));
                     }
-                    return hasValue;
                 });
                 
-                // Clear validation toast if all requirements are met
-                if (hasAllTraits) {
-                    this.clearValidationToast();
+                if (missingTraits.length > 0) {
+                    this.showValidationToast(`Please fill in all character details: ${missingTraits.join(', ')}`);
+                    return false;
                 }
                 
-                return hasAllTraits;
+                // Clear validation toast if all requirements are met
+                this.clearValidationToast();
+                return true;
             default:
                 console.log('CharacterManager: Unknown step, allowing proceed');
                 return true;
@@ -1724,14 +1888,14 @@ class CharacterManager {
         
         console.log('CharacterManager: Updating navigation buttons');
         console.log('CharacterManager: Current step:', this.currentStep, 'of', this.steps.length - 1);
-        console.log('CharacterManager: Can proceed?', this.canProceedToNextStep());
+        console.log('CharacterManager: Can proceed?', this.canProceedToNextStepSilent());
         
         if (prevBtn) {
             prevBtn.disabled = this.currentStep === 0;
         }
         
         if (nextBtn) {
-            const canProceed = this.canProceedToNextStep();
+            const canProceed = this.canProceedToNextStepSilent();
             const isLastStep = this.currentStep === this.steps.length - 1;
             
             nextBtn.disabled = !canProceed;
@@ -1742,7 +1906,7 @@ class CharacterManager {
         
         if (completeBtn) {
             const isLastStep = this.currentStep === this.steps.length - 1;
-            const canComplete = this.canProceedToNextStep();
+            const canComplete = this.canProceedToNextStepSilent();
             
             completeBtn.style.display = isLastStep ? 'inline-block' : 'none';
             completeBtn.disabled = !canComplete;

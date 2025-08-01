@@ -123,7 +123,16 @@ body {
     font-size: var(--font-size-base);
     line-height: 1.6;
     color: var(--text-primary);
+    /* Fallback gradient in case image doesn't load */
     background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-medium) 100%);
+    /* Main background with your atmospheric image */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)),
+        url('background.jpg') center center fixed,
+        linear-gradient(135deg, var(--background-dark) 0%, var(--background-medium) 100%);
+    background-size: cover, cover, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed, fixed, fixed;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -135,11 +144,16 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
+    /* Fallback background */
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    /* Main background with your atmospheric image */
     background: 
-        radial-gradient(circle at 20% 30%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(218, 165, 32, 0.2) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(218, 165, 32, 0.1) 0%, transparent 70%),
-        linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #2d1810 50%, #1a1a1a 75%, #0f0f0f 100%);
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)),
+        url('background.jpg') center center fixed,
+        linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    background-size: cover, cover, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed, fixed, fixed;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -474,7 +488,8 @@ body {
 
 /* ===== HEADER ===== */
 .app-header {
-    background: var(--background-medium);
+    background: rgba(45, 45, 45, 0.9);
+    backdrop-filter: blur(10px);
     border-bottom: 2px solid var(--border-color);
     padding: var(--spacing-md) 0;
     box-shadow: var(--box-shadow);
