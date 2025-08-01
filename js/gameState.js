@@ -99,7 +99,9 @@ class GameState {
                 last_roll: null,
                 roll_history: [],
                 input_history: [],
-                selected_dice: ['d20']
+                selected_dice: ['d20'],
+                currentTurn: null, // { id: string, hasRolled: boolean, startTime: string }
+                turnCount: 0
             },
             meta: {
                 created_at: new Date().toISOString(),

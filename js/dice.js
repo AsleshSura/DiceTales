@@ -26,10 +26,66 @@ class DiceSystem {
         };
         
         this.isDiceRequestActive = false; // Track if dice request is currently active
+        this.currentTurnId = null; // Track current turn ID
+        this.hasRolledThisTurn = false; // Track if user has already rolled in current turn
+        this.turnStartTime = null; // Track when current turn started
         
         this.init();
     }
     
+    /**
+     * Start a new turn - called when AI generates a new response requiring dice
+     */
+    startNewTurn() {
+        this.currentTurnId = `turn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.hasRolledThisTurn = false;
+        this.turnStartTime = new Date().toISOString();
+        
+        console.log('🎯 New turn started:', this.currentTurnId);
+        
+        // Store turn info in game state if available
+        if (typeof gameState !== 'undefined') {
+            gameState.set('ui.currentTurn', {
+                id: this.currentTurnId,
+                hasRolled: false,
+                startTime: this.turnStartTime
+            });
+        }
+    }
+
+    /**
+     * Check if user can roll dice (hasn't rolled this turn)
+     */
+    canRollDice() {
+        return !this.hasRolledThisTurn;
+    }
+
+    /**
+     * Mark that user has rolled dice this turn
+     */
+    markDiceRolled() {
+        this.hasRolledThisTurn = true;
+        
+        // Update game state if available
+        if (typeof gameState !== 'undefined') {
+            gameState.update('ui.currentTurn', { hasRolled: true });
+        }
+        
+        console.log('🎯 Dice rolled for turn:', this.currentTurnId);
+    }
+
+    /**
+     * Get turn status for display
+     */
+    getTurnStatus() {
+        return {
+            turnId: this.currentTurnId,
+            hasRolled: this.hasRolledThisTurn,
+            canRoll: this.canRollDice(),
+            startTime: this.turnStartTime
+        };
+    }
+
     init() {
         // Listen for AI responses that contain dice roll requests
         if (typeof eventBus !== 'undefined') {
@@ -42,6 +98,8 @@ class DiceSystem {
                 console.log('🎲 Forced dice show event received:', data);
                 console.log('🎲 Data.diceType:', data.diceType);
                 console.log('🎲 Calling showDiceRequest with:', [data.diceType || 'd20']);
+                // Start new turn when dice is requested
+                this.startNewTurn();
                 this.showDiceRequest([data.diceType || 'd20']);
             });
             
@@ -223,6 +281,8 @@ class DiceSystem {
         // If we found dice requests, show them immediately
         if (foundDice.length > 0) {
             console.log('🎲 Found EXPLICIT dice requests:', foundDice);
+            // Start new turn when dice is requested via AI response detection
+            this.startNewTurn();
             this.showDiceRequest(foundDice);
         } else {
             console.log('🎲 No explicit dice requests found in content');
@@ -245,12 +305,43 @@ class DiceSystem {
         const diceNumber = parseInt(firstDice.substring(1));
         
         console.log('🎲 Showing dice request for:', firstDice);
+        console.log('🎯 Can roll dice this turn:', this.canRollDice());
+        
+        // Check if user has already rolled this turn
+        if (!this.canRollDice()) {
+            container.innerHTML = `
+                <div class="dice-request dice-already-rolled" style="animation: slideInUp 0.5s ease-out;">
+                    <div class="dice-prompt" style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(255, 152, 0, 0.1); border-radius: 8px; border-left: 4px solid #FF9800;">
+                        <strong style="color: #FF9800;">⏸️ One Roll Per Turn</strong>
+                        <p style="margin: 5px 0 0 0; color: var(--text-secondary);">You've already rolled dice this turn!</p>
+                    </div>
+                    <div class="dice-visual">
+                        <div class="dice-icon large" style="font-size: 4rem; text-shadow: 0 4px 8px rgba(0,0,0,0.3); opacity: 0.5;">${this.diceImages[firstDice]}</div>
+                        <div class="dice-label" style="font-size: 1.5rem; font-weight: bold; color: var(--text-secondary); opacity: 0.7;">${this.diceNames[firstDice]} (Used)</div>
+                    </div>
+                    <div class="turn-restriction-message" style="background: rgba(255, 152, 0, 0.05); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255, 152, 0, 0.2);">
+                        <div style="font-size: 1.1rem; font-weight: 600; color: #FF9800; margin-bottom: 8px;">🎯 Turn-Based Restriction</div>
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
+                            In DiceTales, you can only roll <strong>one die per turn</strong> to maintain tactical decision-making. 
+                            Wait for the Game Master to continue the story and start a new turn.
+                        </p>
+                        <div style="margin-top: 10px; font-size: 0.8rem; opacity: 0.8; color: var(--text-secondary);">
+                            Turn ID: ${this.currentTurnId || 'Unknown'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
         
         container.innerHTML = `
             <div class="dice-request" style="animation: slideInUp 0.5s ease-out;">
                 <div class="dice-prompt" style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; border-left: 4px solid #2196F3;">
                     <strong style="color: #2196F3;">🎲 Dice Roll Required!</strong>
                     <p style="margin: 5px 0 0 0; color: var(--text-secondary);">The outcome depends on your roll...</p>
+                    <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary); opacity: 0.8;">
+                        💡 You get <strong>one roll per turn</strong> - make it count!
+                    </div>
                 </div>
                 <div class="dice-visual">
                     <div class="dice-icon large" style="font-size: 4rem; text-shadow: 0 4px 8px rgba(0,0,0,0.3);">${this.diceImages[firstDice]}</div>
@@ -259,6 +350,9 @@ class DiceSystem {
                 <button class="btn btn-primary roll-btn" onclick="diceSystem.rollRequestedDice('${firstDice}')" style="padding: 15px 30px; font-size: 1.2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover)); border: none; border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                     🎲 Roll ${this.diceNames[firstDice]}
                 </button>
+                <div class="turn-info" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary); opacity: 0.7; text-align: center;">
+                    Turn: ${this.currentTurnId ? this.currentTurnId.split('_')[1] : 'Active'}
+                </div>
             </div>
         `;
         
@@ -281,9 +375,20 @@ class DiceSystem {
      */
     async rollRequestedDice(diceType) {
         console.log('🎲 Rolling dice:', diceType);
+        
+        // Check if user can roll dice this turn
+        if (!this.canRollDice()) {
+            console.log('🎯 User already rolled this turn, preventing roll');
+            showToast('You can only roll one die per turn!', 'warning');
+            return;
+        }
+        
         const diceNumber = parseInt(diceType.substring(1));
         const result = this.rollDie(diceNumber);
         console.log('🎲 Dice result:', result);
+        
+        // Mark that user has rolled dice this turn
+        this.markDiceRolled();
         
         // Use the proper dice-display container instead of dice-result
         const diceDisplay = document.getElementById('dice-display');
@@ -358,6 +463,12 @@ class DiceSystem {
                     <div class="result-details" style="font-size: 1rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 15px;">
                         Roll: ${result} out of ${diceNumber} possible
                     </div>
+                    <div class="turn-complete-notice" style="background: rgba(255, 152, 0, 0.05); padding: 10px; border-radius: 6px; margin-top: 15px; border: 1px solid rgba(255, 152, 0, 0.2);">
+                        <div style="font-size: 0.9rem; color: #FF9800; font-weight: 600;">⏸️ Turn Complete</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                            You've used your one dice roll for this turn. Wait for the GM to continue the story.
+                        </div>
+                    </div>
                 </div>
             `;
             
@@ -371,7 +482,8 @@ class DiceSystem {
                     result: result,
                     timestamp: new Date().toISOString(),
                     critical: isMax,
-                    fumble: isMin && diceNumber === 20
+                    fumble: isMin && diceNumber === 20,
+                    turnId: this.currentTurnId
                 });
             }
             
@@ -384,20 +496,16 @@ class DiceSystem {
                     type: this.diceNames[diceType],
                     critical: isMax,
                     fumble: isMin && diceNumber === 20,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    turnId: this.currentTurnId
                 });
             }
             
             // Mark dice request as complete
             this.isDiceRequestActive = false;
             
-            // Re-enable button with new text
-            if (rollButton) {
-                rollButton.innerHTML = '🔄 Roll Again';
-                rollButton.disabled = false;
-                rollButton.style.opacity = '1';
-                rollButton.style.background = 'var(--secondary-color)';
-            }
+            // Don't show roll again button since we only allow one roll per turn
+            console.log('🎯 Roll complete for turn:', this.currentTurnId);
         }, 1000); // Shorter timeout for better UX
     }
     
@@ -492,8 +600,16 @@ class DiceSystem {
                         </button>
                     </div>
                     <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.6;">
-                        💡 Tip: The system will automatically detect when dice rolls are needed!
+                        💡 Tip: The system enforces one dice roll per turn for strategic gameplay!
                     </div>
+                    ${this.hasRolledThisTurn ? `
+                        <div style="margin-top: 10px; padding: 8px; background: rgba(255, 152, 0, 0.1); border-radius: 6px; border: 1px solid rgba(255, 152, 0, 0.2);">
+                            <div style="font-size: 0.8rem; color: #FF9800;">⏸️ Turn Status: Already rolled this turn</div>
+                            <button class="btn btn-warning" onclick="diceSystem.resetCurrentTurn()" style="margin-top: 5px; padding: 4px 8px; font-size: 0.7rem;">
+                                🔄 Reset Turn (Debug)
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -504,7 +620,25 @@ class DiceSystem {
      */
     testDiceRoll(diceType = 'd20') {
         console.log('🎲 Testing dice roll:', diceType);
+        // Start new turn for testing
+        this.startNewTurn();
         this.showDiceRequest([diceType]);
+    }
+
+    /**
+     * Reset current turn (for debugging/admin purposes)
+     */
+    resetCurrentTurn() {
+        console.log('🎯 Manually resetting current turn');
+        this.hasRolledThisTurn = false;
+        this.currentTurnId = null;
+        this.turnStartTime = null;
+        
+        if (typeof gameState !== 'undefined') {
+            gameState.set('ui.currentTurn', null);
+        }
+        
+        showToast('Turn reset - you can roll dice again', 'info');
     }
 }
 

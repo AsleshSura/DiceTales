@@ -5,15 +5,11 @@
 
 class AIManager {
     constructor() {
-        // Simple AI Configuration (Primary - Always works)
-        this.useSimpleAI = window.AI_CONFIG?.USE_SIMPLE_AI !== false;
-        this.simpleAI = null;
-        
-        // HuggingFace AI Configuration (Optional - May fail)
-        this.useHuggingFace = window.AI_CONFIG?.USE_HUGGINGFACE || false;
+        // HuggingFace AI Configuration (Primary and Only)
+        this.useHuggingFace = window.AI_CONFIG?.USE_HUGGINGFACE !== false; // Default to true
         this.huggingFaceAI = null;
         
-        // Legacy Gemini configuration (fallback)
+        // Legacy Gemini configuration (unused but kept for compatibility)
         this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         this.apiKey = window.AI_CONFIG?.GEMINI_API_KEY || null;
         this.model = 'gemini-1.5-flash';
@@ -21,24 +17,13 @@ class AIManager {
         this.maxTokens = 8000;
         this.isProcessing = false;
         this.initialized = false;
-        this.forceFallbackMode = false;
         
-        // Initialize Simple AI (Primary)
-        if (this.useSimpleAI && window.SimpleAI) {
-            this.simpleAI = new SimpleAI();
-            console.log('🎯 SIMPLE AI INITIALIZED - Advanced story generation!');
-        }
-        
-        // Initialize HuggingFace AI if enabled (Secondary)
+        // Initialize HuggingFace AI (Primary and Only)
         if (this.useHuggingFace && window.HuggingFaceAI) {
             this.huggingFaceAI = new HuggingFaceAI();
-            console.log('🤗 HUGGINGFACE AI INITIALIZED - Experimental mode!');
-        }
-        
-        // Initialize Mock AI as final fallback
-        if (window.MockAI) {
-            this.mockAI = new MockAI();
-            console.log('🎭 MOCK AI INITIALIZED as final fallback');
+            console.log('🤗 HUGGINGFACE AI INITIALIZED - Primary AI system!');
+        } else {
+            console.error('🤗 HUGGINGFACE AI NOT AVAILABLE - Please check configuration');
         }
         
         // Separate AI processing flags
@@ -63,9 +48,7 @@ class AIManager {
         
         console.log('🔥 STARTING AI SYSTEM INITIALIZATION...');
         console.log('🔥 Available AI systems:', {
-            simpleAI: !!this.simpleAI,
             huggingFaceAI: !!this.huggingFaceAI,
-            mockAI: !!this.mockAI,
             hasGeminiKey: !!(this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY')
         });
         
@@ -106,33 +89,9 @@ class AIManager {
             }
         }
         
-        // Test Simple AI (reliable fallback)
-        if (this.useSimpleAI && this.simpleAI) {
-            try {
-                console.log('🎯 Testing Simple AI connection...');
-                const testResponse = await this.simpleAI.simulateAPICall('Testing connection', 'story');
-                if (testResponse && testResponse.length > 20) {
-                    console.log('🎯 SIMPLE AI CONNECTION SUCCESSFUL');
-                    return true;
-                }
-            } catch (error) {
-                console.warn('🎯 Simple AI test failed:', error);
-            }
-        }
-        
-        // Test Mock AI (always works)
-        if (this.mockAI) {
-            try {
-                console.log('🎭 Testing Mock AI connection...');
-                const testResponse = await this.mockAI.simulateAPICall('Testing connection', 'story');
-                if (testResponse) {
-                    console.log('🎭 MOCK AI CONNECTION SUCCESSFUL');
-                    return true;
-                }
-            } catch (error) {
-                console.warn('🎭 Mock AI test failed:', error);
-            }
-        }
+        // Only HuggingFace AI is used now - no fallbacks
+        console.log('🔥 Only HuggingFace AI configured - no fallback systems');
+        return false; // Will show appropriate error to user
         
         // Only test Gemini if we have a proper API key
         if (this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY') {
@@ -287,26 +246,19 @@ class AIManager {
         
         // TEMPORARY: Test if API is working, enable fallback if not
         console.log('🔥 Checking if we should force fallback mode...');
-        if (this.forceFallbackMode) {
-            console.log('🔥 FALLBACK MODE: Using fallback response due to forceFallbackMode=true');
-            this.showFallbackResponse(actionData.action);
-            this.isProcessing = false;
-            this.hideTypingIndicator();
-            return;
-        }
+        // Skip the old fallback mode check since we only use HuggingFace now
         
-        // Test API with a simple call first (but with timeout for faster fallback)
+        // Test API with a simple call first (but with timeout for faster error handling)
         try {
-            console.log('🔥 Testing API connection before story generation...');
+            console.log('🔥 Testing HuggingFace API connection before story generation...');
             await Promise.race([
                 this.testConnection(),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 3000))
             ]);
             console.log('🔥 API connection test passed');
         } catch (error) {
-            console.error('🔥 API connection test failed, enabling fallback mode:', error);
-            this.forceFallbackMode = true;
-            this.showFallbackResponse(actionData.action);
+            console.error('🔥 HuggingFace API connection test failed:', error);
+            this.displayError('HuggingFace AI is not available. Please check your configuration or try again later.');
             this.isProcessing = false;
             this.hideTypingIndicator();
             return;
@@ -361,15 +313,13 @@ class AIManager {
                     this.updateGameState(actionData, storyResponse);
                 }
             } else {
-                console.error('No story response from STORY AI');
-                this.showFallbackResponse(actionData.action);
+                console.error('No story response from HuggingFace AI');
+                this.displayError('Failed to generate story content. Please try again.');
             }
             
         } catch (error) {
-            console.error('Failed to process player action with specialized AI:', error);
-            // Enable fallback mode if AI keeps failing
-            this.forceFallbackMode = true;
-            this.showFallbackResponse(actionData.action);
+            console.error('Failed to process player action with HuggingFace AI:', error);
+            this.displayError('AI system encountered an error. Please try again.');
         } finally {
             this.isProcessing = false;
             this.hideTypingIndicator();
@@ -421,13 +371,13 @@ class AIManager {
                 
                 this.updateGameState(this.pendingAction, storyResponse);
             } else {
-                console.error('No story response from STORY AI after dice roll');
-                this.showFallbackResponse(this.pendingAction.action);
+                console.error('No story response from HuggingFace AI after dice roll');
+                this.displayError('Failed to process dice roll result. Please try again.');
             }
             
         } catch (error) {
-            logger.error('Failed to submit action with dice using specialized AI:', error);
-            this.showFallbackResponse(this.pendingAction.action);
+            console.error('Failed to submit action with dice using HuggingFace AI:', error);
+            this.displayError('AI system encountered an error processing your dice roll. Please try again.');
         } finally {
             // Reset state
             this.resetActionState();
@@ -897,9 +847,7 @@ Start describing what happens immediately based on their action and dice result.
         console.log('🔧 AI Manager state:', {
             initialized: this.initialized,
             isProcessing: this.isProcessing,
-            simpleAI: !!this.simpleAI,
-            huggingFaceAI: !!this.huggingFaceAI,
-            mockAI: !!this.mockAI
+            huggingFaceAI: !!this.huggingFaceAI
         });
         
         try {
@@ -1389,87 +1337,64 @@ RULES:
                 throw new Error('HuggingFace response too short or failed word count validation');
                 
             } catch (error) {
-                console.warn('🤗 HUGGINGFACE FAILED, trying Simple AI fallback:', error);
-                // Continue to Simple AI fallback
+                console.error('🤗 HUGGINGFACE FAILED:', error);
+                throw new Error(`HuggingFace AI failed: ${error.message}`);
             }
         }
         
-        // Use Simple AI (Secondary - reliable fallback)
-        if (this.useSimpleAI && this.simpleAI) {
-            console.log('🎯 USING SIMPLE AI - Advanced template generation (fallback)');
-            
-            const lastMessage = messages[messages.length - 1]?.content || '';
-            const isChoiceGeneration = lastMessage.includes('action choices') || lastMessage.includes('choice options');
-            
-            try {
-                const response = await this.simpleAI.simulateAPICall(lastMessage, isChoiceGeneration ? 'choices' : 'story');
-                
-                if (isChoiceGeneration && Array.isArray(response)) {
-                    console.log('🎯 SIMPLE AI CHOICES SUCCESS:', response.length, 'choices');
-                    return response.join('\n');
-                } else if (response && this.validateResponseLength(response, 100)) {
-                    console.log('🎯 SIMPLE AI STORY SUCCESS:', response?.length, 'chars,', response.trim().split(/\s+/).length, 'words');
-                    return response;
-                } else {
-                    console.warn('🎯 SIMPLE AI response failed word count validation, falling back');
-                    throw new Error('Simple AI response too short');
-                }
-            } catch (error) {
-                console.error('🎯 Simple AI error:', error);
-                // Continue to fallback
-            }
-        }
-        
-        // Fallback to Mock AI
-        if (this.mockAI) {
-            console.log('🎭 USING MOCK AI final fallback');
-            
-            const lastMessage = messages[messages.length - 1]?.content || '';
-            const isChoiceGeneration = lastMessage.includes('action choices') || lastMessage.includes('choice options');
-            
-            try {
-                const response = await this.mockAI.simulateAPICall(lastMessage, isChoiceGeneration ? 'choices' : 'story');
-                
-                if (isChoiceGeneration && Array.isArray(response)) {
-                    return response.join('\n');
-                } else {
-                    return response;
-                }
-            } catch (error) {
-                console.error('🎭 Mock AI error:', error);
-            }
-        }
-        
-        // Ultimate fallback
-        console.log('🔥 ALL AI METHODS FAILED - USING HARDCODED FALLBACK');
-        const fallbackResponse = this.generateFallbackResponse();
-        
-        // Validate fallback response length
-        if (this.validateResponseLength(fallbackResponse, 100)) {
-            console.log('🔥 FALLBACK RESPONSE validated successfully');
-            return fallbackResponse;
-        } else {
-            console.warn('🔥 FALLBACK RESPONSE failed validation, but returning anyway as final resort');
-            return fallbackResponse;
-        }
+        // No fallbacks - only HuggingFace
+        throw new Error('HuggingFace AI is not available or disabled');
     }
     
-    generateFallbackResponse() {
-        const fallbackResponses = [
-            "You step forward carefully, your eyes scanning the area for any signs of danger. The space feels different somehow - charged with possibility, but also risk. The air carries unfamiliar scents and sounds that make you pause and consider your next move more carefully. Something important is about to happen here, though you can't quite put your finger on what it might be. Your instincts tell you that whatever comes next will require both skill and a fair bit of luck to navigate successfully. The environment around you seems to be waiting, holding its breath for your decision. You can feel the weight of the moment pressing down on you, but there's no turning back now. Make a D10 roll to see how things play out!",
-            
-            "The situation develops quickly around you, forcing you to adapt to rapidly changing circumstances. What seemed straightforward moments ago has become more complex, with new variables entering the equation that you hadn't anticipated. Your training kicks in as you assess the scene, looking for advantages while staying alert to potential threats. The stakes feel higher now, and you realize that success isn't guaranteed - it's going to depend on your ability to think on your feet and maybe catch a lucky break. Time seems to slow as you focus on the task at hand, knowing that the next few moments could determine everything. Your heart beats steadily as you prepare to act, knowing that hesitation could be costly. Roll a D12 to determine the outcome of your actions!",
-            
-            "You find yourself in a pivotal moment where everything hangs in the balance. The choices you've made have led to this point, and now it's time to see how they play out. The atmosphere is tense, filled with anticipation as various forces align either for or against your success. You can sense that others - whether friend or foe - are watching closely to see what happens next. Your skills will certainly matter here, but so will fortune's favor. The path ahead isn't clear, but backing down isn't an option. You take a deep breath and steel yourself for whatever comes next, knowing that courage alone might not be enough. Cast a D20 to see what fate has in store!",
-            
-            "The moment of truth arrives faster than expected, catching you in a situation that demands quick thinking and decisive action. What started as a simple task has evolved into something more significant, with consequences that extend beyond what you initially imagined. You can feel the pressure mounting as various elements come together in ways you didn't foresee. Your experience tells you that this is one of those crucial junctures where everything can change in an instant. The smart move is to stay alert and trust your instincts, but you know that even the best-laid plans can go awry. There's a knot of tension in your stomach as you realize how much is riding on what happens next. Roll a D8 to see how your story unfolds!",
-            
-            "Things take an unexpected turn as new complications arise, demanding your immediate attention and careful consideration. The situation has shifted in ways that make your original plan seem inadequate, forcing you to improvise and adapt on the fly. You can feel the weight of responsibility on your shoulders as you realize that others might be counting on your success. The environment around you seems charged with potential energy, as if the world itself is waiting to see what you'll do next. Your pulse quickens as you weigh your options, knowing that whatever choice you make will have lasting consequences. There's no guarantee of success, but you've come too far to give up now. Make a D6 roll to determine how events unfold!",
-            
-            "You reach a critical juncture where skill, preparation, and luck must all come together if you're going to succeed. The challenge before you is real and immediate, requiring your full attention and best effort. Everything you've learned up to this point has prepared you for moments like this, though that doesn't make it any less nerve-wracking. You can sense that success is possible, but it's far from certain - there are too many variables in play to be confident of the outcome. Your hands steady as you focus on the task ahead, drawing on your training and experience while hoping that fortune will smile on your efforts. The next few moments will tell the tale. Roll a D4 to see what happens next!"
+    generateFallbackResponse(userMessage = '') {
+        // Try to detect user intent from their message
+        const message = userMessage.toLowerCase();
+        
+        if (message.includes('sleep') || message.includes('rest')) {
+            const sleepResponses = [
+                "You find a safe spot to rest. The fatigue in your body is real, and sleep comes quickly. Your dreams are filled with strange visions of the adventure ahead. You wake refreshed and ready for what comes next. Roll a D6 to see how your rest affects your next actions!",
+                "Finding shelter, you settle down for some much-needed rest. Sleep brings clarity to your thoughts and strength to your body. As dawn breaks, you feel renewed and prepared for the challenges ahead. Roll a D8 to determine what you discover upon waking!",
+                "You decide rest is the wisest choice. As you sleep, your subconscious processes the events of your journey. You wake with new insights and restored energy. The path forward seems clearer now. Roll a D10 to see what opportunities await!"
+            ];
+            return sleepResponses[Math.floor(Math.random() * sleepResponses.length)];
+        }
+        
+        if (message.includes('attack') || message.includes('fight') || message.includes('battle')) {
+            const combatResponses = [
+                "You leap into action with determined resolve. Your weapon feels steady in your hands as you engage. The outcome will depend on both skill and fortune. Roll a D12 to determine the result of your attack!",
+                "Combat erupts as you make your move. Time slows as you focus on your opponent's weaknesses. Your training guides your actions, but victory is never guaranteed. Roll a D20 to see how the battle unfolds!",
+                "You strike with precision and courage. The clash of battle fills the air as you fight for your goal. Success or failure hangs in the balance. Roll a D8 to determine your combat effectiveness!"
+            ];
+            return combatResponses[Math.floor(Math.random() * combatResponses.length)];
+        }
+        
+        if (message.includes('explore') || message.includes('search') || message.includes('investigate')) {
+            const exploreResponses = [
+                "You begin your careful exploration of the area. Your senses are alert as you search for clues, treasures, or hidden dangers. What you discover could change everything. Roll a D10 to see what you find!",
+                "Your investigation reveals more than you expected. The space holds secrets waiting to be uncovered. Your thorough approach pays off as you notice details others might miss. Roll a D12 to determine what you discover!",
+                "You search methodically, leaving no stone unturned. The environment responds to your careful attention, revealing its hidden aspects. Knowledge gained here will serve you well. Roll a D6 to see what secrets are revealed!"
+            ];
+            return exploreResponses[Math.floor(Math.random() * exploreResponses.length)];
+        }
+        
+        if (message.includes('talk') || message.includes('speak') || message.includes('negotiate') || message.includes('convince')) {
+            const socialResponses = [
+                "You choose your words carefully, reading the situation before speaking. Communication can open doors that force cannot. Your approach will determine how others respond to you. Roll a D8 to see how your words are received!",
+                "Your attempt at diplomacy shows wisdom. Sometimes the right words at the right time can resolve what weapons cannot. The response you receive will guide your next steps. Roll a D10 to determine the outcome of your conversation!",
+                "You engage in meaningful dialogue, hoping to find common ground. Your sincerity and tact could make all the difference here. The power of words should not be underestimated. Roll a D6 to see how your approach works!"
+            ];
+            return socialResponses[Math.floor(Math.random() * socialResponses.length)];
+        }
+        
+        // Default generic responses if no specific action detected
+        const genericResponses = [
+            "Your decision leads to new developments. The situation responds to your choice in ways you couldn't have predicted. Adventure awaits around every corner. Roll a D8 to see what happens next!",
+            "You take action with confidence. The world around you shifts in response to your choices. Your path forward becomes clearer with each step. Roll a D10 to determine the outcome!",
+            "Your bold move sets events in motion. The consequences of your actions will soon become apparent. Fortune favors those who act decisively. Roll a D6 to see how things unfold!",
+            "You proceed with determination. Your choices shape the adventure as it unfolds around you. Each decision brings new possibilities and challenges. Roll a D12 to discover what awaits!"
         ];
         
-        return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        return genericResponses[Math.floor(Math.random() * genericResponses.length)];
     }
 
     /**
@@ -2059,27 +1984,18 @@ RULES:
     }
     
     /**
-     * Show fallback response when AI fails
+     * Display error message to user
      */
-    showFallbackResponse(action) {
-        console.log('🔥 SHOWING FALLBACK RESPONSE for action:', action);
+    displayError(message) {
+        console.error('� AI Error:', message);
         
-        const fallbackContent = this.generateFallbackResponse();
+        // Display error message in the story area
+        this.displayStoryContent(`⚠️ ${message}`, 'system-message');
         
-        // Display the action and fallback story
-        this.displayStoryContent(action, 'player-action');
-        
-        setTimeout(async () => {
-            this.displayStoryContent(fallbackContent, 'dm-response');
-            
-            // Always prompt for dice roll after fallback response
-            this.promptForDiceRoll(fallbackContent);
-            
-            // Action buttons removed - players now type their actions directly
-            console.log('🔥 Fallback action buttons disabled - players type actions');
-        }, 1000);
-        
-        showToast('AI temporarily unavailable, using fallback response', 'warning');
+        // Show toast notification
+        if (typeof showToast !== 'undefined') {
+            showToast(message, 'error');
+        }
     }
 }
 

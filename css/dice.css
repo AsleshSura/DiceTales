@@ -34,6 +34,29 @@
     border: 2px solid var(--accent-primary);
 }
 
+/* Turn-based restriction styles */
+.dice-request.dice-already-rolled {
+    border-color: #FF9800;
+    background: rgba(255, 152, 0, 0.02);
+    opacity: 0.8;
+}
+
+.dice-request.dice-already-rolled .dice-icon.large {
+    opacity: 0.5;
+    filter: grayscale(50%) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    animation: none;
+}
+
+.turn-restriction-message {
+    max-width: 400px;
+    text-align: left;
+}
+
+.turn-complete-notice {
+    font-size: 0.9rem;
+    text-align: center;
+}
+
 .dice-visual {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,6 @@
-# DiceTales Setup Guide
+# DiceTales Setup Guide (v2.0)
 
-Get DiceTales running in less than 5 minutes! This guide covers everything from local development to deployment.
+Get DiceTales running in less than 5 minutes! This streamlined guide covers everything from local development to deployment for the HuggingFace-powered storytelling system.
 
 ## 🚀 Quick Start
 
@@ -20,20 +20,21 @@ Simply visit the [live demo](#) and start playing immediately - no setup require
 
 3. **Start playing!**
    - Click "New Game" to begin your adventure
-   - The AI will generate your story automatically
+   - The HuggingFace AI will generate your story in real-time
 
 ## 📋 Requirements
 
 ### Minimum Requirements
 - **Browser**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
 - **JavaScript**: Must be enabled
-- **Internet**: Required for AI features (HuggingFace API)
+- **Internet**: Required for HuggingFace AI storytelling
 - **Storage**: ~1MB for game saves (LocalStorage)
 
 ### Recommended
 - **Screen**: 1024x768 or larger for best experience
 - **Audio**: Speakers/headphones for atmospheric sounds
 - **Connection**: Stable internet for consistent AI responses
+- **HuggingFace Access**: Unrestricted access to HuggingFace Inference API
 
 ## 🔧 Development Setup
 
@@ -94,29 +95,35 @@ When you first start DiceTales:
 ```
 ┌─────────────────────────────────────────┐
 │             Story Area                  │
-│  (AI-generated narrative appears here)  │
+│  (HuggingFace AI narrative appears here)│
 ├─────────────────────────────────────────┤
 │             Choice Buttons              │
 │  [Option 1] [Option 2] [Option 3] [...]  │
 ├─────────────────────┬───────────────────┤
 │    Character Stats  │    Dice Area      │
 │  STR: 14  INT: 12   │   🎲 Roll D20     │
-│  DEX: 16  WIS: 10   │   [Roll Result]   │
-│  CON: 13  CHA: 11   │                   │
+│  DEX: 16  WIS: 10   │   [Turn Result]   │
+│  CON: 13  CHA: 11   │   "Turn Active"   │
 │  HP: 15/15 XP: 0    │                   │
 └─────────────────────┴───────────────────┘
 ```
 
-### 3. Game Controls
+### 3. Turn-Based Game Controls
 
-| Action | Method |
-|--------|--------|
-| **Make Choice** | Click any choice button |
-| **Roll Dice** | Click the dice or "Roll D20" button |
-| **View Stats** | Always visible in bottom-left |
-| **Save Game** | Automatic (LocalStorage) |
-| **Load Game** | Refresh page and click "Continue" |
-| **New Game** | Click "New Game" button |
+| Action | Method | Notes |
+|--------|--------|-------|
+| **Make Choice** | Click any choice button | Progresses story |
+| **Roll Dice** | Click dice when available | **One roll per turn only** |
+| **View Stats** | Always visible in bottom-left | Updates automatically |
+| **Save Game** | Automatic (LocalStorage) | Saves after each action |
+| **Load Game** | Refresh page and click "Continue" | Restores last state |
+| **New Game** | Click "New Game" button | Starts fresh adventure |
+
+### 4. Turn System (New in v2.0)
+- **One dice roll per turn** - Roll strategically!
+- **Turn progression** - Each choice or roll advances the story
+- **Visual feedback** - Dice availability clearly indicated
+- **Strategic gameplay** - Plan your actions carefully
 
 ## 🌐 Deployment Options
 
@@ -145,30 +152,25 @@ Upload all files to any web server that serves static files:
 
 ## 🔧 Configuration Options
 
-### AI Settings (Advanced)
-Edit `js/config.js` to customize AI behavior:
+### HuggingFace AI Settings
+Edit `js/huggingfaceAI.js` to customize AI behavior:
 
 ```javascript
-const CONFIG = {
-    USE_HUGGINGFACE: true,        // Primary AI service
-    USE_SIMPLE_AI: true,          // Fallback templates
-    USE_MOCK_AI: true,            // Final fallback
-    
-    // HuggingFace settings
-    HUGGINGFACE_MODELS: [
-        'microsoft/DialoGPT-large',
-        'microsoft/DialoGPT-medium',
-        'gpt2-large',
-        'gpt2'
-    ],
-    
-    // Response tuning
-    MAX_STORY_LENGTH: 500,
-    MAX_CHOICE_LENGTH: 250,
-    TEMPERATURE: 0.85,
-    TOP_P: 0.92
-};
+// Model configuration (models tried in order)
+const MODELS = [
+    'microsoft/DialoGPT-large',
+    'microsoft/DialoGPT-medium', 
+    'gpt2-large',
+    'gpt2'
+];
+
+// Response settings
+const MAX_NEW_TOKENS = 150;
+const TEMPERATURE = 0.8;
+const TOP_P = 0.9;
 ```
+
+**Note**: DiceTales v2.0 uses HuggingFace exclusively - no fallback systems.
 
 ### Audio Settings
 Edit `js/audio.js` to customize sound effects:
@@ -180,25 +182,45 @@ Edit `js/audio.js` to customize sound effects:
 
 ### Common Issues
 
-**"AI not responding" or showing template responses**
+**"AI Error: Unable to generate story" message**
 - Check internet connection
-- HuggingFace API might be busy - try refreshing
-- Game automatically falls back to template responses
+- HuggingFace API might be busy - wait and try again
+- Clear browser cache and reload
+- Check browser console (F12) for detailed error messages
+
+**"Cannot roll dice" (dice appears disabled)**
+- You can only roll **once per turn**
+- Make a story choice to advance to the next turn
+- This is intentional strategic gameplay
 
 **"Game won't load"**
 - Ensure JavaScript is enabled
 - Try a different browser
 - Check browser console for errors (F12)
+- Try serving from localhost if using file:// URLs
 
 **"Choices not appearing"**
 - Disable ad blockers (they sometimes block dynamic content)
 - Clear browser cache and reload
 - Try incognito/private mode
+- Wait for HuggingFace AI to finish processing
 
 **"Game state not saving"**
 - Check if browser allows LocalStorage
 - Try in incognito mode to test
 - Some browsers block storage on file:// URLs
+
+### HuggingFace-Specific Issues
+
+**"Model loading failed" errors**
+- HuggingFace model servers may be under load
+- Try refreshing the page to attempt different models
+- Check HuggingFace status at [status.huggingface.co](https://status.huggingface.co)
+
+**Slow AI responses**
+- HuggingFace free tier can be slower during peak hours
+- Responses may take 10-30 seconds during busy periods
+- Consider upgrading to HuggingFace Pro for faster inference
 
 ### Getting Help
 
@@ -211,16 +233,24 @@ Edit `js/audio.js` to customize sound effects:
 ## ⚡ Performance Tips
 
 ### For Best Experience
-- **Close unused browser tabs** (AI processing is resource-intensive)
+- **Close unused browser tabs** (HuggingFace AI processing is resource-intensive)
 - **Use Chrome or Firefox** for best compatibility
 - **Stable internet connection** for consistent AI responses
 - **Allow JavaScript** and disable strict content blockers
+- **Be patient with AI responses** - HuggingFace can take 10-30 seconds
 
 ### For Developers
 - **Use browser dev tools** for debugging
-- **Monitor network tab** to see AI API calls
-- **Check console** for detailed logging
+- **Monitor network tab** to see HuggingFace API calls
+- **Check console** for detailed AI error logging
 - **Test on multiple devices** for compatibility
+- **Understand the turn system** - strategic dice rolling is key
+
+### Turn-Based Strategy Tips
+- **Plan your dice rolls** - you only get one per turn
+- **Use dice for crucial moments** - combat, skill checks, important decisions
+- **Advance turns strategically** - each choice progresses the story
+- **Watch for dice availability** - visual cues show when rolling is possible
 
 ---
 

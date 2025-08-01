@@ -466,23 +466,23 @@ Format as numbered list:
         
         const fallbacks = {
             narrative: [
-                "The mystical energies of the realm swirl around you with an otherworldly intensity, their ethereal tendrils weaving through the air like living silk. Ancient magic pulses through the very stones beneath your feet, creating ripples of power that make your skin tingle with anticipation. The atmosphere grows thick with possibility as mysterious forces gather, presenting you with new opportunities and challenges that will test not only your resolve, but the very core of your being. Strange whispers echo from unseen sources, speaking of forgotten secrets and hidden pathways that could lead to either glory or peril. What do you do?",
+                "You find yourself in a mysterious location. The air feels different here, charged with possibility. You notice details that weren't there before - a distant sound, shifting shadows, or perhaps a faint scent on the breeze. Something has changed, and it's time to decide your next move. What do you do?",
                 
-                "A profound silence settles over the landscape as you venture deeper into this enigmatic realm, where reality itself seems to bend and shift like water disturbed by an unseen hand. The air shimmers with residual magic from ages past, carrying with it the faint echoes of ancient spells and forgotten incantations. Your footsteps echo strangely in this place, as if the very ground is alive and aware of your presence. Shadows dance at the edges of your vision, suggesting movement where none should exist, while a gentle but persistent breeze carries scents of distant lands and untold adventures that await your discovery. How do you proceed?",
+                "The path ahead is unclear, but you sense opportunity. Your surroundings offer several possibilities - you could explore further, rest and observe, or try a completely different approach. The choice is yours, and each option could lead to something unexpected. How do you proceed?",
 
-                "The ground beneath you trembles subtly with each step, as if responding to some deep, primordial rhythm that resonates through the earth's core. Crystalline formations jutting from the walls catch and reflect light in impossible ways, creating a kaleidoscope of colors that shift and change with your movement. The air itself seems charged with potential, crackling occasionally with small sparks of energy that dance between your fingers. In this place where the boundaries between the mundane and magical blur, every breath you take fills your lungs with possibility, and every heartbeat seems to sync with the ancient pulse of the world around you. What is your next move?"
+                "A moment of quiet settles around you, giving you time to think. The situation has shifted, and new possibilities have emerged. You feel that whatever you do next could be significant to your journey. What action do you take?"
             ],
             
             character: [
-                "A figure materializes from the shifting mists ahead, their form both ethereal and substantial, as if caught between two worlds. Their eyes hold the wisdom of countless ages, yet sparkle with an almost childlike curiosity about your presence. Draped in robes that seem to be woven from starlight itself, they move with a grace that suggests they are no ordinary being. The air around them shimmers with barely contained power, and when they speak, their voice carries the weight of ancient knowledge mixed with genuine intrigue about your journey. How do you respond to this mysterious encounter?",
+                "A figure approaches from the shadows. They seem neither threatening nor completely friendly - just... present. Their eyes show curiosity about you, and they appear to be waiting for some kind of response. How do you react?",
 
-                "Before you stands a being whose very presence seems to alter the fabric of reality around them. Their features are both familiar and alien, shifting subtly in the dancing light as if they exist in multiple dimensions simultaneously. Ancient symbols glow faintly along their skin, pulsing in rhythm with some cosmic heartbeat. Their gaze pierces through you with an intensity that suggests they can see not just who you are, but who you might become, and their slight smile hints at knowledge of futures yet unwritten. What do you say or do?"
+                "Someone new has entered the scene. Their intentions aren't immediately clear, but they've noticed you and seem interested in what you're doing here. The next move appears to be yours. What do you say or do?"
             ],
             
             choice: [
-                "The path ahead branches into multiple directions, each one shrouded in mystery and promising its own unique blend of rewards and perils. To your left, a passage glows with warm, inviting light, while to your right, shadows seem to beckon with whispered promises of hidden treasures. Straight ahead, the way remains unclear, veiled in shifting mists that part and reform like a living curtain. Which direction calls to you?",
+                "Several paths lie before you. Each one offers its own potential rewards and risks. You'll need to choose carefully - your decision here could shape what happens next. Which direction calls to you?",
 
-                "Multiple possibilities present themselves before you, each path radiating a different energy that speaks to various aspects of your nature. The choices you make here will not only determine your immediate future but may well shape the very essence of who you are destined to become in this mystical realm where every decision carries weight beyond measure. What path will you choose?"
+                "The situation presents multiple options. You could take the direct approach, try something more subtle, or find a completely different solution. What's your strategy?"
             ]
         };
 
