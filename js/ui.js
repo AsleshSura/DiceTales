@@ -126,6 +126,12 @@ class UIManager {
             saveBtn.addEventListener('click', () => this.saveGame());
         }
         
+        // Import/Export button
+        const importExportBtn = document.getElementById('import-export-btn');
+        if (importExportBtn) {
+            importExportBtn.addEventListener('click', () => this.openImportExportModal());
+        }
+        
         // Debug button (temporary)
         const debugBtn = document.getElementById('debug-screen-btn');
         if (debugBtn) {
@@ -995,6 +1001,197 @@ class UIManager {
             showToast('Game saved successfully!', 'success');
         } else {
             showToast('Failed to save game', 'error');
+        }
+    }
+
+    /**
+     * Open import/export modal
+     */
+    openImportExportModal() {
+        this.setupImportExportContent();
+        this.openModal('import-export-modal');
+    }
+
+    /**
+     * Setup import/export modal content
+     */
+    setupImportExportContent() {
+        const character = gameState.getCharacter();
+        const campaign = gameState.get('campaign');
+        const meta = gameState.get('meta');
+
+        // Update export info
+        const exportCharacterName = document.getElementById('export-character-name');
+        const exportCharacterLevel = document.getElementById('export-character-level');
+        const exportCampaignSetting = document.getElementById('export-campaign-setting');
+        const exportLastPlayed = document.getElementById('export-last-played');
+
+        if (exportCharacterName) exportCharacterName.textContent = character.name || 'Unnamed';
+        if (exportCharacterLevel) exportCharacterLevel.textContent = `Level ${character.level || 1}`;
+        if (exportCampaignSetting) exportCampaignSetting.textContent = campaign.setting || 'No campaign started';
+        if (exportLastPlayed) exportLastPlayed.textContent = meta.last_played ? formatTimestamp(meta.last_played) : 'Never';
+
+        // Setup export button
+        const exportBtn = document.getElementById('export-campaign-btn');
+        if (exportBtn) {
+            exportBtn.replaceWith(exportBtn.cloneNode(true)); // Remove existing listeners
+            const newExportBtn = document.getElementById('export-campaign-btn');
+            newExportBtn.addEventListener('click', () => this.exportCampaign());
+        }
+
+        // Setup import file selection
+        const selectFileBtn = document.getElementById('select-import-file-btn');
+        const fileInput = document.getElementById('import-file-input');
+        const selectedFileName = document.getElementById('selected-file-name');
+        const importPreview = document.getElementById('import-preview');
+        const importBtn = document.getElementById('import-campaign-btn');
+
+        if (selectFileBtn && fileInput) {
+            selectFileBtn.replaceWith(selectFileBtn.cloneNode(true)); // Remove existing listeners
+            const newSelectFileBtn = document.getElementById('select-import-file-btn');
+            
+            newSelectFileBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    this.handleImportFileSelection(file, selectedFileName, importPreview, importBtn);
+                }
+            });
+        }
+
+        // Setup import button
+        if (importBtn) {
+            importBtn.replaceWith(importBtn.cloneNode(true)); // Remove existing listeners
+            const newImportBtn = document.getElementById('import-campaign-btn');
+            newImportBtn.addEventListener('click', () => this.importCampaign());
+        }
+
+        // Reset import section
+        if (selectedFileName) selectedFileName.textContent = '';
+        if (importPreview) importPreview.style.display = 'none';
+        if (importBtn) importBtn.style.display = 'none';
+        
+        // Clear file input
+        if (fileInput) fileInput.value = '';
+    }
+
+    /**
+     * Export campaign to file
+     */
+    exportCampaign() {
+        try {
+            const exportData = gameState.export();
+            const character = gameState.getCharacter();
+            const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            const filename = `DiceTales_${character.name || 'Campaign'}_${timestamp}.json`;
+
+            // Create download link
+            const blob = new Blob([exportData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Campaign exported successfully!', 'success');
+            logger.info('Campaign exported:', filename);
+        } catch (error) {
+            logger.error('Failed to export campaign:', error);
+            showToast('Failed to export campaign', 'error');
+        }
+    }
+
+    /**
+     * Handle import file selection
+     */
+    handleImportFileSelection(file, selectedFileName, importPreview, importBtn) {
+        selectedFileName.textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importData = JSON.parse(e.target.result);
+                this.previewImportData = importData;
+                this.showImportPreview(importData, importPreview, importBtn);
+            } catch (error) {
+                logger.error('Failed to parse import file:', error);
+                showToast('Invalid save file format', 'error');
+                selectedFileName.textContent = 'Invalid file selected';
+                importPreview.style.display = 'none';
+                importBtn.style.display = 'none';
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    /**
+     * Show import preview
+     */
+    showImportPreview(importData, importPreview, importBtn) {
+        // Update preview info
+        const previewCharacterName = document.getElementById('preview-character-name');
+        const previewCharacterLevel = document.getElementById('preview-character-level');
+        const previewCampaignSetting = document.getElementById('preview-campaign-setting');
+        const previewExportedDate = document.getElementById('preview-exported-date');
+
+        if (previewCharacterName) previewCharacterName.textContent = importData.character?.name || 'Unnamed';
+        if (previewCharacterLevel) previewCharacterLevel.textContent = `Level ${importData.character?.level || 1}`;
+        if (previewCampaignSetting) previewCampaignSetting.textContent = importData.campaign?.setting || 'Unknown';
+        if (previewExportedDate) previewExportedDate.textContent = importData.exported_at ? formatTimestamp(importData.exported_at) : 'Unknown';
+
+        // Show preview and import button
+        importPreview.style.display = 'block';
+        importBtn.style.display = 'block';
+    }
+
+    /**
+     * Import campaign from file
+     */
+    importCampaign() {
+        if (!this.previewImportData) {
+            showToast('No file selected for import', 'error');
+            return;
+        }
+
+        // Show confirmation dialog
+        const confirmed = confirm(
+            '⚠️ This will replace your current campaign progress!\n\n' +
+            'Are you sure you want to import this campaign? ' +
+            'Consider exporting your current campaign first if you want to keep it.'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            // Import the data
+            gameState.import(JSON.stringify(this.previewImportData));
+            
+            // Update UI
+            this.updateCharacterDisplay();
+            
+            // Close modal
+            this.closeModal('import-export-modal');
+            
+            showToast('Campaign imported successfully!', 'success');
+            logger.info('Campaign imported successfully');
+
+            // Refresh the page to ensure all UI is updated
+            setTimeout(() => {
+                if (confirm('Campaign imported! The page will refresh to update all displays.')) {
+                    window.location.reload();
+                }
+            }, 1000);
+        } catch (error) {
+            logger.error('Failed to import campaign:', error);
+            showToast('Failed to import campaign', 'error');
         }
     }
     

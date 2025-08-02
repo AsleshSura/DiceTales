@@ -1,13 +1,13 @@
 /**
- * DiceTales - AI Configuration
- * HuggingFace-only AI system for RPG storytelling
+ * DiceTales - "The Quantum Relay" AI Configuration
+ * Specialized AI system for immersive sci-fi storytelling
  */
 
 const AI_CONFIG = {
-    // Primary and only AI system: HuggingFace (free models, optimized for D&D storytelling)
+    // Primary and only AI system: HuggingFace optimized for "The Quantum Relay" story
     USE_HUGGINGFACE: true,
     
-    // HuggingFace model preferences (system will try models in order)
+    // HuggingFace model preferences optimized for sci-fi storytelling
     HUGGINGFACE_MODELS: [
         'microsoft/DialoGPT-large',
         'microsoft/DialoGPT-medium', 

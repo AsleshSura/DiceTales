@@ -76,6 +76,9 @@
                     <button id="save-game-btn" class="nav-btn" title="Save Game">
                         <span class="icon">💾</span>
                     </button>
+                    <button id="import-export-btn" class="nav-btn" title="Import/Export Campaign">
+                        <span class="icon">📂</span>
+                    </button>
                 </nav>
             </div>
         </header>
@@ -321,6 +324,94 @@
                 </div>
                 <div class="modal-body" id="inventory-content">
                     <!-- Inventory will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Import/Export Modal -->
+        <div class="modal" id="import-export-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📂 Import/Export Campaign</h2>
+                    <button class="modal-close" data-modal="import-export-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="import-export-content">
+                    <div class="import-export-container">
+                        <!-- Export Section -->
+                        <div class="export-section">
+                            <h3>🎁 Export Campaign</h3>
+                            <p>Save your current campaign progress to a file that you can share or backup.</p>
+                            <div class="export-info">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Character:</span>
+                                        <span class="info-value" id="export-character-name">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Level:</span>
+                                        <span class="info-value" id="export-character-level">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Campaign:</span>
+                                        <span class="info-value" id="export-campaign-setting">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Last Played:</span>
+                                        <span class="info-value" id="export-last-played">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="export-campaign-btn" class="btn btn-primary">
+                                📤 Export Campaign
+                            </button>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Import Section -->
+                        <div class="import-section">
+                            <h3>📥 Import Campaign</h3>
+                            <p>Load a previously exported campaign file to continue your adventure.</p>
+                            <div class="import-controls">
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="import-file-input" accept=".json,.dicetales" style="display: none;">
+                                    <button id="select-import-file-btn" class="btn btn-secondary">
+                                        📁 Select Campaign File
+                                    </button>
+                                    <span id="selected-file-name" class="selected-file"></span>
+                                </div>
+                                <div class="import-preview" id="import-preview" style="display: none;">
+                                    <h4>Campaign Preview:</h4>
+                                    <div class="preview-info">
+                                        <div class="info-grid">
+                                            <div class="info-item">
+                                                <span class="info-label">Character:</span>
+                                                <span class="info-value" id="preview-character-name">-</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Level:</span>
+                                                <span class="info-value" id="preview-character-level">-</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Campaign:</span>
+                                                <span class="info-value" id="preview-campaign-setting">-</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Exported:</span>
+                                                <span class="info-value" id="preview-exported-date">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="import-warning">
+                                        <p>⚠️ <strong>Warning:</strong> Importing will replace your current campaign progress. Make sure to export your current campaign first if you want to keep it!</p>
+                                    </div>
+                                </div>
+                                <button id="import-campaign-btn" class="btn btn-success" style="display: none;">
+                                    📥 Import Campaign
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

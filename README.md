@@ -1,38 +1,40 @@
-# 🎲 DiceTales
+# 🎲 DiceTales: The Quantum Relay
 
-**An AI-powered fantasy RPG adventure that runs entirely in your browser!**
+**An AI-powered sci-fi RPG adventure featuring "The Quantum Relay" - an epic space opera that runs entirely in your browser!**
 
 [![Play Now](https://img.shields.io/badge/🎮-Play%20Now-green?style=for-the-badge)](index.html)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-blue?style=for-the-badge)](docs/README.md)
 [![Contribute](https://img.shields.io/badge/🤝-Contribute-orange?style=for-the-badge)](docs/CONTRIBUTING.md)
 
-## ✨ What is DiceTales?
+## ✨ What is DiceTales: The Quantum Relay?
 
-DiceTales combines the magic of AI storytelling with classic tabletop RPG mechanics. Create your character, make choices, roll dice, and watch as artificial intelligence crafts a unique adventure just for you.
+DiceTales combines advanced AI storytelling with classic tabletop RPG mechanics in an epic sci-fi setting. Embark on "The Quantum Relay" - a galaxy-spanning adventure where an alien artifact threatens the fate of Earth and its colonies. Create your character, make choices, roll dice, and watch as specialized AI crafts a unique space opera just for you.
 
 ### 🚀 Key Features
 
-- **🤖 AI-Powered Storytelling**: HuggingFace models generate dynamic narratives
-- **🎲 D20 Combat System**: Classic tabletop RPG dice mechanics
-- **👤 Character Progression**: Six stats, leveling, inventory, and equipment
-- **💾 Save/Load System**: Continue your adventure anytime
-- **📱 Fully Responsive**: Play on desktop, tablet, or mobile
+- **🤖 "The Quantum Relay" AI Storytelling**: Specialized HuggingFace models generate immersive sci-fi narratives
+- **🎲 D20 Space Combat System**: Classic tabletop RPG dice mechanics adapted for space adventures
+- **👤 Character Progression**: Six stats, leveling, inventory, and equipment for space explorers
+- **💾 Save/Load System**: Continue your galactic adventure anytime
+- **📂 Import/Export Campaigns**: Share space adventures and play across devices
+- **📱 Fully Responsive**: Command your starship on desktop, tablet, or mobile
 - **🆓 Completely Free**: No API keys, no sign-up, no payments required
 - **🌐 Zero Installation**: Runs entirely in your web browser
 
 ### 🎮 Quick Start
 
 1. **[Play Instantly](index.html)** - No setup required!
-2. **Create Your Character** - Distribute stat points and choose your name
-3. **Begin Your Adventure** - Let the AI craft your unique story
-4. **Make Choices** - Your decisions shape the narrative
-5. **Roll Dice** - Test your skills against challenges
-6. **Level Up** - Grow stronger through your adventures
+2. **Create Your Character** - Distribute stat points and choose your space explorer
+3. **Begin "The Quantum Relay"** - Respond to the distress signal from Research Station Alpha
+4. **Make Choices** - Your decisions shape the galactic conflict
+5. **Roll Dice** - Test your skills against space hazards and alien technology
+6. **Level Up** - Grow stronger through your cosmic adventures
+7. **📂 Export/Import** - Save and share your space campaigns with others
 
 ## 🏗️ Technology Stack
 
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
-- **AI Services**: HuggingFace Inference API (DialoGPT, GPT-2)
+- **AI Services**: "The Quantum Relay" specialized HuggingFace models (DialoGPT, GPT-2)
 - **Storage**: LocalStorage for game saves
 - **Deployment**: Static hosting compatible (GitHub Pages, Netlify, Vercel)
 - **Dependencies**: Zero! No npm packages or build tools needed
@@ -43,6 +45,7 @@ DiceTales combines the magic of AI storytelling with classic tabletop RPG mechan
 |-------|-------------|
 | **[📖 Setup Guide](docs/SETUP_GUIDE.md)** | Get started in 5 minutes |
 | **[🎮 Game Guide](docs/GAME_GUIDE.md)** | Master the art of adventure |
+| **[📂 Import/Export Guide](docs/IMPORT_EXPORT_GUIDE.md)** | Share and backup campaigns |
 | **[🏗️ Technical Overview](docs/TECHNICAL_OVERVIEW.md)** | Architecture and development |
 | **[📋 API Reference](docs/API_REFERENCE.md)** | Complete code documentation |
 | **[🚀 Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | Host your own instance |

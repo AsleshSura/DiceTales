@@ -6,9 +6,8 @@
 
 class AIManager {
     constructor() {
-        // Use only HuggingFace for the entire game
+        // Use only HuggingFace as the primary and only AI system
         this.useHuggingFace = true;
-        this.useGemini = false;
         
         // Initialize DM Response Evaluator
         this.dmEvaluator = new DMEvaluator();
@@ -59,44 +58,44 @@ class AIManager {
         
         this.bindEvents();
         
-        // Initialize HuggingFace as the primary and only AI system
-        console.log('🤗 Initializing HuggingFace as primary AI system...');
+        // Initialize HuggingFace as the primary AI system for "The Quantum Relay" story
+        console.log('🤗 Initializing "The Quantum Relay" AI storytelling system...');
         this.initHuggingFace();
-        console.log('🤗 HuggingFace system initialized successfully');
+        console.log('🤗 "The Quantum Relay" AI system initialized successfully');
     }
 
     async initialize() {
         if (this.initialized) return;
-        console.log('🤗 STARTING HUGGINGFACE AI SYSTEM INITIALIZATION...');
-        console.log('🤗 Using HuggingFace as the primary AI system');
+        console.log('🤗 STARTING "THE QUANTUM RELAY" AI SYSTEM INITIALIZATION...');
+        console.log('🤗 Using advanced HuggingFace AI for immersive sci-fi storytelling');
         
         try {
             // Test HuggingFace connection
-            console.log('🤗 Testing HuggingFace AI connections...');
+            console.log('🤗 Testing "The Quantum Relay" AI connections...');
             await this.testConnection();
             this.initialized = true;
-            console.log('✅ HUGGINGFACE AI SYSTEM READY FOR USE');
+            console.log('✅ "THE QUANTUM RELAY" AI SYSTEM READY FOR ADVENTURE');
         } catch (error) {
-            console.warn('⚠️ HuggingFace initialization had issues, but continuing with fallbacks:', error);
+            console.warn('⚠️ AI initialization had issues, but continuing with fallbacks:', error);
             this.initialized = true;
         }
     }
     
     async testConnection() {
-        console.log('🤗 TESTING HUGGINGFACE CONNECTION...');
+        console.log('🤗 TESTING "THE QUANTUM RELAY" AI CONNECTION...');
         
         try {
-            console.log('🤗 Testing HuggingFace AI connection...');
+            console.log('🤗 Testing advanced sci-fi storytelling AI connection...');
             const testResponse = await this.makeHuggingFaceRequest('Testing connection', { max_length: 50 });
             if (testResponse && testResponse.length > 10) {
-                console.log('🤗 HUGGINGFACE AI CONNECTION SUCCESSFUL');
+                console.log('🤗 "THE QUANTUM RELAY" AI CONNECTION SUCCESSFUL');
                 return true;
             }
         } catch (error) {
-            console.warn('🤗 HuggingFace test failed:', error);
+            console.warn('🤗 AI test failed:', error);
         }
         
-        console.log('🤗 CONNECTION TEST COMPLETED - using HuggingFace fallbacks if needed');
+        console.log('🤗 CONNECTION TEST COMPLETED - using AI fallbacks if needed');
         return true;
     }
     
@@ -199,48 +198,30 @@ class AIManager {
         }
     }
     
-    // HuggingFace Story Prompts
+    // HuggingFace Story Prompts - Optimized for "The Quantum Relay"
     getHuggingFaceStoryPrompt(type, settingData = null) {
-        const settingName = settingData?.name || 'Medieval Fantasy';
-        const settingDesc = settingData?.description || 'classic fantasy adventure';
-        const technology = settingData?.technology || 'Medieval';
-        const magic = settingData?.magic || 'High fantasy';
-        const themes = settingData?.themes ? settingData.themes.join(', ') : 'heroic adventures';
-        const dmHint = settingData?.dm_personality_hint || 'Focus on classic fantasy tropes and epic adventures.';
-        
-        // Include campaign story if available
-        let campaignInfo = '';
-        if (this.currentCampaignStory) {
-            campaignInfo = `
+        // Always use "The Quantum Relay" campaign info regardless of setting
+        const campaignInfo = `
 
-📚 CURRENT CAMPAIGN: "${this.currentCampaignStory.title}"
-Main Plot: ${this.currentCampaignStory.plot}
-Key Locations: ${this.currentCampaignStory.locations.join(', ')}
-Main Antagonist: ${this.currentCampaignStory.antagonist}
-Stakes: ${this.currentCampaignStory.stakes}
-Character Hook: ${this.currentCampaignStory.hook}
+📚 CURRENT CAMPAIGN: "The Quantum Relay"
+Main Plot: An alien artifact called the Quantum Relay has been discovered, capable of opening wormholes across the galaxy. A rogue faction wants to use it to invade Earth, while others seek to destroy it entirely.
+Key Locations: Research Station Alpha, Asteroid Mining Colony, Ancient Alien Ruins, The Enemy Mothership
+Main Antagonist: Commander Vex of the Crimson Fleet, leading a human separatist faction allied with hostile aliens
+Stakes: Earth and its colonies face invasion or isolation from the galaxy
+Character Hook: Your family lives on one of the colonies that will be the first target of invasion.
 
-🎯 STORY FOCUS: All scenes should connect to this specific campaign. Reference the locations, antagonist, and plot when appropriate. Keep the player moving toward resolving this central conflict.`;
-        } else {
-            campaignInfo = `
-
-⚠️ No specific campaign story set - you're running a general ${settingName} adventure.`;
-        }
+🎯 STORY FOCUS: All scenes should connect to "The Quantum Relay" campaign. Reference space stations, alien technology, the Crimson Fleet, and the threat to Earth's colonies. Keep the player moving toward resolving this galactic conflict.`;
         
         const basePrompts = {
-            narrative: `You're an adventure game master running a ${settingName} campaign. Setting: ${settingDesc}
+            narrative: `You're a Dungeon Master running "The Quantum Relay" - an epic sci-fi space adventure campaign.
 
-CAMPAIGN SETTING:
-- Tech Level: ${technology}
-- Magic: ${magic}  
-- Themes: ${themes}
-- Style: ${dmHint}${campaignInfo}
+SETTING: Advanced space-faring future with alien artifacts, interstellar travel, and colonial settlements${campaignInfo}
 
-🎭 BE A NATURAL DM:
-You're the DM everyone wants - relaxed, fun, and genuinely into the game. Talk like a real person:
-- Use normal language, not flowery prose ("It's dark" not "Darkness shrouds the area like a velvet tapestry")
-- Be enthusiastic but not over-the-top ("Cool!" "Nice!" "Oh shit!" "Damn!")
-- Talk like you're sitting at a table with friends, not writing a novel
+🎭 BE A NATURAL SPACE OPERA DM:
+You're the DM everyone wants for their sci-fi campaign - relaxed, fun, and genuinely into space adventures. Talk like a real person:
+- Use normal language, not overly technical jargon ("The ship's dark" not "The vessel is shrouded in mechanical silence")
+- Be enthusiastic about space action ("Cool!" "Nice!" "Holy shit!" "Damn!")
+- Talk like you're running a space campaign at the table with friends
 - Use contractions (you're, it's, that's, can't, won't)
 
 � DESCRIBE THINGS SIMPLY:
@@ -249,41 +230,41 @@ You're the DM everyone wants - relaxed, fun, and genuinely into the game. Talk l
 - Avoid cliché phrases like "tapestry", "shimmering", "intricate", "cosmic", "legendary"
 - Say "you hear footsteps" not "the sound of approaching footsteps dances upon your ears"
 
-🎯 KEEP THE STORY MOVING:
-- Make things happen - don't ask what the player wants to do
-- End with concrete events, not vague possibilities
-- Use simple transitions: "Then", "Suddenly", "Just as you do that"
+🎯 KEEP THE SPACE ADVENTURE MOVING:
+- Make things happen - space is dangerous and fast-paced
+- End with concrete events involving the Quantum Relay, Crimson Fleet, or colony threats
+- Use simple transitions: "Then", "Suddenly", "Just as you do that", "The comm crackles"
 - Keep responses under 200 words when possible
 
 🚨 NEVER DO THIS:
-- Don't use purple prose or overwrought descriptions
-- Avoid phrases like "calls to your adventurous spirit", "shimmering with possibilities"
-- Don't end with "What calls to you?" or similar flowery questions
-- No "cosmic tapestries" or "intricate weavings" - just tell us what happens
+- Don't use purple prose about space or alien technology
+- Avoid phrases like "beckons to your explorer's soul", "quantum possibilities shimmer"
+- Don't end with "What calls to your spacefarer spirit?" - just tell us what happens
+- No "cosmic destinies" or "stellar tapestries" - keep it grounded in the story
 
 Current situation: `,
             
-            choice: `You're an adventure game master presenting action options for a ${settingName} campaign. Setting: ${settingDesc}${campaignInfo}
+            choice: `You're a Dungeon Master presenting action options for "The Quantum Relay" space adventure campaign.${campaignInfo}
 
-KEEP IT SIMPLE AND NATURAL:
-Create exactly 4 clear, straightforward choices. Each should:
-- Be written in plain English, not fancy prose
-- Suggest dice rolls naturally ("Roll to see if you can climb the wall" not "Could showcase your physical prowess")
-- Sound like something a real Game Master would say
-- Be specific about what the character would actually do
-${this.currentCampaignStory ? '- Connect to the current campaign story when possible' : ''}
+KEEP IT SIMPLE AND SPACE-FOCUSED:
+Create exactly 4 clear, straightforward choices for this sci-fi adventure. Each should:
+- Be written in plain English, not technobabble
+- Suggest dice rolls naturally ("Roll to hack the console" not "Could demonstrate your technical prowess")
+- Sound like something a real Space GM would say
+- Be specific about what the character would actually do in this space scenario
+- Connect to the Quantum Relay story, Crimson Fleet threat, or colony danger when possible
 
-Based on this situation: `,
+Based on this space situation: `,
             
-            character: `You're an adventure game master introducing an NPC in a ${settingName} campaign. Setting: ${settingDesc}${campaignInfo}
+            character: `You're a Dungeon Master introducing a character in "The Quantum Relay" space adventure campaign.${campaignInfo}
 
 BE NATURAL AND DIRECT:
-Describe this character like you're telling a friend about someone interesting you met. Keep it:
+Describe this space character like you're telling a friend about someone interesting you met on a space station. Keep it:
 - Simple and clear, not flowery or dramatic
 - Focused on what the player would actually notice
 - Under 150 words
 - Conversational, like you're sitting at a gaming table
-${this.currentCampaignStory ? '- Consider how this NPC might relate to the current campaign story' : ''}
+- Consider how this character might relate to the Quantum Relay story, Crimson Fleet, or colony threats
 
 Scene: `
         };
@@ -417,51 +398,31 @@ Scene: `
     }
     
     getCampaignStoryPrompt(settingData = null, characterData = null) {
-        const settingName = settingData?.name || 'Medieval Fantasy';
-        const settingDesc = settingData?.description || 'classic fantasy adventure';
-        const technology = settingData?.technology || 'Medieval';
-        const magic = settingData?.magic || 'High fantasy';
-        const themes = settingData?.themes ? settingData.themes.join(', ') : 'heroic adventures';
+        // Always generate "The Quantum Relay" story regardless of setting
+        const characterRole = characterData?.role || 'space explorer';
+        const characterName = characterData?.name || 'the space explorer';
         
-        const characterRole = characterData?.role || 'warrior';
-        const characterName = characterData?.name || 'the adventurer';
-        
-        return `You are a creative Game Master designing a specific campaign story for a ${settingName} adventure game.
+        return `You are the AI behind "The Quantum Relay" - an epic sci-fi space adventure campaign.
 
-SETTING: ${settingDesc}
-- Technology: ${technology}
-- Magic: ${magic}
-- Themes: ${themes}
+SETTING: Advanced space-faring future with alien artifacts, interstellar travel, and colonial settlements
+- Technology: Starships, AI systems, alien technology
+- Environment: Space stations, alien worlds, asteroid colonies
+- Themes: Galactic conflict, alien artifacts, survival, exploration
 
 PLAYER CHARACTER: ${characterName}, a ${characterRole}
 
-CREATE A SPECIFIC CAMPAIGN STORY:
-Generate a focused, compelling story premise with these elements:
+YOU MUST RETURN "THE QUANTUM RELAY" STORY:
+Generate the exact campaign that matches this premise:
 
-1. TITLE: A catchy campaign name (like "The Lost Crown of Eldara" or "Shadows Over Neo-Tokyo")
+TITLE: The Quantum Relay
+PLOT: An alien artifact called the Quantum Relay has been discovered, capable of opening wormholes across the galaxy. A rogue faction wants to use it to invade Earth, while others seek to destroy it entirely.
+START: Your ship receives a distress signal from a research station that was studying the artifact. When you arrive, the station is dark and filled with strange energy readings.
+LOCATIONS: Research Station Alpha, Asteroid Mining Colony, Ancient Alien Ruins, The Enemy Mothership
+ANTAGONIST: Commander Vex of the Crimson Fleet, leading a human separatist faction allied with hostile aliens
+STAKES: Earth and its colonies face invasion or isolation from the galaxy
+HOOK: Your family lives on one of the colonies that will be the first target of invasion.
 
-2. MAIN PLOT: The central conflict or mystery that drives the entire campaign (2-3 sentences)
-
-3. STARTING SITUATION: Where and how the adventure begins, what draws the character in
-
-4. KEY LOCATIONS: 3-4 important places the story will visit
-
-5. MAIN ANTAGONIST: Who or what is behind the central conflict
-
-6. STAKES: What happens if the player fails
-
-7. HOOK: Why this matters to the player character specifically
-
-Format your response exactly like this:
-TITLE: [Campaign Name]
-PLOT: [Main story in 2-3 sentences]
-START: [Opening situation in 2 sentences]
-LOCATIONS: [Location 1], [Location 2], [Location 3], [Location 4]
-ANTAGONIST: [Main villain/threat]
-STAKES: [What's at risk]
-HOOK: [Personal connection to character]
-
-Keep it focused and specific - this will guide the entire adventure!`;
+Return exactly this story information in the proper format.`;
     }
     
     processCampaignStory(response) {
@@ -500,55 +461,26 @@ Keep it focused and specific - this will guide the entire adventure!`;
     }
     
     getFallbackCampaignStory(settingData = null, characterData = null) {
-        const settingName = settingData?.name || 'Medieval Fantasy';
         const characterRole = characterData?.role || 'warrior';
         
-        const fallbackStories = {
-            'Medieval Fantasy': {
-                title: 'The Crown of Shadows',
-                plot: 'The ancient Crown of Shadows has been stolen from the royal vault, and dark magic is spreading across the land. The thief seeks to use its power to open a portal to the shadow realm and unleash an army of darkness.',
-                start: 'You arrive in the town of Millbrook to find it under quarantine - strange shadow creatures have been attacking at night. The local guard captain desperately needs help investigating the source.',
-                locations: ['Millbrook Village', 'The Royal Vault', 'Shadow Forest', 'The Dark Portal'],
-                antagonist: 'Malachar the Shadow Mage, a former court wizard turned dark sorcerer',
-                stakes: 'If the portal opens fully, shadow creatures will overrun the kingdom',
-                hook: 'The shadow creatures killed someone important to you - this is personal.'
-            },
-            'Modern Urban': {
-                title: 'The Data Heist',
-                plot: 'A mysterious hacker known as "Ghost" has stolen classified government data and is selling it to the highest bidder. The data contains information that could start a war if it falls into the wrong hands.',
-                start: 'You witness a high-tech break-in at a government facility. The security footage shows impossible things - someone who seems to phase through walls like a ghost.',
-                locations: ['Downtown Office District', 'Underground Server Farm', 'Abandoned Warehouse', 'Corporate Headquarters'],
-                antagonist: 'Ghost - a hacker with experimental cybernetic implants that allow digital-physical interface',
-                stakes: 'The stolen data could trigger international conflicts and civilian casualties',
-                hook: 'Your friend works in cybersecurity and has gone missing while investigating Ghost.'
-            },
-            'Sci-Fi Space': {
-                title: 'The Quantum Relay',
-                plot: 'An alien artifact called the Quantum Relay has been discovered, capable of opening wormholes across the galaxy. A rogue faction wants to use it to invade Earth, while others seek to destroy it entirely.',
-                start: 'Your ship receives a distress signal from a research station that was studying the artifact. When you arrive, the station is dark and filled with strange energy readings.',
-                locations: ['Research Station Alpha', 'Asteroid Mining Colony', 'Ancient Alien Ruins', 'The Enemy Mothership'],
-                antagonist: 'Commander Vex of the Crimson Fleet, leading a human separatist faction allied with hostile aliens',
-                stakes: 'Earth and its colonies face invasion or isolation from the galaxy',
-                hook: 'Your family lives on one of the colonies that will be the first target of invasion.'
-            },
-            'Eldritch Horror': {
-                title: 'The Whispering Dark',
-                plot: 'Ancient symbols have appeared throughout the city, and people who see them begin to disappear or act strangely. An otherworldly intelligence is trying to break through to our reality.',
-                start: 'You notice strange symbols carved overnight into buildings around your neighborhood. Your neighbor who was studying them has vanished, leaving only bizarre drawings and frantic notes.',
-                locations: ['Your Neighborhood', 'The Old Library', 'Abandoned Subway Tunnels', 'The Convergence Point'],
-                antagonist: 'The Whispering Entity - an alien intelligence that exists between dimensions',
-                stakes: 'If the entity fully manifests, reality itself will be rewritten according to its incomprehensible will',
-                hook: 'The symbols appeared first on your own home - whatever is happening, it specifically chose you.'
-            }
+        // Always use "The Quantum Relay" story as the primary campaign for all settings
+        const story = {
+            title: 'The Quantum Relay',
+            plot: 'An alien artifact called the Quantum Relay has been discovered, capable of opening wormholes across the galaxy. A rogue faction wants to use it to invade Earth, while others seek to destroy it entirely.',
+            start: 'Your ship receives a distress signal from a research station that was studying the artifact. When you arrive, the station is dark and filled with strange energy readings.',
+            locations: ['Research Station Alpha', 'Asteroid Mining Colony', 'Ancient Alien Ruins', 'The Enemy Mothership'],
+            antagonist: 'Commander Vex of the Crimson Fleet, leading a human separatist faction allied with hostile aliens',
+            stakes: 'Earth and its colonies face invasion or isolation from the galaxy',
+            hook: 'Your family lives on one of the colonies that will be the first target of invasion.'
         };
-        
-        const story = fallbackStories[settingName] || fallbackStories['Medieval Fantasy'];
         
         // Customize hook based on character role
         if (characterRole === 'scholar') {
-            story.hook = story.hook.replace('killed someone important to you', 'threatens the ancient knowledge you\'ve dedicated your life to protecting');
+            story.hook = 'Your research into the Quantum Relay\'s origins makes you a key target for the Crimson Fleet - they need your knowledge to fully activate it.';
         } else if (characterRole === 'healer') {
-            story.hook = story.hook.replace('killed someone important to you', 'is causing a plague that you must cure');
+            story.hook = 'The Quantum Relay\'s energy is causing a strange sickness among the colonists, and only you understand how to cure it.';
+        } else if (characterRole === 'scout') {
+            story.hook = 'You were the first to discover signs of the Crimson Fleet\'s presence in this sector - they know you can track them.';
         }
         
         return story;
@@ -661,26 +593,24 @@ Keep it focused and specific - this will guide the entire adventure!`;
     }
     
     getHuggingFaceFallbackResponse(type = 'narrative', settingData = null) {
-        const settingName = settingData?.name || 'fantasy realm';
-        const themes = settingData?.themes ? settingData.themes.join(' and ') : 'adventure and mystery';
-        
+        // Always use "The Quantum Relay" space setting for fallbacks
         const fallbacks = {
             narrative: [
-                `The ${settingName} stretches before you, filled with ${themes} that beckon from every shadow and corner. The air itself seems alive with possibility. A crossroads lies ahead - will you forge ahead with bold determination, investigate the mysteries that surround you, or seek allies and information before making your next move? The choice is yours to make.`,
+                `The vast expanse of space stretches before you, filled with alien mysteries and technological wonders. The research station's darkened corridors seem alive with strange energy readings from the Quantum Relay. A critical decision lies ahead - will you investigate the strange energy signatures directly, search for survivors among the station's modules, or attempt to contact the Crimson Fleet to understand their involvement? Your choice could determine the fate of Earth's colonies.`,
                 
-                `You find yourself at the heart of the ${settingName}, where ${themes} create an atmosphere thick with tension and opportunity. The path forward isn't clear, but then again, the most interesting journeys rarely are. Several options present themselves - each with its own risks and rewards. What draws your attention most strongly?`
+                `You find yourself at the heart of this galactic crisis, where alien technology and human ambition create an atmosphere thick with tension and danger. The path forward isn't clear, but then again, the most crucial decisions rarely are. Several options present themselves - each with its own risks and rewards. What draws your attention most strongly in this moment of cosmic uncertainty?`
             ],
             
             character: [
-                `A figure emerges from the interplay of light and shadow, their footsteps measured and deliberate. They carry themselves with the quiet confidence of someone who has seen much of the world, their weathered clothing and knowing eyes hinting at stories both bitter and sweet. As they approach, you sense this encounter could prove significant. How do you choose to engage with this mysterious stranger?`,
+                `A figure emerges from the station's emergency lighting, their movement careful and deliberate in the low gravity. They wear a worn space suit with patches from various colonies, their helmet visor reflecting the strange glow of the Quantum Relay's energy. As they approach through the corridor, you sense this encounter could prove significant to your mission. How do you choose to engage with this fellow space traveler?`,
 
-                `Someone approaches through the ambient atmosphere of the area, their presence immediately shifting the energy around you. There's something about the way they move - alert but not aggressive, curious but cautious - that suggests they've noticed you as much as you've noticed them. They pause at a respectful distance, clearly waiting to see how this encounter will unfold. What's your opening move?`
+                `Someone approaches through the station's dimly lit passages, their presence immediately shifting the energy around you. There's something about the way they move - alert but not aggressive, curious but cautious - that suggests they're also trying to understand what happened here. They pause at a respectful distance, clearly waiting to see how this encounter will unfold in the shadow of the Quantum Relay. What's your opening move?`
             ],
             
             choice: [
-                `Three paths diverge before you, each leading into different terrain and promising different challenges. The left path winds upward over rough, rocky ground that would test your physical capabilities. The right path disappears into shadows and undergrowth, perfect for those who prefer stealth and careful observation. Straight ahead, ancient symbols are carved into weathered stone, suggesting mysteries that would reward careful study and investigation. Each route has its own dangers and rewards. Which path calls to you?`,
+                `Three paths diverge before you through the station's damaged structure. The left corridor leads toward the main reactor core, where technical systems await someone with engineering skills. The right passage disappears into the research labs, perfect for those who prefer stealth and careful investigation of the Quantum Relay data. Straight ahead, alien symbols glow faintly on damaged bulkheads, suggesting mysteries that would reward scientific study. Each route holds clues about the Crimson Fleet's plans. Which path calls to you?`,
 
-                `A crossroads presents multiple approaches to your current situation. You could take the direct route - bold and straightforward, relying on determination and strength to overcome obstacles. Alternatively, a more subtle approach might serve you better - using stealth, observation, and patience to gather information before acting. There's also the social path - seeking allies, gathering information through conversation, or using persuasion to achieve your goals. Each approach has merit. What suits your instincts in this moment?`
+                `A critical decision point presents multiple approaches to your current situation. You could take the direct route - boldly investigating the Quantum Relay itself, relying on determination and courage to uncover its secrets. Alternatively, a more subtle approach might serve you better - using stealth and observation to gather intelligence on the Crimson Fleet's involvement. There's also the social path - seeking other survivors, gathering information through communication, or using persuasion to build alliances against Commander Vex. Each approach has merit in this galactic conflict. What suits your instincts in this moment?`
             ]
         };
 
