@@ -342,7 +342,7 @@ css/
 }
 ```
 
-## 🎲 dice.css - Dice System Styles
+## dice.css - Dice System Styles
 
 ### Dice Display Interface
 ```css

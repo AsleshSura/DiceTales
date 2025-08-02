@@ -664,7 +664,7 @@ class DiceTalesApp {
         setTimeout(() => {
             const roll = Math.floor(Math.random() * 20) + 1;
             this.displayStoryContent({
-                content: `🎲 Initiative Roll: ${roll}`,
+                content: `Initiative Roll: ${roll}`,
                 type: 'dice-result'
             });
         }, 1000);
@@ -1127,7 +1127,7 @@ What do you do?`;
             // Last resort - show error message
             document.body.innerHTML = `
                 <div style="padding: 20px; text-align: center; color: white; background: #1a1a1a; min-height: 100vh;">
-                    <h1>🎲 DiceTales</h1>
+                    <h1>DiceTales</h1>
                     <p>The adventure is temporarily unavailable.</p>
                     <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; margin: 10px;">Reload Game</button>
                     <br><br>

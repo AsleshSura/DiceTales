@@ -2,7 +2,7 @@
 
 Master the art of AI-powered tabletop RPG adventures with strategic turn-based gameplay! This guide teaches you everything you need to know to become a legendary hero in the HuggingFace-powered storytelling system.
 
-## 🎲 Getting Started
+## Getting Started
 
 ### Your First Adventure
 

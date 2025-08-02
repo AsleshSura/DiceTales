@@ -229,7 +229,7 @@ class UIManager {
             </div>
         `;
         
-        console.log('🎲 Input dice rolled:', this.pendingDiceRoll);
+        console.log('[UI] Input dice rolled:', this.pendingDiceRoll);
     }
     
     /**

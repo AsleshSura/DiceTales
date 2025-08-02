@@ -284,7 +284,7 @@ class CharacterManager {
                             Next →
                         </button>
                         <button id="complete-creation-btn" class="btn btn-success btn-nav" style="display: none;">
-                            Start Adventure! 🎲
+                            Start Adventure!
                         </button>
                         <button id="debug-reset-btn" class="btn btn-warning btn-nav" style="font-size: 12px; margin-left: 10px;">
                             DEBUG: Reset Character
@@ -775,7 +775,7 @@ class CharacterManager {
                     
                     <div class="form-actions">
                         <button type="button" id="generate-random-name" class="btn btn-secondary">
-                            🎲 Generate Random Name
+                            Generate Random Name
                         </button>
                         <button type="button" id="generate-random-traits" class="btn btn-secondary">
                             🎭 Generate Random Traits

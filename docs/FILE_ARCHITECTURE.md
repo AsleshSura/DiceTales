@@ -240,7 +240,7 @@ Player Action → AI Processing → DM Evaluation → Response Display
    Validation → HuggingFace → Quality Check → UI Update
 ```
 
-### 🎲 dice.js - Dice System
+### dice.js - Dice System
 **Purpose**: Dice rolling mechanics and turn-based gameplay
 **Class**: `DiceSystem`
 **Global Instance**: `window.diceSystem`
@@ -424,7 +424,7 @@ const AI_CONFIG = {
 - Character class displays
 - Campaign setting cards
 
-### 🎲 dice.css - Dice System Styles
+### dice.css - Dice System Styles
 **Purpose**: Dice rolling interface and animations
 **Features**:
 - Dice animation effects

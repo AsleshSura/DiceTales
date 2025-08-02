@@ -42,7 +42,7 @@ DiceTales/
 │   ├── ai.js             # 🤖 HuggingFace-only coordination
 │   ├── huggingfaceAI.js  # 🤗 Primary and only AI system
 │   ├── character.js      # 👤 Character stats and progression
-│   ├── dice.js           # 🎲 Turn-based dice mechanics
+│   ├── dice.js           # Turn-based dice mechanics
 │   ├── gameState.js      # 💾 Save/load functionality  
 │   ├── ui.js             # 🖥️ User interface management
 │   ├── utils.js          # 🔧 Utility functions
@@ -147,12 +147,12 @@ async function callAI(context, type, characterStats) {
 }
 ```
 
-## 🎲 Game Logic Architecture
+## Game Logic Architecture
 
 }
 ```
 
-## 🎲 Turn-Based System Architecture (v2.0)
+## Turn-Based System Architecture (v2.0)
 
 ### Turn Management
 **File**: `js/dice.js` (enhanced for v2.0)

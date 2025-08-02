@@ -134,7 +134,7 @@ const context = {
 };
 ```
 
-## 🎲 Dice System Interactions
+## Dice System Interactions
 
 ### Turn-Based Dice Management
 ```

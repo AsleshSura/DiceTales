@@ -792,7 +792,7 @@ Return exactly this story information in the proper format.`;
             
             // Check if this is the new combined format (action + dice roll)
             if (actionData.diceRoll) {
-                console.log('🎲 New format: Action + Dice Roll received together');
+                console.log('[AI] New format: Action + Dice Roll received together');
                 await this.processActionWithDiceRoll(actionData);
                 return;
             }
@@ -921,7 +921,7 @@ Return exactly this story information in the proper format.`;
         this.showTypingIndicator();
         
         try {
-            console.log('🎲 Submitting action with dice using specialized AI methods');
+            console.log('[AI] Submitting action with dice using specialized AI methods');
             
             // Create action data with dice result
             const actionDataWithDice = {
@@ -934,7 +934,7 @@ Return exactly this story information in the proper format.`;
             
             if (storyResponse) {
                 // Display the dice roll result first, then story response
-                this.displayStoryContent(`🎲 Rolled ${this.completedDiceRoll.result || this.completedDiceRoll.total}`, 'dice-result');
+                this.displayStoryContent(`Rolled ${this.completedDiceRoll.result || this.completedDiceRoll.total}`, 'dice-result');
                 
                 setTimeout(async () => {
                     this.displayStoryContent(storyResponse, 'dm-response');
@@ -968,7 +968,7 @@ Return exactly this story information in the proper format.`;
      * Process action that comes with dice roll (new combined format)
      */
     async processActionWithDiceRoll(actionData) {
-        console.log('🎲 Processing combined action + dice roll:', actionData);
+        console.log('[AI] Processing combined action + dice roll:', actionData);
         
         this.isProcessing = true;
         this.showTypingIndicator();
@@ -1002,7 +1002,7 @@ Return exactly this story information in the proper format.`;
             outcomeType = 'failure';
         }
         
-        console.log('🎲 Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
+        console.log('[AI] Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
         
         // Create a comprehensive prompt for the AI
         const combinedPrompt = `The player declares: "${action}"
@@ -1054,10 +1054,10 @@ Describe the outcome and continue the story. Then ask for another dice roll for 
                     timestamp: new Date().toISOString()
                 });
                 
-                console.log('🎲 Combined action + dice processed successfully');
+                console.log('[AI] Combined action + dice processed successfully');
                 
             } else {
-                console.error('🎲 No response from AI for combined action + dice');
+                console.error('[AI] No response from AI for combined action + dice');
                 this.showFallbackDiceOutcome(diceRoll, successLevel);
             }
             
@@ -1138,7 +1138,7 @@ Describe the outcome and continue the story. Then ask for another dice roll for 
      * Process dice roll results
      */
     async processDiceRoll(rollData) {
-        console.log('🎲 Processing dice roll:', rollData);
+        console.log('[AI] Processing dice roll:', rollData);
         
         // If we're waiting for a dice roll as part of an action sequence, handle it properly
         if (this.actionState === 'waiting_for_dice' && this.pendingAction) {
@@ -1151,11 +1151,11 @@ Describe the outcome and continue the story. Then ask for another dice roll for 
         }
         
         // Handle dice rolls that come after AI responses (our current flow)
-        console.log('🎲 Handling dice roll from AI-prompted roll');
+        console.log('[AI] Handling dice roll from AI-prompted roll');
         
         // Get the last player action from stored action
         const lastAction = this.lastPlayerAction || this.pendingAction?.action || "continue the adventure";
-        console.log('🎲 Using last action for dice outcome:', lastAction);
+        console.log('[AI] Using last action for dice outcome:', lastAction);
         const character = gameState.getCharacter();
         const campaign = gameState.getCampaign();
         
@@ -1183,7 +1183,7 @@ Describe the outcome and continue the story. Then ask for another dice roll for 
             outcomeType = 'failure';
         }
         
-        console.log('🎲 Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
+        console.log('[AI] Dice evaluation:', { result, diceNumber, successLevel, outcomeType });
         
         // Create a comprehensive prompt for the AI based on the dice result
         const diceOutcomePrompt = `The player's last action was: "${lastAction}"
@@ -1242,10 +1242,10 @@ Continue the story based on this dice result. Be specific about how the roll aff
                 // Always prompt for another dice roll after the outcome
                 this.promptForDiceRoll(response);
                 
-                console.log('🎲 Dice roll outcome processed successfully');
+                console.log('[AI] Dice roll outcome processed successfully');
                 
             } else {
-                console.error('🎲 No response from AI for dice outcome');
+                console.error('[AI] No response from AI for dice outcome');
                 this.showFallbackDiceOutcome(rollData, successLevel);
             }
             
@@ -1267,10 +1267,10 @@ Continue the story based on this dice result. Be specific about how the roll aff
         const settingData = characterManager?.settings?.[campaign.setting] || {};
         
         const contextParts = [
-            `🎲 CONTINUING ${character.name.toUpperCase()}'S STORY WITH DICE RESULT:`,
+            `CONTINUING ${character.name.toUpperCase()}'S STORY WITH DICE RESULT:`,
             ``,
-            `🎯 Player Action: "${actionData.action}"`,
-            `🎲 Dice Roll: ${diceRoll.dice || diceRoll.type} = ${diceRoll.result || diceRoll.total}`,
+            `Player Action: "${actionData.action}"`,
+            `Dice Roll: ${diceRoll.dice || diceRoll.type} = ${diceRoll.result || diceRoll.total}`,
         ];
         
         // Add critical success/failure context
@@ -1378,11 +1378,11 @@ ${campaign.npcs_encountered.map(npc => `- ${npc.name}: ${npc.relationship || 'ne
 ${campaign.important_locations?.length > 0 ? `🗺️ KNOWN LOCATIONS:
 ${campaign.important_locations.map(loc => `- ${loc.name}: ${loc.description || 'no details'}`).join('\n')}` : ''}
 
-🎲 DM PERSONALITY: ${settingData.dm_personality_hint || 'Create engaging adventures with meaningful choices.'}`;
+DM PERSONALITY: ${settingData.dm_personality_hint || 'Create engaging adventures with meaningful choices.'}`;
 
         return `${characterContext}
 
-🔥 CRITICAL DM INSTRUCTIONS:
+CRITICAL DM INSTRUCTIONS:
 - You ARE the DM for ${character.name}. Maintain complete story continuity.
 - Remember everything that has happened in this campaign.
 - Stay completely in character as their dedicated game master.
@@ -1449,7 +1449,7 @@ Always end by asking what they want to do next and which die they want to roll f
      * Always prompt for dice roll after AI response
      */
     promptForDiceRoll(aiResponse) {
-        console.log('🎲 Always prompting for dice roll after response');
+        console.log('[AI] Always prompting for dice roll after response');
         
         const diceMatches = aiResponse.match(/(?:roll|make).*?[ad]?\s*(d4|d6|d8|d10|d12|d20)/gi);
         let diceType = 'd20';
@@ -1464,13 +1464,13 @@ Always end by asking what they want to do next and which die they want to roll f
             else if (match.includes('d20')) diceType = 'd20';
         }
         
-        console.log('🎲 Detected dice type from AI response:', diceType);
-        console.log('🎲 AI response dice matches:', diceMatches);
+        console.log('[AI] Detected dice type from AI response:', diceType);
+        console.log('[AI] AI response dice matches:', diceMatches);
         
         // Force dice system to show for this dice type with a delay to ensure dice system is ready
         setTimeout(() => {
             if (typeof eventBus !== 'undefined' && window.diceSystem) {
-                console.log('🎲 Emitting force:dice:show event for:', diceType);
+                console.log('[AI] Emitting force:dice:show event for:', diceType);
                 eventBus.emit('force:dice:show', {
                     diceType: diceType,
                     reason: 'AI response requires dice roll'
@@ -1478,15 +1478,15 @@ Always end by asking what they want to do next and which die they want to roll f
                 
                 // Also directly call the dice system as backup
                 if (window.diceSystem && window.diceSystem.showDiceRequest) {
-                    console.log('🎲 Directly calling diceSystem.showDiceRequest as backup');
+                    console.log('[AI] Directly calling diceSystem.showDiceRequest as backup');
                     window.diceSystem.showDiceRequest([diceType]);
                 }
             } else {
-                console.warn('🎲 EventBus or diceSystem not available');
+                console.warn('[AI] EventBus or diceSystem not available');
             }
         }, 500);
         
-        console.log(`🎲 Scheduled dice UI to show for ${diceType.toUpperCase()} roll`);
+        console.log(`[AI] Scheduled dice UI to show for ${diceType.toUpperCase()} roll`);
     }
     
     /**
@@ -2285,7 +2285,7 @@ RULES:
         this.displayStoryContent(fullResponse, 'dm-response');
         this.promptForDiceRoll(fullResponse);
         
-        console.log('🎲 Fallback dice outcome displayed');
+        console.log('[AI] Fallback dice outcome displayed');
     }
     
     /**
@@ -2772,7 +2772,7 @@ RULES:
         loadingDiv.className = 'story-entry loading-message';
         loadingDiv.innerHTML = `
             <div class="entry-content loading-text">
-                <span class="loading-dots">🎲</span>
+                <span class="loading-dots">⏳</span>
                 <span id="loading-text-content">The story unfolds...</span>
             </div>
         `;

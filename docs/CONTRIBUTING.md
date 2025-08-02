@@ -187,7 +187,7 @@ async generateStory(context, type) {
     class="dice-roll-button" 
     aria-label="Roll 20-sided die"
     title="Roll for skill check">
-    🎲 Roll D20
+    Roll D20
 </button>
 ```
 
@@ -514,4 +514,4 @@ Thank you for considering contributing to DiceTales! Your efforts help make this
 
 ---
 
-*Happy coding, and may your dice always roll high! 🎲*
+*Happy coding, and may your dice always roll high!*

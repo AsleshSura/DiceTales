@@ -1,5 +1,13 @@
 /**
- * DiceTales - Simple Dice Display System
+ *        this.diceIcons = {
+            'd4': '🔺',
+            'd6': '⚀',
+            'd8': '♦️',
+            'd10': '🔟',
+            'd12': '🟢',
+            'd20': 'D20',
+            'd100': '💯'
+        };s - Simple Dice Display System
  * Shows dice images when AI requests rolls
  */
 
@@ -96,9 +104,9 @@ class DiceSystem {
             
             // Listen for forced dice roll requests (always show dice after AI responses)
             eventBus.on('force:dice:show', (data) => {
-                console.log('🎲 Forced dice show event received:', data);
-                console.log('🎲 Data.diceType:', data.diceType);
-                console.log('🎲 Calling showDiceRequest with:', [data.diceType || 'd20']);
+                console.log('[DICE] Forced dice show event received:', data);
+                console.log('[DICE] Data.diceType:', data.diceType);
+                console.log('[DICE] Calling showDiceRequest with:', [data.diceType || 'd20']);
                 // Start new turn when dice is requested
                 this.startNewTurn();
                 this.showDiceRequest([data.diceType || 'd20']);
@@ -108,10 +116,10 @@ class DiceSystem {
             eventBus.on('story:new', () => {
                 // Only clear if no active dice request is pending
                 if (!this.isDiceRequestActive) {
-                    console.log('🎲 story:new event - clearing dice display');
+                    console.log('[DICE] story:new event - clearing dice display');
                     this.clearDiceDisplay();
                 } else {
-                    console.log('🎲 story:new event - keeping dice display (active request)');
+                    console.log('[DICE] story:new event - keeping dice display (active request)');
                 }
             });
             
@@ -126,7 +134,7 @@ class DiceSystem {
                 this.thinkingTimeout = setTimeout(() => {
                     const container = document.getElementById('dice-display');
                     if (container && container.innerHTML.includes('analyzing')) {
-                        console.log('🎲 Thinking state timeout - clearing');
+                        console.log('[DICE] Thinking state timeout - clearing');
                         this.clearDiceDisplay();
                     }
                 }, 10000); // 10 second timeout
@@ -160,9 +168,9 @@ class DiceSystem {
         setTimeout(() => {
             const container = document.getElementById('dice-display');
             if (container) {
-                console.log('🎲 Dice system initialized successfully');
+                console.log('[DICE] Dice system initialized successfully');
             } else {
-                console.warn('🎲 Dice display container not found');
+                console.warn('[DICE] Dice display container not found');
             }
         }, 1000);
     }
@@ -174,7 +182,7 @@ class DiceSystem {
     watchForSkillCheckNotifications() {
         // Temporarily disabled - the DOM watching was too aggressive
         // and triggered on any mention of dice/roll/skill check in the story
-        console.log('🎲 DOM watching disabled - using AI response detection only');
+        console.log('[DICE] DOM watching disabled - using AI response detection only');
         
         /* DISABLED CODE:
         // Observer to watch for new elements being added to the DOM
@@ -187,7 +195,7 @@ class DiceSystem {
                         // Only trigger on very specific notification patterns
                         if (node.classList && (node.classList.contains('skill-check-notification') || 
                                                node.classList.contains('dice-request-notification'))) {
-                            console.log('🎲 Auto-detected skill check notification, showing D20');
+                            console.log('[DICE] Auto-detected skill check notification, showing D20');
                             setTimeout(() => {
                                 this.showDiceRequest(['d20']);
                             }, 500);
@@ -211,7 +219,7 @@ class DiceSystem {
     detectAndShowDiceRequest(content) {
         if (!content || typeof content !== 'string') return;
         
-        console.log('🎲 Checking content for dice requests:', content.substring(0, 100));
+        console.log('[DICE] Checking content for dice requests:', content.substring(0, 100));
         
         // First check for exclusion patterns - these indicate the AI is just telling a story, not requesting rolls
         const exclusionPatterns = [
@@ -229,7 +237,7 @@ class DiceSystem {
         // If any exclusion patterns match, don't show dice
         for (let pattern of exclusionPatterns) {
             if (pattern.test(content)) {
-                console.log('🎲 Exclusion pattern matched - not showing dice for story content:', pattern.source);
+                console.log('[DICE] Exclusion pattern matched - not showing dice for story content:', pattern.source);
                 return;
             }
         }
@@ -257,7 +265,7 @@ class DiceSystem {
         explicitDicePatterns.forEach(pattern => {
             const matches = content.matchAll(pattern);
             for (let match of matches) {
-                console.log('🎲 Found EXPLICIT dice pattern match:', match[0]);
+                console.log('[DICE] Found EXPLICIT dice pattern match:', match[0]);
                 if (match[1]) {
                     let diceType = match[1].toLowerCase();
                     if (!diceType.startsWith('d')) {
@@ -284,7 +292,7 @@ class DiceSystem {
         
         challengePatterns.forEach(pattern => {
             if (pattern.test(content)) {
-                console.log('🎲 Found challenge pattern:', pattern.source);
+                console.log('[DICE] Found challenge pattern:', pattern.source);
                 foundGenericRoll = true;
             }
         });
@@ -296,12 +304,12 @@ class DiceSystem {
         
         // If we found dice requests, show them immediately
         if (foundDice.length > 0) {
-            console.log('🎲 Found EXPLICIT dice requests:', foundDice);
+            console.log('[DICE] Found EXPLICIT dice requests:', foundDice);
             // Start new turn when dice is requested via AI response detection
             this.startNewTurn();
             this.showDiceRequest(foundDice);
         } else {
-            console.log('🎲 No explicit dice requests found in content');
+            console.log('[DICE] No explicit dice requests found in content');
         }
     }
 
@@ -311,7 +319,7 @@ class DiceSystem {
     showDiceRequest(diceTypes) {
         const container = document.getElementById('dice-display');
         if (!container) {
-            console.warn('🎲 Dice display container not found');
+            console.warn('[DICE] Dice display container not found');
             return;
         }
         
@@ -320,7 +328,7 @@ class DiceSystem {
         const firstDice = diceTypes[0];
         const diceNumber = parseInt(firstDice.substring(1));
         
-        console.log('🎲 Showing dice request for:', firstDice);
+        console.log('[DICE] Showing dice request for:', firstDice);
         console.log('🎯 Can roll dice this turn:', this.canRollDice());
         
         // Check if user has already rolled this turn
@@ -353,7 +361,7 @@ class DiceSystem {
         container.innerHTML = `
             <div class="dice-request" style="animation: slideInUp 0.5s ease-out;">
                 <div class="dice-prompt" style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; border-left: 4px solid #2196F3;">
-                    <strong style="color: #2196F3;">🎲 Dice Roll Required!</strong>
+                    <strong style="color: #2196F3;">Dice Roll Required!</strong>
                     <p style="margin: 5px 0 0 0; color: var(--text-secondary);">The outcome depends on your roll...</p>
                     <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary); opacity: 0.8;">
                         💡 You get <strong>one roll per turn</strong> - make it count!
@@ -364,7 +372,7 @@ class DiceSystem {
                     <div class="dice-label" style="font-size: 1.5rem; font-weight: bold; color: var(--accent-primary);">${this.diceNames[firstDice]}</div>
                 </div>
                 <button class="btn btn-primary roll-btn" onclick="diceSystem.rollRequestedDice('${firstDice}')" style="padding: 15px 30px; font-size: 1.2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover)); border: none; border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    🎲 Roll ${this.diceNames[firstDice]}
+                    Roll ${this.diceNames[firstDice]}
                 </button>
                 <div class="turn-info" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary); opacity: 0.7; text-align: center;">
                     Turn: ${this.currentTurnId ? this.currentTurnId.split('_')[1] : 'Active'}
@@ -390,7 +398,7 @@ class DiceSystem {
      * Roll the requested dice and show result
      */
     async rollRequestedDice(diceType) {
-        console.log('🎲 Rolling dice:', diceType);
+        console.log('[DICE] Rolling dice:', diceType);
         
         // Check if user can roll dice this turn
         if (!this.canRollDice()) {
@@ -405,7 +413,7 @@ class DiceSystem {
         
         const diceNumber = parseInt(diceType.substring(1));
         const result = this.rollDie(diceNumber);
-        console.log('🎲 Dice result:', result);
+        console.log('[DICE] Dice result:', result);
         
         // Mark that user has rolled dice this turn
         this.markDiceRolled();
@@ -414,35 +422,35 @@ class DiceSystem {
         const diceDisplay = document.getElementById('dice-display');
         const rollButton = document.querySelector('.roll-btn');
         
-        console.log('🎲 Dice display container found:', !!diceDisplay);
-        console.log('🎲 Roll button found:', !!rollButton);
+        console.log('[DICE] Dice display container found:', !!diceDisplay);
+        console.log('[DICE] Roll button found:', !!rollButton);
         
         if (!diceDisplay) {
-            console.error('🎲 Dice display container not found!');
+            console.error('[DICE] Dice display container not found!');
             return;
         }
         
         if (rollButton) {
             rollButton.disabled = true;
-            rollButton.innerHTML = '🎲 Rolling...';
+            rollButton.innerHTML = 'Rolling...';
             rollButton.style.opacity = '0.6';
         }
         
         // Show rolling animation in the proper container
         diceDisplay.innerHTML = `
-            <div class="rolling-animation" style="font-size: 3rem; animation: spin 0.1s linear infinite; text-align: center;">🎲</div>
+            <div class="rolling-animation" style="font-size: 3rem; animation: spin 0.1s linear infinite; text-align: center;">⚂</div>
             <p style="color: var(--text-secondary); margin-top: 10px; text-align: center;">Rolling the dice...</p>
         `;
         
         // Show result after animation with enhanced visuals
         setTimeout(() => {
-            console.log('🎲 Showing result after timeout');
+            console.log('[DICE] Showing result after timeout');
             
             const isMax = result === diceNumber;
             const isMin = result === 1;
             const isCritical = diceNumber === 20;
             
-            console.log('🎲 Result calculations:', { result, diceNumber, isMax, isMin, isCritical });
+            console.log('[DICE] Result calculations:', { result, diceNumber, isMax, isMin, isCritical });
             
             let resultColor = 'var(--text-primary)';
             let resultBg = 'var(--surface-secondary)';
@@ -472,7 +480,7 @@ class DiceSystem {
             const resultHTML = `
                 <div class="dice-result-display" style="background: ${resultBg}; border-radius: 12px; padding: 25px; border: 3px solid ${resultColor}; animation: bounceIn 0.6s ease-out; margin: 15px 0; text-align: center; width: 100%;">
                     <div class="dice-result-header" style="margin-bottom: 15px;">
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">🎲 ${this.diceNames[diceType]} RESULT</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">${this.diceNames[diceType]} RESULT</div>
                     </div>
                     <div class="result-number" style="font-size: 4rem; font-weight: bold; color: ${resultColor}; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 15px;">
                         ${result}
@@ -492,7 +500,7 @@ class DiceSystem {
                 </div>
             `;
             
-            console.log('🎲 Setting result HTML in dice-display container');
+            console.log('[DICE] Setting result HTML in dice-display container');
             diceDisplay.innerHTML = resultHTML;
             
             // Add to game state if available
@@ -542,7 +550,7 @@ class DiceSystem {
     showStatusMessage(message, type = 'info') {
         const container = document.getElementById('dice-display');
         if (container) {
-            let icon = '🎲';
+            let icon = 'ℹ️';
             let color = 'var(--text-secondary)';
             
             switch(type) {
@@ -581,7 +589,7 @@ class DiceSystem {
         if (container) {
             // Don't show thinking state if there's already a dice request active
             if (container.innerHTML.includes('dice-request') || container.innerHTML.includes('Roll D')) {
-                console.log('🎲 Dice request already active, not showing thinking state');
+                console.log('[DICE] Dice request already active, not showing thinking state');
                 return;
             }
             
@@ -608,12 +616,12 @@ class DiceSystem {
         if (container) {
             container.innerHTML = `
                 <div class="dice-waiting" style="text-align: center; padding: 20px; color: var(--text-secondary);">
-                    <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.6;">🎲</div>
+                    <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.6;">⚂</div>
                     <p style="margin-bottom: 15px; font-size: 1.1rem;">Ready for adventure!</p>
                     <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Dice rolls will appear here when the game master calls for them</p>
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="btn btn-secondary" onclick="diceSystem.testDiceRoll('d20')" style="padding: 8px 16px; font-size: 0.9rem;">
-                            🎲 Test D20
+                            Test D20
                         </button>
                         <button class="btn btn-secondary" onclick="diceSystem.testDiceRoll('d6')" style="padding: 8px 16px; font-size: 0.9rem;">
                             ⚀ Test D6
@@ -639,7 +647,7 @@ class DiceSystem {
      * Manually trigger a dice roll for testing
      */
     testDiceRoll(diceType = 'd20') {
-        console.log('🎲 Testing dice roll:', diceType);
+        console.log('[DICE] Testing dice roll:', diceType);
         // Start new turn for testing
         this.startNewTurn();
         this.showDiceRequest([diceType]);
@@ -649,7 +657,7 @@ class DiceSystem {
      * Force show dice request (bypass all restrictions for testing)
      */
     forceShowDice(diceType = 'd20') {
-        console.log('🎲 Force showing dice:', diceType);
+        console.log('[DICE] Force showing dice:', diceType);
         this.startNewTurn();
         this.showDiceRequest([diceType]);
     }
@@ -658,7 +666,7 @@ class DiceSystem {
      * Test the dice detection system with sample text
      */
     testDiceDetection(text) {
-        console.log('🎲 Testing dice detection with text:', text);
+        console.log('[DICE] Testing dice detection with text:', text);
         this.detectAndShowDiceRequest(text);
     }
 
@@ -687,7 +695,7 @@ class DiceSystem {
      */
     enableTestMode() {
         this.testMode = true;
-        console.log('🎲 Test mode enabled - unlimited dice rolls');
+        console.log('[DICE] Test mode enabled - unlimited dice rolls');
         if (typeof showToast === 'function') {
             showToast('Test mode enabled - unlimited dice rolls', 'info');
         }
@@ -698,7 +706,7 @@ class DiceSystem {
      */
     disableTestMode() {
         this.testMode = false;
-        console.log('🎲 Test mode disabled - normal turn restrictions');
+        console.log('[DICE] Test mode disabled - normal turn restrictions');
         if (typeof showToast === 'function') {
             showToast('Test mode disabled - normal turn restrictions', 'info');
         }

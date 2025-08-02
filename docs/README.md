@@ -31,7 +31,7 @@ Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fan
 | **[🤝 Contributing Guide](CONTRIBUTING.md)** | How to contribute to the project | Contributors |
 | **[🐛 Debugging Guide](DEBUGGING_GUIDE.md)** | Troubleshooting, testing, and debugging tools | Developers |
 
-## 🎲 What is DiceTales?
+## What is DiceTales?
 
 DiceTales is a web-based tabletop RPG experience that combines:
 
@@ -83,7 +83,7 @@ DiceTales/
 - **RPG-Optimized Prompts**: Specialized for tabletop gaming scenarios
 - **Human-Like Storytelling**: Natural, conversational narrative style
 
-### 🎲 Advanced Dice System
+### Advanced Dice System
 - **Turn-Based Restrictions**: One dice roll per turn for tactical gameplay
 - **Visual Feedback**: Clear UI indicators for turn status
 - **Multiple Dice Types**: D4, D6, D8, D10, D12, D20, D100 support

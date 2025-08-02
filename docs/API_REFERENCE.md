@@ -175,7 +175,7 @@ const choices = mockAI.generateChoices(context);
 
 ---
 
-## 🎲 Game Logic
+## Game Logic
 
 ### Character
 **File**: `js/character.js`

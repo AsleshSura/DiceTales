@@ -101,7 +101,7 @@ When you first start DiceTales:
 │  [Option 1] [Option 2] [Option 3] [...]  │
 ├─────────────────────┬───────────────────┤
 │    Character Stats  │    Dice Area      │
-│  STR: 14  INT: 12   │   🎲 Roll D20     │
+│  STR: 14  INT: 12   │   Roll D20     │
 │  DEX: 16  WIS: 10   │   [Turn Result]   │
 │  CON: 13  CHA: 11   │   "Turn Active"   │
 │  HP: 15/15 XP: 0    │                   │

@@ -105,4 +105,4 @@ Planned improvements for the import/export system:
 
 ---
 
-*Happy adventuring! 🎲✨*
+*Happy adventuring!*
