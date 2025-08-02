@@ -29,6 +29,7 @@ class DiceSystem {
         this.currentTurnId = null; // Track current turn ID
         this.hasRolledThisTurn = false; // Track if user has already rolled in current turn
         this.turnStartTime = null; // Track when current turn started
+        this.testMode = false; // Test mode allows unlimited rolls
         
         this.init();
     }
@@ -54,10 +55,10 @@ class DiceSystem {
     }
 
     /**
-     * Check if user can roll dice (hasn't rolled this turn)
+     * Check if user can roll dice (hasn't rolled this turn, or in test mode)
      */
     canRollDice() {
-        return !this.hasRolledThisTurn;
+        return this.testMode || !this.hasRolledThisTurn;
     }
 
     /**
@@ -214,22 +215,15 @@ class DiceSystem {
         
         // First check for exclusion patterns - these indicate the AI is just telling a story, not requesting rolls
         const exclusionPatterns = [
-            /you see.*dice/gi,
-            /tavern.*dice/gi,
-            /gambling.*dice/gi,
-            /players.*dice/gi,
-            /game.*dice/gi,
-            /rolled.*dice/gi,
-            /past.*roll/gi,
-            /previous.*roll/gi,
-            /story.*skill/gi,
-            /tale.*skill/gi,
-            /once.*skill/gi,
-            /consider.*rolling/gi,  // "Consider rolling" is a suggestion, not a command
-            /might.*require/gi,     // "might require" is conditional, not definitive
-            /could.*roll/gi,        // "could roll" is optional, not required
-            /may.*need/gi,          // "may need" is conditional
-            /think.*about/gi        // "think about rolling" is contemplative
+            /you see.*dice.*table/gi,        // More specific: dice on a table/game
+            /tavern.*dice.*game/gi,          // More specific: tavern dice games
+            /gambling.*with.*dice/gi,        // More specific: gambling context
+            /story.*about.*dice/gi,          // More specific: story about dice
+            /tale.*of.*dice/gi,              // More specific: tale of dice
+            /once.*rolled.*dice/gi,          // More specific: past dice rolls
+            /previously.*rolled/gi,          // Past rolls
+            /in.*the.*past.*roll/gi,         // Past context
+            /think.*about.*rolling/gi        // "think about rolling" is contemplative
         ];
         
         // If any exclusion patterns match, don't show dice
@@ -240,7 +234,7 @@ class DiceSystem {
             }
         }
         
-        // Only look for DIRECT, IMPERATIVE dice roll commands - very specific patterns
+        // Look for dice roll commands - made more flexible to catch more patterns
         const explicitDicePatterns = [
             /^roll\s+a?\s*(d\d+)/gi,        // "Roll a d20" at start of sentence
             /\.\s*roll\s+a?\s*(d\d+)/gi,    // "Roll a d20" after a period
@@ -248,7 +242,13 @@ class DiceSystem {
             /now\s+roll\s+a?\s*(d\d+)/gi,   // "Now roll a d20"
             /you\s+must\s+roll\s+a?\s*(d\d+)/gi, // "You must roll a d20"
             /roll\s+(\d+d\d+)\s+now/gi,     // "Roll 1d20 now"
-            /time\s+to\s+roll\s+a?\s*(d\d+)/gi  // "Time to roll a d20"
+            /time\s+to\s+roll\s+a?\s*(d\d+)/gi,  // "Time to roll a d20"
+            /make\s+a?\s*(d\d+)\s+roll/gi,  // "Make a d20 roll"
+            /roll\s+a?\s*(d\d+)\s+for/gi,   // "Roll a d20 for"
+            /\broll\s+a?\s*(d\d+)/gi,       // More flexible "roll d20" anywhere
+            /attempt\s+a?\s*(d\d+)\s+roll/gi, // "Attempt a d20 roll"
+            /make\s+an?\s+([\w\s]+)\s+attempt/gi, // "Make an attempt" - generic
+            /roll\s+for\s+([\w\s]+)/gi      // "Roll for stealth" - generic
         ];
         
         let foundDice = [];
@@ -267,9 +267,25 @@ class DiceSystem {
                         foundDice.push(diceType);
                     }
                 } else {
-                    // Generic roll pattern found
+                    // Generic roll pattern found (like "make a skill check")
                     foundGenericRoll = true;
                 }
+            }
+        });
+        
+        // Also check for challenge patterns that don't specify dice
+        const challengePatterns = [
+            /challenge/gi,
+            /test\s+your/gi,
+            /attempt\s+to/gi,
+            /try\s+to/gi,
+            /check\s+if/gi
+        ];
+        
+        challengePatterns.forEach(pattern => {
+            if (pattern.test(content)) {
+                console.log('🎲 Found challenge pattern:', pattern.source);
+                foundGenericRoll = true;
             }
         });
         
@@ -379,7 +395,11 @@ class DiceSystem {
         // Check if user can roll dice this turn
         if (!this.canRollDice()) {
             console.log('🎯 User already rolled this turn, preventing roll');
-            showToast('You can only roll one die per turn!', 'warning');
+            if (typeof showToast === 'function') {
+                showToast('You can only roll one die per turn!', 'warning');
+            } else {
+                console.warn('You can only roll one die per turn!');
+            }
             return;
         }
         
@@ -626,6 +646,23 @@ class DiceSystem {
     }
 
     /**
+     * Force show dice request (bypass all restrictions for testing)
+     */
+    forceShowDice(diceType = 'd20') {
+        console.log('🎲 Force showing dice:', diceType);
+        this.startNewTurn();
+        this.showDiceRequest([diceType]);
+    }
+
+    /**
+     * Test the dice detection system with sample text
+     */
+    testDiceDetection(text) {
+        console.log('🎲 Testing dice detection with text:', text);
+        this.detectAndShowDiceRequest(text);
+    }
+
+    /**
      * Reset current turn (for debugging/admin purposes)
      */
     resetCurrentTurn() {
@@ -638,7 +675,33 @@ class DiceSystem {
             gameState.set('ui.currentTurn', null);
         }
         
-        showToast('Turn reset - you can roll dice again', 'info');
+        if (typeof showToast === 'function') {
+            showToast('Turn reset - you can roll dice again', 'info');
+        } else {
+            console.log('Turn reset - you can roll dice again');
+        }
+    }
+
+    /**
+     * Enable test mode - allows unlimited rolls for testing
+     */
+    enableTestMode() {
+        this.testMode = true;
+        console.log('🎲 Test mode enabled - unlimited dice rolls');
+        if (typeof showToast === 'function') {
+            showToast('Test mode enabled - unlimited dice rolls', 'info');
+        }
+    }
+
+    /**
+     * Disable test mode - back to normal turn restrictions
+     */
+    disableTestMode() {
+        this.testMode = false;
+        console.log('🎲 Test mode disabled - normal turn restrictions');
+        if (typeof showToast === 'function') {
+            showToast('Test mode disabled - normal turn restrictions', 'info');
+        }
     }
 }
 
@@ -646,6 +709,7 @@ class DiceSystem {
 const diceSystem = new DiceSystem();
 
 // Export to global scope for easy access
+window.DiceSystem = DiceSystem;
 window.diceSystem = diceSystem;
 
 // Also add a global status function for convenience

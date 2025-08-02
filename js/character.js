@@ -44,12 +44,12 @@ class CharacterManager {
                 name: 'Medieval Fantasy',
                 icon: '🏰',
                 description: 'Classic sword and sorcery adventures in a medieval world filled with magic, dragons, and ancient mysteries.',
-                classes: ['fighter', 'wizard', 'rogue', 'cleric', 'ranger', 'paladin', 'barbarian', 'bard'],
+                classes: ['warrior', 'scholar', 'scout', 'healer', 'explorer', 'merchant'],
                 currency: 'gold pieces',
                 technology: 'Medieval',
                 magic: 'High fantasy with spells and magical creatures',
                 themes: ['heroic quests', 'dungeon exploration', 'political intrigue', 'ancient evils'],
-                dm_personality_hint: 'Focus on classic fantasy tropes, epic adventures, and moral choices between good and evil.',
+                gm_personality_hint: 'Focus on classic fantasy tropes, epic adventures, and moral choices between good and evil.',
                 abilityScores: {
                     str: { name: 'Strength', abbr: 'STR', description: 'Physical power and muscle' },
                     dex: { name: 'Dexterity', abbr: 'DEX', description: 'Agility and reflexes' },
@@ -63,12 +63,12 @@ class CharacterManager {
                 name: 'Modern Day',
                 icon: '🏙️',
                 description: 'Contemporary adventures in the real world with hidden supernatural elements and urban mysteries.',
-                classes: ['investigator', 'hacker', 'soldier', 'medic', 'occultist', 'detective', 'journalist', 'athlete'],
+                classes: ['warrior', 'scholar', 'scout', 'healer', 'explorer', 'merchant'],
                 currency: 'dollars',
                 technology: 'Modern (smartphones, internet, cars)',
                 magic: 'Hidden supernatural, urban fantasy',
                 themes: ['conspiracy theories', 'supernatural investigations', 'corporate espionage', 'street crime'],
-                dm_personality_hint: 'Blend realistic modern situations with supernatural or thriller elements. Use contemporary references.',
+                gm_personality_hint: 'Blend realistic modern situations with supernatural or thriller elements. Use contemporary references.',
                 abilityScores: {
                     str: { name: 'Fitness', abbr: 'FIT', description: 'Physical conditioning and athleticism' },
                     dex: { name: 'Reflexes', abbr: 'REF', description: 'Speed and hand-eye coordination' },
@@ -82,12 +82,12 @@ class CharacterManager {
                 name: 'Sci-Fi Space',
                 icon: '🚀',
                 description: 'Far future space exploration with advanced technology, alien encounters, and cosmic mysteries.',
-                classes: ['pilot', 'engineer', 'psion', 'marine', 'diplomat', 'scientist', 'smuggler', 'cyborg'],
+                classes: ['warrior', 'scholar', 'scout', 'healer', 'explorer', 'merchant'],
                 currency: 'credits',
                 technology: 'Advanced (FTL travel, energy weapons, AI)',
                 magic: 'Psionics, alien technology, quantum manipulation',
                 themes: ['space exploration', 'alien contact', 'technological singularity', 'cosmic horror'],
-                dm_personality_hint: 'Emphasize the vastness of space, technological wonders, and encounters with the unknown.',
+                gm_personality_hint: 'Emphasize the vastness of space, technological wonders, and encounters with the unknown.',
                 abilityScores: {
                     str: { name: 'Might', abbr: 'MGT', description: 'Physical strength in various gravities' },
                     dex: { name: 'Agility', abbr: 'AGL', description: 'Zero-G maneuvering and precision' },
@@ -101,12 +101,12 @@ class CharacterManager {
                 name: 'Eldritch Horror',
                 icon: '🐙',
                 description: '1920s Lovecraftian horror where investigators face cosmic entities and forbidden knowledge.',
-                classes: ['investigator', 'scholar', 'occultist', 'detective', 'journalist', 'antiquarian', 'dilettante', 'doctor'],
+                classes: ['warrior', 'scholar', 'scout', 'healer', 'explorer', 'merchant'],
                 currency: 'dollars',
                 technology: '1920s (early automobiles, radio, telephone)',
                 magic: 'Forbidden knowledge with sanity costs',
                 themes: ['cosmic horror', 'forbidden knowledge', 'madness', 'ancient mysteries'],
-                dm_personality_hint: 'Create atmosphere of dread and mystery. Knowledge comes at a cost. Not all problems can be solved with violence.',
+                gm_personality_hint: 'Create atmosphere of dread and mystery. Knowledge comes at a cost. Not all problems can be solved with violence.',
                 abilityScores: {
                     str: { name: 'Physique', abbr: 'PHY', description: 'Physical prowess and vigor' },
                     dex: { name: 'Dexterity', abbr: 'DEX', description: 'Manual dexterity and coordination' },
@@ -118,148 +118,82 @@ class CharacterManager {
             }
         };
         
-        // Character classes with balanced stats and abilities
+        // Character roles with balanced stats and abilities
         this.classes = {
-            // Medieval Fantasy Classes
-            'fighter': {
-                name: 'Fighter',
+            // Adventure Game Roles
+            'warrior': {
+                name: 'Warrior',
                 icon: '⚔️',
-                description: 'A master of martial combat, skilled with a variety of weapons and armor.',
+                description: 'A brave fighter skilled in combat and protection of others.',
                 stats: { str: 15, dex: 13, con: 14, int: 10, wis: 12, cha: 8 },
                 abilities: [
-                    { name: 'Second Wind', description: 'Regain hit points as a bonus action' },
-                    { name: 'Action Surge', description: 'Take an additional action on your turn' },
-                    { name: 'Fighting Style', description: 'Specialized combat technique' }
+                    { name: 'Combat Training', description: 'Skilled with weapons and armor' },
+                    { name: 'Protective Instinct', description: 'Naturally shields allies from harm' },
+                    { name: 'Battle Tactics', description: 'Strategic thinking in conflict' }
                 ],
-                equipment: ['Long sword', 'Chain mail', 'Shield', 'Adventurer\'s pack']
+                equipment: ['Sword', 'Armor', 'Shield', 'Adventure pack']
             },
-            'wizard': {
-                name: 'Wizard',
-                icon: '🧙',
-                description: 'A scholarly magic-user capable of manipulating the arcane forces of the world.',
-                stats: { str: 8, dex: 12, con: 13, int: 15, wis: 14, cha: 10 },
-                abilities: [
-                    { name: 'Spellcasting', description: 'Cast spells from your spellbook' },
-                    { name: 'Arcane Recovery', description: 'Recover expended spell slots' },
-                    { name: 'Ritual Casting', description: 'Cast spells as rituals without expending slots' }
-                ],
-                equipment: ['Quarterstaff', 'Spellbook', 'Component pouch', 'Scholar\'s pack']
-            },
-            'rogue': {
-                name: 'Rogue',
-                icon: '🗡️',
-                description: 'A scoundrel who uses stealth and trickery to accomplish goals others can\'t.',
-                stats: { str: 10, dex: 15, con: 12, int: 13, wis: 14, cha: 8 },
-                abilities: [
-                    { name: 'Sneak Attack', description: 'Deal extra damage when you have advantage' },
-                    { name: 'Thieves\' Cant', description: 'Secret language known by rogues' },
-                    { name: 'Expertise', description: 'Double proficiency bonus for chosen skills' }
-                ],
-                equipment: ['Shortsword', 'Leather armor', 'Thieves\' tools', 'Burglar\'s pack']
-            },
-            'cleric': {
-                name: 'Cleric',
-                icon: '✨',
-                description: 'A priestly champion who wields divine magic in service of a higher power.',
-                stats: { str: 13, dex: 8, con: 14, int: 10, wis: 15, cha: 12 },
-                abilities: [
-                    { name: 'Spellcasting', description: 'Cast divine spells' },
-                    { name: 'Channel Divinity', description: 'Harness divine energy for special effects' },
-                    { name: 'Divine Domain', description: 'Specialized divine focus area' }
-                ],
-                equipment: ['Mace', 'Scale mail', 'Shield', 'Priest\'s pack']
-            },
-            
-            // Modern Day Classes
-            'investigator': {
-                name: 'Investigator',
-                icon: '🔍',
-                description: 'A keen detective who uncovers hidden truths and solves mysteries.',
-                stats: { str: 10, dex: 12, con: 13, int: 15, wis: 14, cha: 8 },
-                abilities: [
-                    { name: 'Keen Observation', description: 'Notice details others miss' },
-                    { name: 'Research Network', description: 'Access to information sources' },
-                    { name: 'Deductive Reasoning', description: 'Connect clues to form conclusions' }
-                ],
-                equipment: ['Smartphone', 'Camera', 'Notebook', 'Investigation kit']
-            },
-            'hacker': {
-                name: 'Hacker',
-                icon: '💻',
-                description: 'A technology expert who can manipulate digital systems and information.',
-                stats: { str: 8, dex: 13, con: 10, int: 15, wis: 12, cha: 14 },
-                abilities: [
-                    { name: 'Digital Intrusion', description: 'Hack into computer systems' },
-                    { name: 'Data Mining', description: 'Extract valuable information from databases' },
-                    { name: 'Social Engineering', description: 'Manipulate people through technology' }
-                ],
-                equipment: ['Laptop', 'Smartphone', 'USB toolkit', 'Encrypted drives']
-            },
-            
-            // Sci-Fi Classes
-            'pilot': {
-                name: 'Pilot',
-                icon: '🚀',
-                description: 'An expert at operating spacecraft and other advanced vehicles.',
-                stats: { str: 12, dex: 15, con: 13, int: 14, wis: 10, cha: 8 },
-                abilities: [
-                    { name: 'Ace Pilot', description: 'Superior vehicle operation skills' },
-                    { name: 'Quick Reflexes', description: 'React faster in dangerous situations' },
-                    { name: 'Navigation Expert', description: 'Plot courses through space' }
-                ],
-                equipment: ['Pilot suit', 'Navigation tools', 'Emergency kit', 'Comm device']
-            },
-            'psion': {
-                name: 'Psion',
-                icon: '🧠',
-                description: 'A being with powerful mental abilities and psychic powers.',
-                stats: { str: 8, dex: 10, con: 12, int: 13, wis: 15, cha: 14 },
-                abilities: [
-                    { name: 'Telepathy', description: 'Read and communicate with minds' },
-                    { name: 'Telekinesis', description: 'Move objects with mental power' },
-                    { name: 'Precognition', description: 'Glimpse possible futures' }
-                ],
-                equipment: ['Psi-amplifier', 'Mental focus crystal', 'Meditation mat', 'Psychic journal']
-            }
-        };
-        
-        // Add remaining classes for other settings...
-        this.addRemainingClasses();
-    }
-    
-    /**
-     * Add remaining classes for all settings
-     */
-    addRemainingClasses() {
-        // Horror classes
-        Object.assign(this.classes, {
             'scholar': {
                 name: 'Scholar',
                 icon: '📚',
-                description: 'An academic who seeks knowledge, even when it comes at a terrible cost.',
-                stats: { str: 8, dex: 10, con: 12, int: 15, wis: 13, cha: 14 },
+                description: 'A learned individual who solves problems through knowledge and wisdom.',
+                stats: { str: 8, dex: 12, con: 13, int: 15, wis: 14, cha: 10 },
                 abilities: [
-                    { name: 'Research', description: 'Find information in libraries and archives' },
-                    { name: 'Language Expert', description: 'Read ancient and foreign texts' },
-                    { name: 'Academic Network', description: 'Contacts in universities and museums' }
+                    { name: 'Vast Knowledge', description: 'Knows facts about many subjects' },
+                    { name: 'Problem Solving', description: 'Can think through complex puzzles' },
+                    { name: 'Research Skills', description: 'Finds information others cannot' }
                 ],
-                equipment: ['Books', 'Research notes', 'Magnifying glass', 'Library card']
+                equipment: ['Staff', 'Books', 'Writing materials', 'Scholar\'s pack']
             },
-            'detective': {
-                name: 'Detective',
-                icon: '🕵️',
-                description: 'A law enforcement officer trained to solve crimes and mysteries.',
-                stats: { str: 12, dex: 13, con: 14, int: 14, wis: 15, cha: 10 },
+            'scout': {
+                name: 'Scout',
+                icon: '🏹',
+                description: 'A stealthy explorer who excels at reconnaissance and precision.',
+                stats: { str: 10, dex: 15, con: 12, int: 13, wis: 14, cha: 8 },
                 abilities: [
-                    { name: 'Crime Scene Analysis', description: 'Read clues at investigation sites' },
-                    { name: 'Interrogation', description: 'Get information from suspects' },
-                    { name: 'Police Resources', description: 'Access to official databases and support' }
+                    { name: 'Stealth Movement', description: 'Move unseen and unheard' },
+                    { name: 'Keen Senses', description: 'Notice things others miss' },
+                    { name: 'Precise Strikes', description: 'Hit weak points for extra effect' }
                 ],
-                equipment: ['Badge', 'Gun', 'Handcuffs', 'Police radio']
+                equipment: ['Bow', 'Light armor', 'Survival gear', 'Scout\'s pack']
+            },
+            'healer': {
+                name: 'Healer',
+                icon: '💚',
+                description: 'A caring individual who helps others and provides support.',
+                stats: { str: 13, dex: 8, con: 14, int: 10, wis: 15, cha: 12 },
+                abilities: [
+                    { name: 'Healing Touch', description: 'Restore health to allies' },
+                    { name: 'Calming Presence', description: 'Reduce fear and panic in others' },
+                    { name: 'Medical Knowledge', description: 'Understand injuries and remedies' }
+                ],
+                equipment: ['Healing kit', 'Robes', 'Herbs', 'Healer\'s pack']
+            },
+            'explorer': {
+                name: 'Explorer',
+                icon: '🌲',
+                description: 'A nature-loving adventurer who thrives in the wilderness.',
+                stats: { str: 14, dex: 15, con: 13, int: 11, wis: 12, cha: 10 },
+                abilities: [
+                    { name: 'Nature\'s Friend', description: 'Understand animals and plants' },
+                    { name: 'Survival Instinct', description: 'Thrive in harsh environments' },
+                    { name: 'Pathfinding', description: 'Never get lost, find hidden routes' }
+                ],
+                equipment: ['Hunting knife', 'Travel gear', 'Rope', 'Explorer\'s pack']
+            },
+            'merchant': {
+                name: 'Merchant',
+                icon: '💰',
+                description: 'A social and persuasive trader who excels at communication.',
+                stats: { str: 11, dex: 12, con: 13, int: 14, wis: 10, cha: 15 },
+                abilities: [
+                    { name: 'Silver Tongue', description: 'Persuade others with words' },
+                    { name: 'Network of Contacts', description: 'Know people everywhere' },
+                    { name: 'Deal Making', description: 'Find mutually beneficial solutions' }
+                ],
+                equipment: ['Fine clothes', 'Coin purse', 'Trade goods', 'Merchant\'s pack']
             }
-        });
-        
-        // Add more classes as needed...
+        };
     }
     
     /**
@@ -277,6 +211,12 @@ class CharacterManager {
      */
     showCharacterCreation() {
         console.log('CharacterManager: showCharacterCreation() called');
+        
+        // DEBUG: Clear character data to start fresh
+        console.log('DEBUG: Clearing character data for fresh start');
+        gameState.set('character.class', '');
+        gameState.set('character.name', '');
+        gameState.set('character.background', '');
         
         const creationScreen = document.getElementById('character-creation');
         
@@ -345,6 +285,9 @@ class CharacterManager {
                         </button>
                         <button id="complete-creation-btn" class="btn btn-success btn-nav" style="display: none;">
                             Start Adventure! 🎲
+                        </button>
+                        <button id="debug-reset-btn" class="btn btn-warning btn-nav" style="font-size: 12px; margin-left: 10px;">
+                            DEBUG: Reset Character
                         </button>
                     </div>
                 </div>
@@ -424,7 +367,24 @@ class CharacterManager {
         if (nextBtn) {
             nextBtn.replaceWith(nextBtn.cloneNode(true));
             const newNextBtn = document.getElementById('next-step-btn');
-            newNextBtn.addEventListener('click', () => this.nextStep());
+            newNextBtn.addEventListener('click', () => {
+                console.log('DEBUG: Next button clicked!');
+                
+                // Force validation check
+                const stepName = this.steps[this.currentStep];
+                if (stepName === 'class') {
+                    const characterClass = gameState.get('character.class');
+                    console.log('DEBUG: Class step - character.class =', characterClass);
+                    
+                    if (!characterClass || characterClass === '') {
+                        console.log('DEBUG: Blocking navigation - no class selected');
+                        this.showValidationToast('Please select a character class before continuing!');
+                        return;
+                    }
+                }
+                
+                this.nextStep();
+            });
         }
         
         if (completeBtn) {
@@ -433,6 +393,20 @@ class CharacterManager {
             newCompleteBtn.addEventListener('click', () => this.completeCreation());
         }
         
+        // Debug button
+        const debugBtn = document.getElementById('debug-reset-btn');
+        if (debugBtn) {
+            debugBtn.replaceWith(debugBtn.cloneNode(true));
+            const newDebugBtn = document.getElementById('debug-reset-btn');
+            newDebugBtn.addEventListener('click', () => {
+                console.log('DEBUG: Resetting character class');
+                gameState.set('character.class', '');
+                gameState.set('character.name', '');
+                gameState.set('character.background', '');
+                this.showStep(this.currentStep); // Refresh current step
+            });
+        }
+
         console.log('CharacterManager: Navigation buttons bound successfully');
     }
     
@@ -1328,6 +1302,8 @@ class CharacterManager {
         
         classItems.forEach(item => {
             item.addEventListener('click', () => {
+                console.log('CharacterManager: Class item clicked, classKey:', item.dataset.class);
+                
                 // Remove previous selection
                 classItems.forEach(i => i.classList.remove('selected'));
                 
@@ -1337,8 +1313,14 @@ class CharacterManager {
                 const classKey = item.dataset.class;
                 const classData = this.classes[classKey];
                 
+                console.log('CharacterManager: Setting character.class to:', classKey);
+                
                 // Update character class
                 gameState.set('character.class', classKey);
+                
+                // Verify it was set
+                const savedClass = gameState.get('character.class');
+                console.log('CharacterManager: Verified saved class:', savedClass);
                 
                 // Store base class stats separately and reset point-buy stats
                 gameState.set('character.baseClassStats', classData.stats);
@@ -1616,8 +1598,17 @@ class CharacterManager {
         console.log('CharacterManager: nextStep() called');
         console.log('CharacterManager: Current step:', this.currentStep);
         
+        // Add detailed debugging
+        const stepName = this.steps[this.currentStep];
+        const characterClass = gameState.get('character.class');
+        console.log('CharacterManager: Step name:', stepName);
+        console.log('CharacterManager: Character class before validation:', characterClass);
+        
         // Use silent check first
-        if (this.canProceedToNextStepSilent()) {
+        const canProceed = this.canProceedToNextStepSilent();
+        console.log('CharacterManager: canProceedToNextStepSilent() returned:', canProceed);
+        
+        if (canProceed) {
             this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
             console.log('CharacterManager: Moving to step:', this.currentStep);
             this.showStep(this.currentStep);
@@ -1665,7 +1656,13 @@ class CharacterManager {
                 return !!setting;
             case 'class':
                 const characterClass = gameState.get('character.class');
-                return !!characterClass;
+                console.log('CharacterManager: Silent validation - Character class:', characterClass, 'Type:', typeof characterClass);
+                
+                // Be very explicit about what we consider invalid
+                const isValid = characterClass && characterClass !== '' && characterClass !== null && characterClass !== undefined;
+                console.log('CharacterManager: Class validation result:', isValid);
+                
+                return isValid;
             case 'stats':
                 const remainingPoints = this.calculateRemainingPoints();
                 return remainingPoints === 0;
@@ -1713,8 +1710,13 @@ class CharacterManager {
                 return true;
             case 'class':
                 const characterClass = gameState.get('character.class');
-                console.log('CharacterManager: Character class:', characterClass);
-                if (!characterClass) {
+                console.log('CharacterManager: Validation - Character class:', characterClass, 'Type:', typeof characterClass);
+                
+                // Be very explicit about what we consider invalid
+                const isValid = characterClass && characterClass !== '' && characterClass !== null && characterClass !== undefined;
+                console.log('CharacterManager: Class validation result:', isValid);
+                
+                if (!isValid) {
                     this.showValidationToast('Please select a character class before continuing!');
                     return false;
                 }
@@ -1898,10 +1900,13 @@ class CharacterManager {
             const canProceed = this.canProceedToNextStepSilent();
             const isLastStep = this.currentStep === this.steps.length - 1;
             
+            console.log('CharacterManager: Next button state - canProceed:', canProceed, 'disabled:', !canProceed);
+            
             nextBtn.disabled = !canProceed;
             nextBtn.style.display = isLastStep ? 'none' : 'inline-block';
             
             console.log('CharacterManager: Next button - canProceed:', canProceed, 'isLastStep:', isLastStep);
+            console.log('CharacterManager: Next button element - disabled:', nextBtn.disabled, 'display:', nextBtn.style.display);
         }
         
         if (completeBtn) {
@@ -1954,6 +1959,12 @@ class CharacterManager {
         
         // Update game state
         gameState.setCurrentScreen('game');
+        
+        // Update character display with the user's chosen name
+        if (window.uiManager && window.uiManager.updateCharacterDisplay) {
+            window.uiManager.updateCharacterDisplay();
+            console.log('CharacterManager: Updated character display with user name');
+        }
         
         // Start the campaign
         console.log('CharacterManager: Emitting campaign:start event...');
@@ -2030,10 +2041,12 @@ class CharacterManager {
      */
     getClassBaseHealth(classKey) {
         const healthByClass = {
-            'fighter': 100, 'soldier': 100, 'marine': 100,
-            'wizard': 60, 'psion': 70, 'scholar': 60,
-            'rogue': 80, 'investigator': 80, 'pilot': 90,
-            'cleric': 80, 'medic': 85, 'detective': 85
+            'warrior': 100,
+            'scholar': 70,
+            'scout': 85,
+            'healer': 80,
+            'explorer': 90,
+            'merchant': 75
         };
         return healthByClass[classKey] || 80;
     }
@@ -2093,12 +2106,12 @@ class CharacterManager {
      */
     addClassProficiencies(skills, classKey) {
         const classProficiencies = {
-            'fighter': ['Athletics', 'Intimidation'],
-            'wizard': ['Investigation', 'History'],
-            'rogue': ['Stealth', 'Deception'],
-            'cleric': ['Insight', 'Persuasion'],
-            'investigator': ['Investigation', 'Perception'],
-            'hacker': ['Investigation', 'Deception']
+            'warrior': ['Athletics', 'Intimidation'],
+            'scholar': ['Investigation', 'History'],
+            'scout': ['Stealth', 'Perception'],
+            'healer': ['Insight', 'Medicine'],
+            'explorer': ['Survival', 'Nature'], 
+            'merchant': ['Persuasion', 'Deception']
         };
         
         const proficiencies = classProficiencies[classKey] || [];
@@ -2115,7 +2128,5 @@ class CharacterManager {
 const characterManager = new CharacterManager();
 
 // Export to global scope
-window.characterManager = characterManager;
-
-// Export character manager globally
+window.CharacterManager = CharacterManager;
 window.characterManager = characterManager;

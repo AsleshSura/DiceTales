@@ -54,8 +54,17 @@ class DiceTalesApp {
                 this.initialized = true;
             } catch (recoveryError) {
                 logger.error('Recovery failed:', recoveryError);
-                // Force show a working game screen instead of error
-                this.forceGameStart();
+                // Final fallback: Still try to show character creation instead of game
+                try {
+                    logger.warn('Final fallback: Attempting basic character creation...');
+                    this.hideLoadingScreen();
+                    this.showBasicCharacterCreation();
+                    this.initialized = true;
+                } catch (finalError) {
+                    logger.error('All recovery attempts failed:', finalError);
+                    // Only as last resort show game screen
+                    this.forceGameStart();
+                }
             }
         }
     }
@@ -109,9 +118,9 @@ class DiceTalesApp {
             // Try to provide more helpful error info
             console.error('Available global objects:', Object.keys(window).filter(k => k.includes('Manager') || k.includes('System') || k.includes('State')));
             
-            // Instead of throwing immediately, let's try to continue with available systems
-            console.warn(`Continuing with missing systems: ${missing}`);
-            // throw new Error(`Required systems not loaded: ${missing}`);
+            // Instead of continuing with missing systems, let's throw an error
+            // to trigger the recovery process that will show character creation
+            throw new Error(`Required systems not loaded: ${missing}`);
         }
         
         logger.info('All required systems detected');
@@ -372,6 +381,24 @@ class DiceTalesApp {
             loadingScreen.style.opacity = '0';
             logger.info('Loading screen forcibly hidden');
         }
+    }
+    
+    /**
+     * Show basic character creation fallback when managers fail
+     */
+    showBasicCharacterCreation() {
+        logger.warn('Showing basic character creation fallback...');
+        
+        // Force hide loading screen
+        this.hideLoadingScreen();
+        
+        // Show the character creation screen
+        this.showScreen('character-creation');
+        
+        // Create basic fallback content
+        this.createBasicCharacterCreation();
+        
+        logger.info('Basic character creation displayed');
     }
     
     /**
@@ -1162,6 +1189,9 @@ What do you do?`;
     }
 }
 
+// Make DiceTalesApp available globally
+window.DiceTalesApp = DiceTalesApp;
+
 // Initialize the application
 let app;
 
@@ -1174,14 +1204,13 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded fired, initializing app...');
         app = new DiceTalesApp();
+        window.app = app; // Make globally available immediately after creation
     });
 } else {
     console.log('DOM already ready, initializing app immediately...');
     app = new DiceTalesApp();
+    window.app = app; // Make globally available immediately after creation
 }
-
-// Make app globally available for debugging
-window.app = app;
 
 // Global debug functions
 window.debugHideLoading = function() {
@@ -1209,33 +1238,6 @@ window.debugForceStart = function() {
         window.debugShowCharacterCreation();
     }, 500);
 };
-
-// Add manual start button handler
-document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('embedded-start-btn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => {
-            console.log('Manual start button clicked');
-            
-            // Force hide loading screen and start character creation
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-                loadingScreen.classList.remove('active');
-            }
-            
-            // Try to start the app
-            if (window.app && window.app.showCharacterCreation) {
-                window.app.showCharacterCreation();
-            } else {
-                // Force start even if app isn't fully initialized
-                console.log('Forcing manual start...');
-                window.debugForceStart();
-            }
-        });
-        console.log('Manual start button handler added');
-    }
-});
 
 // Debug: Log after 3 seconds to check initialization status
 setTimeout(() => {

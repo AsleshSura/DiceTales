@@ -671,6 +671,7 @@ window.addEventListener('beforeunload', () => {
 });
 
 // Export to global scope
+window.GameState = GameState;
 window.gameState = gameState;
 
 logger.info('Game state system initialized', gameState.getStateInfo());

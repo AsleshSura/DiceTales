@@ -1,146 +1,720 @@
 /**
- * DiceTales - AI Integration
- * HackClub AI API integration for dynamic storytelling
+ * DiceTales - Unified AI System
+ * Combined AI manager with HuggingFace integration
+ * Dynamic storytelling system for adventure games
  */
 
 class AIManager {
     constructor() {
-        // HuggingFace AI Configuration (Primary and Only)
-        this.useHuggingFace = window.AI_CONFIG?.USE_HUGGINGFACE !== false; // Default to true
-        this.huggingFaceAI = null;
+        // Use only HuggingFace for the entire game
+        this.useHuggingFace = true;
+        this.useGemini = false;
         
-        // Legacy Gemini configuration (unused but kept for compatibility)
-        this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-        this.apiKey = window.AI_CONFIG?.GEMINI_API_KEY || null;
-        this.model = 'gemini-1.5-flash';
+        // Initialize DM Response Evaluator
+        this.dmEvaluator = new DMEvaluator();
+        this.enableEvaluation = true;
+        this.autoImprove = true;
+        
+        console.log('🎭 DM Response Evaluator initialized');
+        console.log('📊 Evaluation enabled:', this.enableEvaluation);
+        console.log('🔧 Auto-improvement enabled:', this.autoImprove);
+        
+        // HuggingFace configuration - primary AI system
+        this.huggingFaceBaseUrl = 'https://api-inference.huggingface.co/models/';
+        this.currentHuggingFaceModel = 'microsoft/DialoGPT-medium';
+        this.huggingFaceModelQueue = [
+            'microsoft/DialoGPT-large',
+            'microsoft/DialoGPT-medium',
+            'gpt2-large',
+            'gpt2',
+            'microsoft/DialoGPT-small',
+            'distilgpt2'
+        ];
+        this.huggingFaceRetryCount = 0;
+        this.maxHuggingFaceRetries = 3;
+        this.huggingFaceReady = false;
+        // System state
         this.conversationHistory = [];
         this.maxTokens = 8000;
         this.isProcessing = false;
         this.initialized = false;
-        
-        // Initialize HuggingFace AI (Primary and Only)
-        if (this.useHuggingFace && window.HuggingFaceAI) {
-            this.huggingFaceAI = new HuggingFaceAI();
-            console.log('🤗 HUGGINGFACE AI INITIALIZED - Primary AI system!');
-        } else {
-            console.error('🤗 HUGGINGFACE AI NOT AVAILABLE - Please check configuration');
-        }
-        
-        // Separate AI processing flags
         this.isGeneratingStory = false;
         this.isGeneratingChoices = false;
-        
-        // Action-dice coordination system
+        this.lastStoryRequest = null;
         this.pendingAction = null;
-        this.lastPlayerAction = null; // Track the last action for dice roll processing
+        this.lastPlayerAction = null;
+        this.lastProcessedAction = null;
         this.requiredDiceRoll = null;
         this.completedDiceRoll = null;
-        this.actionState = 'ready'; // 'ready', 'waiting_for_dice', 'can_submit'
+        this.actionState = 'ready';
+        this.actionDebounceTime = 2000;
+        this.lastActionTime = 0;
+        this.recentResponses = [];
+        this.maxRecentResponses = 5;
         
-        this.init();
+        // Campaign Story System
+        this.currentCampaignStory = null;
+        this.campaignGenerated = false;
+        this.storyGenerationInProgress = false;
+        
+        this.bindEvents();
+        
+        // Initialize HuggingFace as the primary and only AI system
+        console.log('🤗 Initializing HuggingFace as primary AI system...');
+        this.initHuggingFace();
+        console.log('🤗 HuggingFace system initialized successfully');
     }
-    
-    /**
-     * Initialize the AI system
-     */
+
     async initialize() {
         if (this.initialized) return;
-        
-        console.log('🔥 STARTING AI SYSTEM INITIALIZATION...');
-        console.log('🔥 Available AI systems:', {
-            huggingFaceAI: !!this.huggingFaceAI,
-            hasGeminiKey: !!(this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY')
-        });
+        console.log('🤗 STARTING HUGGINGFACE AI SYSTEM INITIALIZATION...');
+        console.log('🤗 Using HuggingFace as the primary AI system');
         
         try {
-            // Test AI system connections (non-blocking)
-            console.log('🔥 Testing AI connections...');
+            // Test HuggingFace connection
+            console.log('🤗 Testing HuggingFace AI connections...');
             await this.testConnection();
             this.initialized = true;
-            logger.info('✅ AI system initialized successfully');
-            console.log('✅ AI SYSTEM READY FOR USE');
+            console.log('✅ HUGGINGFACE AI SYSTEM READY FOR USE');
         } catch (error) {
-            logger.warn('⚠️ AI system initialization had issues, but continuing with fallbacks:', error);
-            console.warn('⚠️ AI initialization warning (continuing anyway):', error);
-            this.initialized = true; // Still mark as initialized to use fallbacks
+            console.warn('⚠️ HuggingFace initialization had issues, but continuing with fallbacks:', error);
+            this.initialized = true;
         }
     }
     
-    /**
-     * Test API connection - Updated to use available AI systems
-     */
     async testConnection() {
-        // Don't test Gemini API anymore - we have better alternatives
-        console.log('🔥 TESTING AI SYSTEM CONNECTION...');
+        console.log('🤗 TESTING HUGGINGFACE CONNECTION...');
         
-        // Test in order of preference: HuggingFace -> Simple -> Mock -> Gemini
-        
-        // Test HuggingFace AI first (best option)
-        if (this.useHuggingFace && this.huggingFaceAI) {
-            try {
-                console.log('🤗 Testing HuggingFace AI connection...');
-                const testResponse = await this.huggingFaceAI.generateStory('Testing connection', 'narrative');
-                if (testResponse && testResponse.length > 20) {
-                    console.log('🤗 HUGGINGFACE AI CONNECTION SUCCESSFUL');
-                    return true;
-                }
-            } catch (error) {
-                console.warn('🤗 HuggingFace AI test failed:', error);
+        try {
+            console.log('🤗 Testing HuggingFace AI connection...');
+            const testResponse = await this.makeHuggingFaceRequest('Testing connection', { max_length: 50 });
+            if (testResponse && testResponse.length > 10) {
+                console.log('🤗 HUGGINGFACE AI CONNECTION SUCCESSFUL');
+                return true;
             }
+        } catch (error) {
+            console.warn('🤗 HuggingFace test failed:', error);
         }
         
-        // Only HuggingFace AI is used now - no fallbacks
-        console.log('🔥 Only HuggingFace AI configured - no fallback systems');
-        return false; // Will show appropriate error to user
-        
-        // Only test Gemini if we have a proper API key
-        if (this.apiKey && this.apiKey !== 'YOUR_GEMINI_API_KEY') {
-            console.log('🔑 Testing Gemini API connection...');
-            const testRequest = {
-                contents: [{
-                    parts: [{
-                        text: 'Test connection - respond with just "OK"'
-                    }]
-                }],
-                generationConfig: {
-                    maxOutputTokens: 10,
-                    temperature: 0.1
-                }
-            };
-            
-            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(testRequest)
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.warn('🔑 Gemini API test failed:', response.status, errorText);
-                throw new Error(`Gemini API test failed: ${response.status} - ${errorText}`);
-            }
-            
-            console.log('🔑 GEMINI API CONNECTION SUCCESSFUL');
-            return true;
-        } else {
-            console.log('🔑 No Gemini API key configured - using alternative AI systems');
-        }
-        
-        // If we get here, at least one AI system should be working
-        console.log('🔥 AI SYSTEM CONNECTION TEST COMPLETED - using available fallbacks');
+        console.log('🤗 CONNECTION TEST COMPLETED - using HuggingFace fallbacks if needed');
         return true;
     }
     
-    init() {
-        this.bindEvents();
+    // HuggingFace Integration Methods
+    async initHuggingFace() {
+        try {
+            await this.warmupHuggingFaceModel();
+            this.huggingFaceReady = true;
+        } catch (error) {
+            console.warn('🤗 HuggingFace initialization failed:', error);
+        }
     }
     
+    async warmupHuggingFaceModel() {
+        console.log('🤗 Warming up model:', this.currentHuggingFaceModel);
+        
+        try {
+            const response = await this.makeHuggingFaceRequest('Test warmup', { max_length: 10 });
+            console.log('🤗 Model warmup successful');
+            return response;
+        } catch (error) {
+            console.log('🤗 Model warmup failed, trying alternative...');
+            await this.tryAlternativeHuggingFaceModel();
+            throw error;
+        }
+    }
+    
+    async makeHuggingFaceRequest(prompt, options = {}) {
+        const requestData = {
+            inputs: prompt,
+            parameters: {
+                max_new_tokens: options.max_length || 250,
+                temperature: options.temperature || 0.8,
+                do_sample: true,
+                top_p: 0.9,
+                repetition_penalty: 1.1,
+                return_full_text: false
+            },
+            options: {
+                wait_for_model: true,
+                use_cache: false
+            }
+        };
+        
+        for (let attempt = 0; attempt < this.huggingFaceModelQueue.length; attempt++) {
+            const modelToTry = this.huggingFaceModelQueue[attempt];
+            console.log(`🤗 Trying model ${attempt + 1}/${this.huggingFaceModelQueue.length}:`, modelToTry);
+            
+            try {
+                const response = await fetch(this.huggingFaceBaseUrl + modelToTry, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (Array.isArray(result) && result.length > 0 && result[0].generated_text) {
+                        this.currentHuggingFaceModel = modelToTry;
+                        console.log('🤗 SUCCESS with', modelToTry);
+                        return result[0].generated_text.trim();
+                    }
+                }
+                
+                if (response.status === 503) {
+                    console.log(`🤗 ${modelToTry} is loading, trying next model...`);
+                } else {
+                    const errorText = await response.text();
+                    console.warn(`🤗 ${modelToTry} failed with status ${response.status}:`, errorText);
+                }
+
+            } catch (error) {
+                console.error(`🤗 Error with ${modelToTry}:`, error.message);
+            }
+
+            // Add small delay between model attempts
+            if (attempt < this.huggingFaceModelQueue.length - 1) {
+                console.log('🤗 Waiting before trying next model...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        console.error('🤗 ALL MODELS FAILED - using fallback');
+        throw new Error('All HuggingFace models failed');
+    }
+    
+    async tryAlternativeHuggingFaceModel() {
+        const currentIndex = this.huggingFaceModelQueue.indexOf(this.currentHuggingFaceModel);
+        const nextIndex = (currentIndex + 1) % this.huggingFaceModelQueue.length;
+        const nextModel = this.huggingFaceModelQueue[nextIndex];
+        
+        console.log('🤗 SWITCHING FROM', this.currentHuggingFaceModel, 'TO', nextModel);
+        this.currentHuggingFaceModel = nextModel;
+        
+        if (nextIndex === 0 && this.huggingFaceRetryCount >= this.maxHuggingFaceRetries) {
+            this.huggingFaceRetryCount = 0;
+        }
+    }
+    
+    // HuggingFace Story Prompts
+    getHuggingFaceStoryPrompt(type, settingData = null) {
+        const settingName = settingData?.name || 'Medieval Fantasy';
+        const settingDesc = settingData?.description || 'classic fantasy adventure';
+        const technology = settingData?.technology || 'Medieval';
+        const magic = settingData?.magic || 'High fantasy';
+        const themes = settingData?.themes ? settingData.themes.join(', ') : 'heroic adventures';
+        const dmHint = settingData?.dm_personality_hint || 'Focus on classic fantasy tropes and epic adventures.';
+        
+        // Include campaign story if available
+        let campaignInfo = '';
+        if (this.currentCampaignStory) {
+            campaignInfo = `
+
+📚 CURRENT CAMPAIGN: "${this.currentCampaignStory.title}"
+Main Plot: ${this.currentCampaignStory.plot}
+Key Locations: ${this.currentCampaignStory.locations.join(', ')}
+Main Antagonist: ${this.currentCampaignStory.antagonist}
+Stakes: ${this.currentCampaignStory.stakes}
+Character Hook: ${this.currentCampaignStory.hook}
+
+🎯 STORY FOCUS: All scenes should connect to this specific campaign. Reference the locations, antagonist, and plot when appropriate. Keep the player moving toward resolving this central conflict.`;
+        } else {
+            campaignInfo = `
+
+⚠️ No specific campaign story set - you're running a general ${settingName} adventure.`;
+        }
+        
+        const basePrompts = {
+            narrative: `You're an adventure game master running a ${settingName} campaign. Setting: ${settingDesc}
+
+CAMPAIGN SETTING:
+- Tech Level: ${technology}
+- Magic: ${magic}  
+- Themes: ${themes}
+- Style: ${dmHint}${campaignInfo}
+
+🎭 BE A NATURAL DM:
+You're the DM everyone wants - relaxed, fun, and genuinely into the game. Talk like a real person:
+- Use normal language, not flowery prose ("It's dark" not "Darkness shrouds the area like a velvet tapestry")
+- Be enthusiastic but not over-the-top ("Cool!" "Nice!" "Oh shit!" "Damn!")
+- Talk like you're sitting at a table with friends, not writing a novel
+- Use contractions (you're, it's, that's, can't, won't)
+
+� DESCRIBE THINGS SIMPLY:
+- Use clear, direct descriptions that paint a picture without being pretentious
+- Include what you see, hear, smell, feel - but keep it natural
+- Avoid cliché phrases like "tapestry", "shimmering", "intricate", "cosmic", "legendary"
+- Say "you hear footsteps" not "the sound of approaching footsteps dances upon your ears"
+
+🎯 KEEP THE STORY MOVING:
+- Make things happen - don't ask what the player wants to do
+- End with concrete events, not vague possibilities
+- Use simple transitions: "Then", "Suddenly", "Just as you do that"
+- Keep responses under 200 words when possible
+
+🚨 NEVER DO THIS:
+- Don't use purple prose or overwrought descriptions
+- Avoid phrases like "calls to your adventurous spirit", "shimmering with possibilities"
+- Don't end with "What calls to you?" or similar flowery questions
+- No "cosmic tapestries" or "intricate weavings" - just tell us what happens
+
+Current situation: `,
+            
+            choice: `You're an adventure game master presenting action options for a ${settingName} campaign. Setting: ${settingDesc}${campaignInfo}
+
+KEEP IT SIMPLE AND NATURAL:
+Create exactly 4 clear, straightforward choices. Each should:
+- Be written in plain English, not fancy prose
+- Suggest dice rolls naturally ("Roll to see if you can climb the wall" not "Could showcase your physical prowess")
+- Sound like something a real Game Master would say
+- Be specific about what the character would actually do
+${this.currentCampaignStory ? '- Connect to the current campaign story when possible' : ''}
+
+Based on this situation: `,
+            
+            character: `You're an adventure game master introducing an NPC in a ${settingName} campaign. Setting: ${settingDesc}${campaignInfo}
+
+BE NATURAL AND DIRECT:
+Describe this character like you're telling a friend about someone interesting you met. Keep it:
+- Simple and clear, not flowery or dramatic
+- Focused on what the player would actually notice
+- Under 150 words
+- Conversational, like you're sitting at a gaming table
+${this.currentCampaignStory ? '- Consider how this NPC might relate to the current campaign story' : ''}
+
+Scene: `
+        };
+        
+        return basePrompts[type] || basePrompts.narrative;
+    }
+    
+    buildHuggingFaceEnhancedContext(baseContext, characterData = null, settingData = null) {
+        let enhancedContext = baseContext;
+        
+        // Get current game state if not provided
+        if (!characterData && typeof gameState !== 'undefined') {
+            characterData = gameState.getCharacter();
+        }
+        if (!settingData && typeof gameState !== 'undefined') {
+            const campaign = gameState.getCampaign();
+            if (typeof characterManager !== 'undefined' && campaign.setting) {
+                settingData = characterManager.settings[campaign.setting];
+            }
+        }
+        
+        // Build campaign context with character and setting information
+        let campaignContext = '';
+        
+        if (settingData) {
+            campaignContext += `\n\n📖 CAMPAIGN SETTING: ${settingData.name}\n`;
+            campaignContext += `Setting Description: ${settingData.description}\n`;
+            campaignContext += `Technology Level: ${settingData.technology || 'Medieval'}\n`;
+            campaignContext += `Magic System: ${settingData.magic || 'High fantasy'}\n`;
+            campaignContext += `Themes: ${settingData.themes ? settingData.themes.join(', ') : 'Classic adventure'}\n`;
+            
+            if (settingData.dm_personality_hint) {
+                campaignContext += `\n🎭 GAME MASTER GUIDANCE: ${settingData.gm_personality_hint}\n`;
+            }
+        }
+        
+        if (characterData) {
+            campaignContext += `\n⚔️ PLAYER CHARACTER: ${characterData.name || 'The Hero'}\n`;
+            campaignContext += `Class: ${characterData.class || 'Adventurer'} (Level ${characterData.level || 1})\n`;
+            
+            if (characterData.background) {
+                campaignContext += `Background: ${characterData.background}\n`;
+            }
+            
+            if (characterData.stats) {
+                const stats = characterData.stats;
+                campaignContext += `Ability Scores: `;
+                const statNames = settingData?.abilityScores || {
+                    str: {abbr: 'STR'}, dex: {abbr: 'DEX'}, con: {abbr: 'CON'},
+                    int: {abbr: 'INT'}, wis: {abbr: 'WIS'}, cha: {abbr: 'CHA'}
+                };
+                
+                const statStrings = [];
+                for (const [key, value] of Object.entries(stats)) {
+                    const abbr = statNames[key]?.abbr || key.toUpperCase();
+                    statStrings.push(`${abbr} ${value}`);
+                }
+                campaignContext += statStrings.join(', ') + '\n';
+            }
+            
+            if (characterData.health) {
+                campaignContext += `Health: ${characterData.health.current}/${characterData.health.maximum}\n`;
+            }
+        }
+        
+        // Get current campaign state if available
+        if (typeof gameState !== 'undefined') {
+            const campaign = gameState.getCampaign();
+            
+            if (campaign.current_location) {
+                campaignContext += `\n🗺️ CURRENT LOCATION: ${campaign.current_location}\n`;
+            }
+            
+            // Include recent campaign history for context
+            const recentLog = campaign.log ? campaign.log.slice(-3) : [];
+            if (recentLog.length > 0) {
+                campaignContext += `\n📖 RECENT EVENTS:\n`;
+                recentLog.forEach((entry, index) => {
+                    if (entry.content && entry.content.length > 50) {
+                        campaignContext += `${index + 1}. ${entry.content.substring(0, 150)}...\n`;
+                    }
+                });
+            }
+        }
+        
+        return enhancedContext + campaignContext;
+    }
+    
+    // Campaign Story Generation System
+    async generateCampaignStory(characterData = null, settingData = null) {
+        if (this.storyGenerationInProgress) {
+            console.log('📚 Story generation already in progress...');
+            return this.currentCampaignStory;
+        }
+        
+        this.storyGenerationInProgress = true;
+        console.log('📚 Generating campaign story...');
+        
+        try {
+            const prompt = this.getCampaignStoryPrompt(settingData, characterData);
+            console.log('📚 Using story generation prompt:', prompt.substring(0, 200) + '...');
+            
+            const storyResponse = await this.makeHuggingFaceRequest(prompt, {
+                max_length: 1000,
+                temperature: 0.8,
+                do_sample: true,
+                top_p: 0.9
+            });
+            
+            if (storyResponse && storyResponse.length > 100) {
+                this.currentCampaignStory = this.processCampaignStory(storyResponse);
+                this.campaignGenerated = true;
+                console.log('📚 Campaign story generated successfully');
+                console.log('📚 Story preview:', this.currentCampaignStory.title);
+                return this.currentCampaignStory;
+            } else {
+                // Use fallback story
+                this.currentCampaignStory = this.getFallbackCampaignStory(settingData, characterData);
+                this.campaignGenerated = true;
+                console.log('📚 Using fallback campaign story');
+                return this.currentCampaignStory;
+            }
+        } catch (error) {
+            console.error('📚 Error generating campaign story:', error);
+            this.currentCampaignStory = this.getFallbackCampaignStory(settingData, characterData);
+            this.campaignGenerated = true;
+            return this.currentCampaignStory;
+        } finally {
+            this.storyGenerationInProgress = false;
+        }
+    }
+    
+    getCampaignStoryPrompt(settingData = null, characterData = null) {
+        const settingName = settingData?.name || 'Medieval Fantasy';
+        const settingDesc = settingData?.description || 'classic fantasy adventure';
+        const technology = settingData?.technology || 'Medieval';
+        const magic = settingData?.magic || 'High fantasy';
+        const themes = settingData?.themes ? settingData.themes.join(', ') : 'heroic adventures';
+        
+        const characterRole = characterData?.role || 'warrior';
+        const characterName = characterData?.name || 'the adventurer';
+        
+        return `You are a creative Game Master designing a specific campaign story for a ${settingName} adventure game.
+
+SETTING: ${settingDesc}
+- Technology: ${technology}
+- Magic: ${magic}
+- Themes: ${themes}
+
+PLAYER CHARACTER: ${characterName}, a ${characterRole}
+
+CREATE A SPECIFIC CAMPAIGN STORY:
+Generate a focused, compelling story premise with these elements:
+
+1. TITLE: A catchy campaign name (like "The Lost Crown of Eldara" or "Shadows Over Neo-Tokyo")
+
+2. MAIN PLOT: The central conflict or mystery that drives the entire campaign (2-3 sentences)
+
+3. STARTING SITUATION: Where and how the adventure begins, what draws the character in
+
+4. KEY LOCATIONS: 3-4 important places the story will visit
+
+5. MAIN ANTAGONIST: Who or what is behind the central conflict
+
+6. STAKES: What happens if the player fails
+
+7. HOOK: Why this matters to the player character specifically
+
+Format your response exactly like this:
+TITLE: [Campaign Name]
+PLOT: [Main story in 2-3 sentences]
+START: [Opening situation in 2 sentences]
+LOCATIONS: [Location 1], [Location 2], [Location 3], [Location 4]
+ANTAGONIST: [Main villain/threat]
+STAKES: [What's at risk]
+HOOK: [Personal connection to character]
+
+Keep it focused and specific - this will guide the entire adventure!`;
+    }
+    
+    processCampaignStory(response) {
+        const lines = response.split('\n');
+        const story = {
+            title: 'Untitled Adventure',
+            plot: 'A mysterious adventure unfolds.',
+            start: 'Your journey begins.',
+            locations: ['Unknown location'],
+            antagonist: 'Unknown threat',
+            stakes: 'The fate of the world',
+            hook: 'Adventure calls to you.'
+        };
+        
+        for (const line of lines) {
+            const cleanLine = line.trim();
+            if (cleanLine.startsWith('TITLE:')) {
+                story.title = cleanLine.replace('TITLE:', '').trim();
+            } else if (cleanLine.startsWith('PLOT:')) {
+                story.plot = cleanLine.replace('PLOT:', '').trim();
+            } else if (cleanLine.startsWith('START:')) {
+                story.start = cleanLine.replace('START:', '').trim();
+            } else if (cleanLine.startsWith('LOCATIONS:')) {
+                const locationText = cleanLine.replace('LOCATIONS:', '').trim();
+                story.locations = locationText.split(',').map(loc => loc.trim()).filter(loc => loc.length > 0);
+            } else if (cleanLine.startsWith('ANTAGONIST:')) {
+                story.antagonist = cleanLine.replace('ANTAGONIST:', '').trim();
+            } else if (cleanLine.startsWith('STAKES:')) {
+                story.stakes = cleanLine.replace('STAKES:', '').trim();
+            } else if (cleanLine.startsWith('HOOK:')) {
+                story.hook = cleanLine.replace('HOOK:', '').trim();
+            }
+        }
+        
+        return story;
+    }
+    
+    getFallbackCampaignStory(settingData = null, characterData = null) {
+        const settingName = settingData?.name || 'Medieval Fantasy';
+        const characterRole = characterData?.role || 'warrior';
+        
+        const fallbackStories = {
+            'Medieval Fantasy': {
+                title: 'The Crown of Shadows',
+                plot: 'The ancient Crown of Shadows has been stolen from the royal vault, and dark magic is spreading across the land. The thief seeks to use its power to open a portal to the shadow realm and unleash an army of darkness.',
+                start: 'You arrive in the town of Millbrook to find it under quarantine - strange shadow creatures have been attacking at night. The local guard captain desperately needs help investigating the source.',
+                locations: ['Millbrook Village', 'The Royal Vault', 'Shadow Forest', 'The Dark Portal'],
+                antagonist: 'Malachar the Shadow Mage, a former court wizard turned dark sorcerer',
+                stakes: 'If the portal opens fully, shadow creatures will overrun the kingdom',
+                hook: 'The shadow creatures killed someone important to you - this is personal.'
+            },
+            'Modern Urban': {
+                title: 'The Data Heist',
+                plot: 'A mysterious hacker known as "Ghost" has stolen classified government data and is selling it to the highest bidder. The data contains information that could start a war if it falls into the wrong hands.',
+                start: 'You witness a high-tech break-in at a government facility. The security footage shows impossible things - someone who seems to phase through walls like a ghost.',
+                locations: ['Downtown Office District', 'Underground Server Farm', 'Abandoned Warehouse', 'Corporate Headquarters'],
+                antagonist: 'Ghost - a hacker with experimental cybernetic implants that allow digital-physical interface',
+                stakes: 'The stolen data could trigger international conflicts and civilian casualties',
+                hook: 'Your friend works in cybersecurity and has gone missing while investigating Ghost.'
+            },
+            'Sci-Fi Space': {
+                title: 'The Quantum Relay',
+                plot: 'An alien artifact called the Quantum Relay has been discovered, capable of opening wormholes across the galaxy. A rogue faction wants to use it to invade Earth, while others seek to destroy it entirely.',
+                start: 'Your ship receives a distress signal from a research station that was studying the artifact. When you arrive, the station is dark and filled with strange energy readings.',
+                locations: ['Research Station Alpha', 'Asteroid Mining Colony', 'Ancient Alien Ruins', 'The Enemy Mothership'],
+                antagonist: 'Commander Vex of the Crimson Fleet, leading a human separatist faction allied with hostile aliens',
+                stakes: 'Earth and its colonies face invasion or isolation from the galaxy',
+                hook: 'Your family lives on one of the colonies that will be the first target of invasion.'
+            },
+            'Eldritch Horror': {
+                title: 'The Whispering Dark',
+                plot: 'Ancient symbols have appeared throughout the city, and people who see them begin to disappear or act strangely. An otherworldly intelligence is trying to break through to our reality.',
+                start: 'You notice strange symbols carved overnight into buildings around your neighborhood. Your neighbor who was studying them has vanished, leaving only bizarre drawings and frantic notes.',
+                locations: ['Your Neighborhood', 'The Old Library', 'Abandoned Subway Tunnels', 'The Convergence Point'],
+                antagonist: 'The Whispering Entity - an alien intelligence that exists between dimensions',
+                stakes: 'If the entity fully manifests, reality itself will be rewritten according to its incomprehensible will',
+                hook: 'The symbols appeared first on your own home - whatever is happening, it specifically chose you.'
+            }
+        };
+        
+        const story = fallbackStories[settingName] || fallbackStories['Medieval Fantasy'];
+        
+        // Customize hook based on character role
+        if (characterRole === 'scholar') {
+            story.hook = story.hook.replace('killed someone important to you', 'threatens the ancient knowledge you\'ve dedicated your life to protecting');
+        } else if (characterRole === 'healer') {
+            story.hook = story.hook.replace('killed someone important to you', 'is causing a plague that you must cure');
+        }
+        
+        return story;
+    }
+    
+    // Campaign Story Management
+    async regenerateCampaignStory(characterData = null, settingData = null) {
+        console.log('📚 Regenerating campaign story...');
+        this.currentCampaignStory = null;
+        this.campaignGenerated = false;
+        return await this.generateCampaignStory(characterData, settingData);
+    }
+    
+    getCampaignStory() {
+        return this.currentCampaignStory;
+    }
+    
+    hasCampaignStory() {
+        return this.campaignGenerated && this.currentCampaignStory !== null;
+    }
+    
+    resetCampaignStory() {
+        this.currentCampaignStory = null;
+        this.campaignGenerated = false;
+        this.storyGenerationInProgress = false;
+        console.log('📚 Campaign story reset');
+    }
+
+    // Main HuggingFace Generation Methods
+    async generateHuggingFaceStory(context, type = 'narrative', characterData = null, settingData = null) {
+        console.log('🤗 Generating story with HuggingFace...');
+        console.log('🤗 Context preview:', context.substring(0, 200) + '...');
+        
+        try {
+            const enhancedContext = this.buildHuggingFaceEnhancedContext(context, characterData, settingData);
+            const storyPrompt = this.getHuggingFaceStoryPrompt(type, settingData);
+            const fullPrompt = storyPrompt + enhancedContext;
+            
+            console.log('🤗 Full prompt length:', fullPrompt.length, 'characters');
+            
+            const response = await this.makeHuggingFaceRequest(fullPrompt, {
+                max_length: type === 'choice' ? 400 : 300,
+                temperature: 0.85
+            });
+            
+            if (!response || response.length < 50) {
+                console.warn('🤗 Response too short, using enhanced fallback');
+                return this.getHuggingFaceFallbackResponse(type, settingData);
+            }
+            
+            const processedResponse = this.processHuggingFaceResponse(response, type);
+            console.log('🤗 Final response length:', processedResponse.length, 'characters');
+            
+            return processedResponse;
+            
+        } catch (error) {
+            console.error('🤗 Story generation failed:', error);
+            return this.getHuggingFaceFallbackResponse(type, settingData);
+        }
+    }
+    
+    async generateHuggingFaceChoices(context, characterData = null, settingData = null) {
+        console.log('🤗 Generating choices with HuggingFace...');
+        
+        try {
+            const choiceResponse = await this.generateHuggingFaceStory(context, 'choice', characterData, settingData);
+            
+            // Try to extract numbered choices from the response
+            const choiceLines = choiceResponse.split('\n').filter(line => {
+                const trimmed = line.trim();
+                return trimmed.match(/^\d+\./) || trimmed.match(/^[A-D]\)/) || trimmed.match(/^-/);
+            });
+            
+            if (choiceLines.length >= 4) {
+                return choiceLines.slice(0, 4);
+            }
+            
+            // If we don't have good choices, return fallback
+            console.log('🤗 Not enough choices found, using fallback');
+            return this.getHuggingFaceFallbackChoices();
+            
+        } catch (error) {
+            console.error('🤗 Choice generation failed:', error);
+            return this.getHuggingFaceFallbackChoices();
+        }
+    }
+    
+    processHuggingFaceResponse(response, type) {
+        // Clean up the response
+        let cleaned = response
+            .replace(/^\s*["']|["']\s*$/g, '') // Remove surrounding quotes
+            .replace(/\\n/g, '\n') // Convert escaped newlines
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+        
+        // Remove repetitive content
+        const sentences = cleaned.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        const uniqueSentences = [];
+        const seenContent = new Set();
+        
+        for (const sentence of sentences) {
+            const normalized = sentence.toLowerCase().trim();
+            if (!seenContent.has(normalized) && normalized.length > 10) {
+                seenContent.add(normalized);
+                uniqueSentences.push(sentence.trim());
+            }
+        }
+        
+        return uniqueSentences.join('. ').trim() + (uniqueSentences.length > 0 ? '.' : '');
+    }
+    
+    getHuggingFaceFallbackResponse(type = 'narrative', settingData = null) {
+        const settingName = settingData?.name || 'fantasy realm';
+        const themes = settingData?.themes ? settingData.themes.join(' and ') : 'adventure and mystery';
+        
+        const fallbacks = {
+            narrative: [
+                `The ${settingName} stretches before you, filled with ${themes} that beckon from every shadow and corner. The air itself seems alive with possibility. A crossroads lies ahead - will you forge ahead with bold determination, investigate the mysteries that surround you, or seek allies and information before making your next move? The choice is yours to make.`,
+                
+                `You find yourself at the heart of the ${settingName}, where ${themes} create an atmosphere thick with tension and opportunity. The path forward isn't clear, but then again, the most interesting journeys rarely are. Several options present themselves - each with its own risks and rewards. What draws your attention most strongly?`
+            ],
+            
+            character: [
+                `A figure emerges from the interplay of light and shadow, their footsteps measured and deliberate. They carry themselves with the quiet confidence of someone who has seen much of the world, their weathered clothing and knowing eyes hinting at stories both bitter and sweet. As they approach, you sense this encounter could prove significant. How do you choose to engage with this mysterious stranger?`,
+
+                `Someone approaches through the ambient atmosphere of the area, their presence immediately shifting the energy around you. There's something about the way they move - alert but not aggressive, curious but cautious - that suggests they've noticed you as much as you've noticed them. They pause at a respectful distance, clearly waiting to see how this encounter will unfold. What's your opening move?`
+            ],
+            
+            choice: [
+                `Three paths diverge before you, each leading into different terrain and promising different challenges. The left path winds upward over rough, rocky ground that would test your physical capabilities. The right path disappears into shadows and undergrowth, perfect for those who prefer stealth and careful observation. Straight ahead, ancient symbols are carved into weathered stone, suggesting mysteries that would reward careful study and investigation. Each route has its own dangers and rewards. Which path calls to you?`,
+
+                `A crossroads presents multiple approaches to your current situation. You could take the direct route - bold and straightforward, relying on determination and strength to overcome obstacles. Alternatively, a more subtle approach might serve you better - using stealth, observation, and patience to gather information before acting. There's also the social path - seeking allies, gathering information through conversation, or using persuasion to achieve your goals. Each approach has merit. What suits your instincts in this moment?`
+            ]
+        };
+
+        const fallbackArray = fallbacks[type] || fallbacks.narrative;
+        const randomIndex = Math.floor(Math.random() * fallbackArray.length);
+        const selectedFallback = fallbackArray[randomIndex];
+        
+        console.log('🤗 Fallback response length:', selectedFallback.length, 'characters');
+        return selectedFallback;
+    }
+
+    getHuggingFaceFallbackChoices() {
+        return [
+            "Investigate the scene thoroughly, studying every shadow and detail for hidden clues or potential dangers",
+            "Approach with confident determination, ready to act quickly if the situation escalates", 
+            "Move stealthily to scout ahead unseen, gathering intelligence while remaining hidden in the shadows",
+            "Think creatively and use your unique skills and abilities in an innovative way that reflects your personality"
+        ];
+    }
+
     bindEvents() {
-        eventBus.on('campaign:start', () => this.startCampaign());
-        eventBus.on('player:action', (data) => this.processPlayerAction(data));
-        eventBus.on('dice:rolled', (data) => this.processDiceRoll(data));
+        eventBus.off('campaign:start', this.startCampaignHandler);
+        eventBus.off('player:action', this.processPlayerActionHandler);
+        eventBus.off('dice:rolled', this.processDiceRollHandler);
+        
+        this.startCampaignHandler = () => this.startCampaign();
+        this.processPlayerActionHandler = (data) => this.processPlayerAction(data);
+        this.processDiceRollHandler = (data) => this.processDiceRoll(data);
+        
+        eventBus.on('campaign:start', this.startCampaignHandler);
+        eventBus.on('player:action', this.processPlayerActionHandler);
+        eventBus.on('dice:rolled', this.processDiceRollHandler);
+        
+        console.log('🎯 Event handlers bound successfully');
     }
     
     /**
@@ -154,6 +728,32 @@ class AIManager {
             const character = gameState.getCharacter();
             const campaign = gameState.getCampaign();
             
+            // Generate campaign story first if not already done
+            if (!this.campaignGenerated) {
+                console.log('📚 Generating campaign story before starting...');
+                
+                // Get setting data
+                let settingData = null;
+                if (typeof characterManager !== 'undefined' && campaign.setting) {
+                    settingData = characterManager.settings[campaign.setting];
+                }
+                
+                await this.generateCampaignStory(character, settingData);
+                
+                // Display the campaign story to the player
+                if (this.currentCampaignStory) {
+                    const storyIntro = `📚 **${this.currentCampaignStory.title}**\n\n${this.currentCampaignStory.plot}\n\n**Your Story Begins:** ${this.currentCampaignStory.start}`;
+                    this.displayStoryContent(storyIntro, 'campaign-intro');
+                    
+                    // Add to campaign log
+                    gameState.addToCampaignLog({
+                        type: 'campaign_story',
+                        content: `Campaign: ${this.currentCampaignStory.title} - ${this.currentCampaignStory.plot}`,
+                        character: character.name
+                    });
+                }
+            }
+            
             const systemPrompt = this.buildSystemPrompt();
             const startPrompt = this.buildStartPrompt(character, campaign);
             
@@ -164,6 +764,41 @@ class AIManager {
             ]);
             
             if (response) {
+                // Evaluate and potentially improve the response
+                if (this.enableEvaluation && this.dmEvaluator) {
+                    const evaluation = this.dmEvaluator.evaluateResponse(response, {
+                        type: 'campaign_start',
+                        character: character,
+                        campaign: campaign
+                    });
+                    
+                    console.log('📊 Campaign Start Response Evaluation:', evaluation);
+                    
+                    // If auto-improvement is enabled and score is low, try to improve
+                    if (this.autoImprove && evaluation.totalScore < 6.5) {
+                        console.log('🔧 Attempting to improve response...');
+                        try {
+                            const improvedResponse = await this.dmEvaluator.iterateResponse(response, evaluation, this);
+                            if (improvedResponse && improvedResponse !== response) {
+                                console.log('✨ Response improved!');
+                                response = improvedResponse;
+                                
+                                // Re-evaluate the improved response
+                                const newEvaluation = this.dmEvaluator.evaluateResponse(response, {
+                                    type: 'campaign_start_improved',
+                                    character: character,
+                                    campaign: campaign,
+                                    originalScore: evaluation.totalScore
+                                });
+                                console.log('📈 Improved Response Evaluation:', newEvaluation);
+                            }
+                        } catch (error) {
+                            console.error('Failed to improve response:', error);
+                        }
+                    }
+                }
+                
+                this.displayEnhancedStoryContent = this.displayEnhancedStoryContent.bind(this);
                 this.displayStoryContent(response, 'dm-response');
                 gameState.set('campaign.story_state', response);
                 gameState.addToCampaignLog({
@@ -195,112 +830,126 @@ class AIManager {
      * Process player action and get AI response
      */
     async processPlayerAction(actionData) {
+        const currentTime = Date.now();
+        
+        // Debounce rapid actions
+        if (currentTime - this.lastActionTime < this.actionDebounceTime) {
+            console.log('🚫 Action debounced, too rapid');
+            return;
+        }
+        
         if (this.isProcessing) {
+            console.log('🚫 AI already processing, ignoring duplicate request');
             showToast('Please wait for the current action to complete', 'warning');
             return;
         }
         
-        // Store the last player action for reference
-        this.lastPlayerAction = actionData.action;
-        console.log('🎯 Processing action with dice roll:', actionData);
-        
-        // Check if this is the new combined format (action + dice roll)
-        if (actionData.diceRoll) {
-            console.log('🎲 New format: Action + Dice Roll received together');
-            await this.processActionWithDiceRoll(actionData);
+        // Prevent duplicate processing of the same action
+        const actionKey = `${actionData.action}_${actionData.diceRoll?.result || 'no_dice'}`;
+        if (this.lastProcessedAction === actionKey) {
+            console.log('🚫 Duplicate action detected, ignoring:', actionKey);
             return;
         }
         
-        // Legacy format handling (for backward compatibility)
-        console.log('🎯 Legacy format: Action only');
+        this.lastProcessedAction = actionKey;
+        this.lastActionTime = currentTime;
+        this.isProcessing = true;
         
-        // If we're waiting for a dice roll, store the action and check requirements
-        if (this.actionState === 'waiting_for_dice') {
-            this.pendingAction = actionData;
-            this.updateActionButtonStates();
-            showToast('Action selected. Please roll the required dice to continue.', 'info');
-            return;
+        try {
+            // Store the last player action for reference
+            this.lastPlayerAction = actionData.action;
+            console.log('🎯 Processing action with dice roll:', actionData);
+            
+            // Check if this is the new combined format (action + dice roll)
+            if (actionData.diceRoll) {
+                console.log('🎲 New format: Action + Dice Roll received together');
+                await this.processActionWithDiceRoll(actionData);
+                return;
+            }
+            
+            // Legacy format handling (for backward compatibility)
+            console.log('🎯 Legacy format: Action only');
+            
+            // If we're waiting for a dice roll, store the action and check requirements
+            if (this.actionState === 'waiting_for_dice') {
+                this.pendingAction = actionData;
+                this.updateActionButtonStates();
+                showToast('Action selected. Please roll the required dice to continue.', 'info');
+                return;
+            }
+            
+            // If we have a completed dice roll and this is the same action, proceed
+            if (this.actionState === 'can_submit' && this.pendingAction?.action === actionData.action) {
+                return this.submitActionWithDice();
+            }
+            
+            await this.processNormalAction(actionData);
+        } finally {
+            this.isProcessing = false;
         }
-        
-        // If we have a completed dice roll and this is the same action, proceed
-        if (this.actionState === 'can_submit' && this.pendingAction?.action === actionData.action) {
-            return this.submitActionWithDice();
-        }
-        
-        // Normal action processing - check if AI will request a dice roll
-        await this.processNormalAction(actionData);
     }
     
-    /**
-     * Process a normal action (may or may not require dice)
-     */
     async processNormalAction(actionData) {
         this.isProcessing = true;
         this.showTypingIndicator();
         this.showProgressiveLoadingText();
         
-        // Emit thinking state for dice system
         eventBus.emit('ai:thinking');
         
-        console.log('🚀 Processing action with specialized AI methods:', actionData.action);
+        console.log('🚀 Processing action:', actionData.action);
         
-        // TEMPORARY: Test if API is working, enable fallback if not
-        console.log('🔥 Checking if we should force fallback mode...');
-        // Skip the old fallback mode check since we only use HuggingFace now
-        
-        // Test API with a simple call first (but with timeout for faster error handling)
         try {
-            console.log('🔥 Testing HuggingFace API connection before story generation...');
+            console.log('🔥 Testing connection before story generation...');
             await Promise.race([
                 this.testConnection(),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 3000))
             ]);
-            console.log('🔥 API connection test passed');
+            console.log('🔥 Connection test passed');
         } catch (error) {
-            console.error('🔥 HuggingFace API connection test failed:', error);
-            this.displayError('HuggingFace AI is not available. Please check your configuration or try again later.');
+            console.error('🔥 Connection test failed:', error);
+            this.displayError('System is not available. Please check your configuration or try again later.');
             this.isProcessing = false;
             this.hideTypingIndicator();
             return;
         }
         
         try {
-            // Step 1: Generate story response using STORY AI
-            console.log('🎭 Step 1: Generating story content...');
+            console.log('🎭 Generating story content...');
             const storyResponse = await this.generateStoryResponse(actionData);
             
             if (storyResponse) {
-                // Check if story response requests a dice roll
                 const diceRequest = this.detectDiceRequest(storyResponse);
                 
                 if (diceRequest) {
-                    // Store the action and AI response, wait for dice roll
                     this.pendingAction = actionData;
                     this.pendingAIResponse = storyResponse;
                     this.requiredDiceRoll = diceRequest;
                     this.actionState = 'waiting_for_dice';
                     
-                    // Display the story content that requests the dice roll
                     this.displayStoryContent(actionData.action, 'player-action');
+                    
                     setTimeout(async () => {
-                        this.displayStoryContent(storyResponse, 'dm-response');
-                        // Emit event for dice system to detect and show dice
+                        await this.displayEnhancedStoryContent(storyResponse, 'dm-response', {
+                            type: 'story_response',
+                            actionData: actionData,
+                            hasDiceRequest: diceRequest
+                        });
                         eventBus.emit('ai:response', storyResponse);
                         
-                        // Always prompt for dice roll after story response
                         this.promptForDiceRoll(storyResponse);
                         
-                        // Action buttons removed - players now type their actions directly
                         console.log('🎯 Players can now type their actions instead of using buttons');
                         
                         this.updateActionButtonStates();
                     }, 1000);
                 } else {
-                    // No dice required, proceed with story and choices
                     this.displayStoryContent(actionData.action, 'player-action');
                     
                     setTimeout(async () => {
-                        this.displayStoryContent(storyResponse, 'dm-response');
+                        await this.displayEnhancedStoryContent(storyResponse, 'dm-response', {
+                            type: 'story_response_no_dice',
+                            actionData: actionData
+                        });
                         eventBus.emit('ai:response', storyResponse);
                         
                         // Always prompt for dice roll after story response
@@ -350,8 +999,7 @@ class AIManager {
                 diceResult: this.completedDiceRoll
             };
             
-            // Step 1: Generate story response using STORY AI (with dice result)
-            console.log('🎭 Step 1: Generating story with dice result...');
+            console.log('🎭 Generating story content with dice result...');
             const storyResponse = await this.generateStoryResponse(actionDataWithDice);
             
             if (storyResponse) {
@@ -681,35 +1329,88 @@ Continue the story based on this dice result. Be specific about how the roll aff
     }
     
     /**
-     * Build action context including dice roll results
+     * Build comprehensive dice action context with full campaign continuity
      */
     buildActionContextWithDice(character, campaign, actionData, diceRoll) {
         const currentStory = campaign.story_state || 'The adventure begins...';
-        const recentLog = campaign.campaign_log?.slice(-5) || [];
+        const recentLog = campaign.campaign_log?.slice(-6) || [];
+        const settingData = characterManager?.settings?.[campaign.setting] || {};
         
-        return `
-            CONTINUING STORY WITH DICE RESULT:
-            
-            Player Action: "${actionData.action}"
-            Dice Roll: ${diceRoll.dice || diceRoll.type} = ${diceRoll.result || diceRoll.total}
-            ${diceRoll.critical ? '🌟 CRITICAL SUCCESS! Make this exceptionally positive.' : ''}
-            ${diceRoll.fumble ? '💀 CRITICAL FAILURE! Add interesting complications.' : ''}
-            
-            Current Story Context: ${currentStory}
-            
-            CHARACTER: ${character.name} (${character.race} ${character.class})
-            Background: ${character.background}
-            
-            RECENT EVENTS:
-            ${recentLog.map(entry => `- ${entry.content?.substring(0, 100)}...`).join('\n')}
-            
-            Interpret the dice roll result for the player's action and continue the story. 
-            The dice result should directly influence the outcome of "${actionData.action}".
-        `;
+        const contextParts = [
+            `🎲 CONTINUING ${character.name.toUpperCase()}'S STORY WITH DICE RESULT:`,
+            ``,
+            `🎯 Player Action: "${actionData.action}"`,
+            `🎲 Dice Roll: ${diceRoll.dice || diceRoll.type} = ${diceRoll.result || diceRoll.total}`,
+        ];
+        
+        // Add critical success/failure context
+        if (diceRoll.critical) {
+            contextParts.push(`🌟 CRITICAL SUCCESS! This should be exceptionally positive and memorable for ${character.name}.`);
+        }
+        if (diceRoll.fumble) {
+            contextParts.push(`💀 CRITICAL FAILURE! Add interesting complications, but keep it engaging for ${character.name}.`);
+        }
+        
+        contextParts.push(``, `📖 CURRENT STORY CONTEXT: ${currentStory}`);
+        
+        // Comprehensive character context
+        contextParts.push(`
+👤 CHARACTER PROFILE:
+Name: ${character.name} (use their name frequently)
+Class: ${character.class} Level ${character.level} (reference their abilities)
+Race: ${character.race || 'Human'}
+Background: ${character.background || 'Unknown origins'} (inform character reactions)
+Health: ${character.health?.current || '?'}/${character.health?.maximum || '?'}
+Stats: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}`);
+        
+        // Recent campaign history for continuity
+        if (recentLog.length > 0) {
+            contextParts.push(`
+📚 RECENT CAMPAIGN HISTORY (maintain strict continuity):`);
+            recentLog.forEach((entry, index) => {
+                contextParts.push(`${index + 1}. ${entry.type}: ${entry.content?.substring(0, 150)}...`);
+            });
+        }
+        
+        // NPCs for relationship continuity
+        if (campaign.npcs_encountered?.length > 0) {
+            contextParts.push(`
+🎭 ESTABLISHED NPCs (reference when relevant):`);
+            campaign.npcs_encountered.forEach(npc => {
+                contextParts.push(`- ${npc.name} (${npc.relationship || 'neutral'}): ${npc.description || 'previous encounter'}`);
+            });
+        }
+        
+        // Locations for world consistency
+        if (campaign.important_locations?.length > 0) {
+            contextParts.push(`
+🗺️ KNOWN LOCATIONS (maintain world consistency):`);
+            campaign.important_locations.forEach(loc => {
+                contextParts.push(`- ${loc.name}: ${loc.description || 'previously visited'}`);
+            });
+        }
+        
+        contextParts.push(`
+🎯 CURRENT LOCATION: ${campaign.current_location || 'Unknown'}
+🌍 SETTING: ${settingData.name} (${settingData.description})
+
+🔥 CRITICAL DM INSTRUCTIONS:
+- You are ${character.name}'s personal DM with complete knowledge of their journey
+- Interpret the ${diceRoll.result || diceRoll.total} roll result for "${actionData.action}"
+- Reference their ${character.class} abilities and ${character.background} background
+- Build directly upon previous story elements and established NPCs/locations
+- Use ${character.name}'s name and personal details throughout your response
+- Maintain ${settingData.name} setting atmosphere and continue established plotlines
+- Create consequences that advance their ongoing personal narrative
+- Remember: you know ${character.name} intimately as their dedicated game master
+
+The dice result should directly influence the outcome of "${actionData.action}". Respond as ${character.name}'s DM with full campaign knowledge.`);
+        
+        return contextParts.join('\n');
     }
     
     /**
-     * Build system prompt based on game state
+     * Build comprehensive system prompt with full character and campaign context
      */
     buildSystemPrompt() {
         const campaign = gameState.getCampaign();
@@ -718,67 +1419,110 @@ Continue the story based on this dice result. Be specific about how the roll aff
         const difficulty = campaign.dm_difficulty;
         
         const settingData = characterManager?.settings?.[setting] || {};
+        const recentLog = campaign.campaign_log?.slice(-8) || [];
         
-        return `You are the Dungeon Master for ${character.name || 'the adventurer'}, a ${character.class || 'character'} in a ${settingData.name || 'fantasy'} campaign.
+        // Build comprehensive character context
+        const characterContext = `
+🎭 GAME MASTER ROLE: You are the dedicated GM for this ${settingData.name || 'adventure'} campaign. You know this character intimately and maintain complete continuity of their story.
 
-CHARACTER STATS: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}
+👤 CHARACTER PROFILE:
+Name: ${character.name || 'the adventurer'}
+Class: ${character.class || 'adventurer'} (Level ${character.level || 1})
+Race: ${character.race || 'human'}
+Background: ${character.background || 'unknown origins'}
+Health: ${character.health?.current || 'unknown'}/${character.health?.maximum || 'unknown'}
 
-CAMPAIGN: ${settingData.description || 'Fantasy adventure'} - ${difficulty} difficulty
+⚡ ABILITY SCORES: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}
 
-DM STYLE:
-- Describe what happens directly, like a real DM would
-- Be concise but vivid - set the scene, describe consequences
-- Focus on the immediate situation and what the player sees/hears/feels
-- Don't overthink or over-describe - just tell them what happens
-- Use second person ("you see...", "you hear...")
-- At least 100 words, but don't drag it out
+🌍 CAMPAIGN SETTING: ${settingData.description || 'Fantasy adventure'}
+🎯 DIFFICULTY: ${difficulty} difficulty
+🏛️ CURRENT LOCATION: ${campaign.current_location || 'Unknown location'}
+📖 STORY STATE: ${campaign.story_state || 'Adventure beginning'}
 
-The player will provide both their action and dice roll together. Use the dice result to determine the outcome of their action, then continue the story and ask them to declare their next action and roll dice for it.
+${recentLog.length > 0 ? `📚 RECENT CAMPAIGN HISTORY:
+${recentLog.map((entry, index) => `${index + 1}. ${entry.type}: ${entry.content?.substring(0, 120)}...`).join('\n')}` : ''}
 
-Example: "Your action succeeds/fails based on your roll. [story continues]. What do you want to do next? Choose a die (D4-D20) based on the difficulty and roll it along with your action."
+${campaign.npcs_encountered?.length > 0 ? `🎭 KNOWN NPCs:
+${campaign.npcs_encountered.map(npc => `- ${npc.name}: ${npc.relationship || 'neutral'} (${npc.description || 'no details'})`).join('\n')}` : ''}
 
-Start describing what happens immediately based on their action and dice result.`;
+${campaign.important_locations?.length > 0 ? `🗺️ KNOWN LOCATIONS:
+${campaign.important_locations.map(loc => `- ${loc.name}: ${loc.description || 'no details'}`).join('\n')}` : ''}
+
+🎲 DM PERSONALITY: ${settingData.dm_personality_hint || 'Create engaging adventures with meaningful choices.'}`;
+
+        return `${characterContext}
+
+🔥 CRITICAL DM INSTRUCTIONS:
+- You ARE the DM for ${character.name}. Maintain complete story continuity.
+- Remember everything that has happened in this campaign.
+- Stay completely in character as their dedicated game master.
+- Refer to past events, NPCs, and locations established in this campaign.
+- Build upon previous story elements rather than ignoring them.
+- Use the character's name, class, and background to personalize responses.
+- Adapt your tone and style to match the ${settingData.name} setting.
+- Be concise but vivid - set scenes, describe consequences, advance the plot.
+- Use second person ("you see...", "you hear...") to immerse the player.
+- Generate 100-200 words of rich, atmospheric storytelling.
+
+The player will provide their action and dice roll. Use the dice result to determine the outcome, continue the story with consequences, and set up their next choice.
+
+Always end by asking what they want to do next and which die they want to roll for it.`;
     }
     
     /**
-     * Build campaign context from history
+     * Build comprehensive campaign context from history
      */
     buildCampaignContext() {
         const campaign = gameState.getCampaign();
+        const character = gameState.getCharacter();
         const recentLog = campaign.campaign_log?.slice(-10) || [];
+        const settingData = characterManager?.settings?.[campaign.setting] || {};
         
-        let context = '';
+        const contextParts = [];
         
-        if (campaign.current_location) {
-            context += `Current Location: ${campaign.current_location}\n`;
+        if (character?.name) {
+            contextParts.push(`📖 CONTINUING ${character.name.toUpperCase()}'S ADVENTURE`);
+            contextParts.push(`👤 Character: ${character.name} (${character.race || 'Human'} ${character.class})`);
         }
         
+        if (campaign.current_location) {
+            contextParts.push(`🎯 Current Location: ${campaign.current_location}`);
+        }
+        
+        contextParts.push(`🌍 Setting: ${settingData.name || campaign.setting}`);
+        
         if (recentLog.length > 0) {
-            context += '\nRECENT EVENTS:\n';
-            recentLog.forEach(entry => {
-                context += `- ${entry.content?.substring(0, 100)}...\n`;
+            contextParts.push(`\n📚 RECENT CAMPAIGN EVENTS:`);
+            recentLog.forEach((entry, index) => {
+                contextParts.push(`${index + 1}. ${entry.type}: ${entry.content?.substring(0, 120)}...`);
             });
         }
         
         if (campaign.npcs_encountered?.length > 0) {
-            context += '\nKNOWN NPCs:\n';
+            contextParts.push(`\n🎭 ESTABLISHED NPCs:`);
             campaign.npcs_encountered.forEach(npc => {
-                context += `- ${npc.name}: ${npc.relationship || 'neutral'}\n`;
+                contextParts.push(`- ${npc.name} (${npc.relationship || 'neutral'}): ${npc.description || 'previous encounter'}`);
             });
         }
         
-        return context || 'This is the beginning of the adventure.';
+        if (campaign.important_locations?.length > 0) {
+            contextParts.push(`\n🗺️ KNOWN LOCATIONS:`);
+            campaign.important_locations.forEach(loc => {
+                contextParts.push(`- ${loc.name}: ${loc.description || 'previously visited'}`);
+            });
+        }
+        
+        return contextParts.length > 0 ? contextParts.join('\n') : 'This is the beginning of the adventure.';
     }
     
     /**
      * Always prompt for dice roll after AI response
      */
     promptForDiceRoll(aiResponse) {
-        console.log('🎲 Always prompting for dice roll after AI response');
+        console.log('🎲 Always prompting for dice roll after response');
         
-        // Detect dice requirement from AI response (D4, D6, D8, D10, D12, D20)
         const diceMatches = aiResponse.match(/(?:roll|make).*?[ad]?\s*(d4|d6|d8|d10|d12|d20)/gi);
-        let diceType = 'd20'; // Default to D20
+        let diceType = 'd20';
         
         if (diceMatches && diceMatches.length > 0) {
             const match = diceMatches[0].toLowerCase();
@@ -869,62 +1613,167 @@ Start describing what happens immediately based on their action and dice result.
      */
     buildStartPrompt(character, campaign) {
         const setting = characterManager?.settings?.[campaign.setting] || {};
+        const settingName = setting.name || 'Fantasy';
+        const themes = setting.themes || ['adventure'];
+        const technology = setting.technology || 'Medieval';
+        const characterClass = character.class || 'adventurer';
+        const characterName = character.name || 'Hero';
         
-        return `Start an epic ${setting.name} adventure for ${character.name}, a level ${character.level} ${character.class}.
+        // Create contextual opening scenarios based on setting
+        const contextualPrompts = {
+            'medieval-fantasy': `Start an epic ${settingName} adventure for ${characterName}, a level ${character.level} ${characterClass}.
 
-Create an engaging opening scene that:
-1. Establishes the setting and atmosphere
-2. Introduces an initial challenge or mystery
-3. Gives the character a clear motivation to act
-4. Includes vivid sensory details
-5. Sets up potential for interesting choices
+SETTING CONTEXT: You are in the bustling medieval kingdom of Valdris, where ancient magic flows through enchanted forests, crumbling dungeons hide forgotten treasures, and political intrigue shadows the royal court. The air carries whispers of an awakening darkness in the northern mountains.
 
-CRITICAL: Jump straight into the story. Do NOT explain what you're doing or provide any meta-commentary. Begin immediately with vivid, immersive storytelling in the world.
+OPENING SCENARIO: ${characterName} finds themselves in the candlelit common room of The Prancing Pony tavern in the border town of Millhaven. Rain patters against diamond-paned windows as merchants, soldiers, and travelers share hushed conversations over tankards of ale. A hooded figure in the corner has been watching you for the past hour, and the tavern keeper keeps glancing nervously toward the stairs leading to the upper rooms.
+
+Create an engaging opening that:
+- Establishes immediate atmosphere with rich sensory details
+- Introduces a compelling hook or mystery 
+- Gives ${characterName} clear motivation as a ${characterClass}
+- Sets up meaningful choices with consequences
+- Incorporates elements of ${themes.join(', ')}`,
+
+            'modern-day': `Start a gripping ${settingName} adventure for ${characterName}, a level ${character.level} ${characterClass}.
+
+SETTING CONTEXT: You are in present-day Seattle, where beneath the surface of coffee shops and tech startups, supernatural forces move in the shadows. Government agencies track paranormal activities, and ancient entities adapt to the digital age.
+
+OPENING SCENARIO: ${characterName} sits in their car outside a 24-hour diner on Highway 99, rain streaking the windshield as neon signs reflect in puddles. Your police scanner crackles with reports of "unusual electromagnetic activity" near the abandoned Blackwood Industries building. Your phone buzzes with an encrypted message: "They know you've been investigating. Meet me at the old pier. Come alone. -M"
+
+Create an engaging opening that:
+- Establishes modern urban atmosphere with contemporary details
+- Introduces a supernatural or conspiracy-driven hook
+- Gives ${characterName} clear motivation as a ${characterClass}
+- Sets up tension-filled choices
+- Incorporates elements of ${themes.join(', ')}`,
+
+            'sci-fi-space': `Start an epic ${settingName} adventure for ${characterName}, a level ${character.level} ${characterClass}.
+
+SETTING CONTEXT: You are aboard the deep space station Kepler-442, orbiting a gas giant in the outer rim territories. Here, alien traders, corporate agents, and independent spacers converge in a melting pot of species and technologies. Rumors speak of ancient alien artifacts and unexplored jump gates.
+
+OPENING SCENARIO: ${characterName} stands on the observation deck of Kepler-442, watching the swirling storms of the gas giant below while distant stars twinkle through the reinforced transparisteel. Your comm unit chirps with an urgent message from Station Command: "Priority Alpha situation in Docking Bay 7. We need someone with your skills, ${characterClass}. Confidential briefing in 10 minutes."
+
+Create an engaging opening that:
+- Establishes sci-fi atmosphere with futuristic details
+- Introduces a space-based mystery or alien encounter
+- Gives ${characterName} clear motivation as a ${characterClass}
+- Sets up high-stakes choices
+- Incorporates elements of ${themes.join(', ')}`,
+
+            'eldritch-horror': `Start a haunting ${settingName} adventure for ${characterName}, a level ${character.level} ${characterClass}.
+
+SETTING CONTEXT: You are in 1920s Arkham, Massachusetts, where gaslight flickers against fog-shrouded streets and the Miskatonic University library holds forbidden tomes. Strange dreams plague the townsfolk, and those who delve too deep into ancient mysteries are never quite the same.
+
+OPENING SCENARIO: ${characterName} sits in the lamp-lit study of Professor Armitage's Victorian home, rain tapping against tall windows as shadows dance beyond the glass. Ancient books line the walls, their leather bindings seeming to whisper secrets. The Professor's letter lies open on the mahogany desk: "The symbols you found match those in the Necronomicon. We must meet immediately. Something is stirring in the old Whateley place."
+
+Create an engaging opening that:
+- Establishes 1920s horror atmosphere with period details
+- Introduces a cosmic horror mystery or forbidden knowledge
+- Gives ${characterName} clear motivation as a ${characterClass}
+- Sets up dread-filled choices with sanity at stake
+- Incorporates elements of ${themes.join(', ')}`
+        };
+
+        const prompt = contextualPrompts[campaign.setting] || contextualPrompts['medieval-fantasy'];
+        
+        return `${prompt}
+
+CRITICAL: Jump straight into immersive storytelling. Begin immediately with vivid scene-setting that makes the player feel they are truly in this world. NO meta-commentary or explanations.
 
 Begin the adventure now!`;
     }
     
     /**
-     * Build action context
+     * Build comprehensive action context with full campaign continuity
      */
     buildActionContext(character, campaign, actionData) {
-        return `PLAYER ACTION: ${actionData.action}
+        const settingData = characterManager?.settings?.[campaign.setting] || {};
+        const recentLog = campaign.campaign_log?.slice(-6) || [];
+        const currentStory = campaign.story_state || 'Beginning of adventure';
+        
+        // Build context that ensures AI remembers everything
+        const contextParts = [
+            `🎯 PLAYER ACTION: "${actionData.action}"`,
+            `👤 CHARACTER: ${character.name} the ${character.class} (Level ${character.level})`,
+            `🌍 SETTING: ${settingData.name} - ${campaign.current_location || 'Unknown location'}`,
+            `📖 CURRENT SITUATION: ${currentStory}`
+        ];
+        
+        // Add recent campaign history for continuity
+        if (recentLog.length > 0) {
+            contextParts.push(`📚 RECENT CAMPAIGN EVENTS (maintain continuity with these):`);
+            recentLog.forEach((entry, index) => {
+                contextParts.push(`${index + 1}. ${entry.type}: ${entry.content?.substring(0, 150)}...`);
+            });
+        }
+        
+        // Add character-specific context
+        if (character.background) {
+            contextParts.push(`🎭 CHARACTER BACKGROUND: ${character.background} (use this to inform character reactions)`);
+        }
+        
+        // Add known NPCs for relationship continuity
+        if (campaign.npcs_encountered?.length > 0) {
+            contextParts.push(`🎭 KNOWN NPCs (reference these when relevant):`);
+            campaign.npcs_encountered.forEach(npc => {
+                contextParts.push(`- ${npc.name}: ${npc.relationship || 'neutral'} (${npc.description || 'no details'})`);
+            });
+        }
+        
+        // Add important locations for world continuity
+        if (campaign.important_locations?.length > 0) {
+            contextParts.push(`🗺️ ESTABLISHED LOCATIONS (maintain world consistency):`);
+            campaign.important_locations.forEach(loc => {
+                contextParts.push(`- ${loc.name}: ${loc.description || 'previously visited'}`);
+            });
+        }
+        
+        // Add character stats for ability-based responses
+        contextParts.push(`⚡ CHARACTER ABILITIES: STR ${character.stats?.str || 10}, DEX ${character.stats?.dex || 10}, CON ${character.stats?.con || 10}, INT ${character.stats?.int || 10}, WIS ${character.stats?.wis || 10}, CHA ${character.stats?.cha || 10}`);
+        
+        // Add health status if relevant
+        if (character.health) {
+            contextParts.push(`❤️ HEALTH: ${character.health.current}/${character.health.maximum}`);
+        }
+        
+        contextParts.push(`
+🔥 DM INSTRUCTIONS:
+- You are ${character.name}'s dedicated DM. Remember their entire story.
+- Build upon previous events, NPCs, and locations from this campaign.
+- Reference their ${character.class} abilities and ${character.background} background appropriately.
+- Maintain the ${settingData.name} setting's atmosphere and tone.
+- Consider their current health and ability scores when determining outcomes.
+- Create consequences that advance the ongoing narrative.
+- Stay completely in character as their DM throughout.
 
-Current story state: ${campaign.story_state || 'Beginning of adventure'}
-
-Process this action and respond as the DM. Consider:
-- Character abilities and stats
-- Current health and resources
-- Setting-appropriate consequences
-- Opportunities for character growth
-- Ways to advance the story
-
-CRITICAL: Respond immediately with the story outcome. NO meta-commentary, NO explanations of what you're planning. Jump straight into describing what happens as a result of the player's action.
-
-Respond with the outcome of this action and what happens next.`;
+CRITICAL: Respond as ${character.name}'s DM with full knowledge of their campaign history. Jump straight into describing what happens as a result of "${actionData.action}" - NO meta-commentary, just pure storytelling that builds on everything established before.`);
+        
+        return contextParts.join('\n');
     }
 
-    /**
-     * STORY AI - Handles narrative responses and story progression
-     */
     async generateStoryResponse(actionData) {
         if (this.isGeneratingStory) {
-            console.log('Story AI already processing, ignoring duplicate request');
+            console.log('🚫 Already processing, ignoring duplicate request');
             return null;
         }
 
+        const requestKey = `${actionData.action}_${actionData.diceResult?.result || actionData.diceRoll?.result || 'no_dice'}_${Date.now()}`;
+        if (this.lastStoryRequest === requestKey.split('_').slice(0, -1).join('_')) {
+            console.log('🚫 Duplicate request detected, ignoring');
+            return null;
+        }
+        
+        this.lastStoryRequest = requestKey.split('_').slice(0, -1).join('_');
         this.isGeneratingStory = true;
-        console.log('🎭 STORY AI: Generating narrative response for action:', actionData.action);
+        console.log('🎭 Generating narrative response for action:', actionData.action);
 
         try {
             const character = gameState.getCharacter();
             const campaign = gameState.getCampaign();
             
-            // Build context specifically for story generation
             const storyContext = this.buildActionContext(character, campaign, actionData);
             
-            // Story-specific system prompt
-            const storySystemPrompt = `🎭 STORY AI - PURE NARRATIVE GENERATION
+            const storySystemPrompt = `🎭 NARRATIVE GENERATION
 
 You are the storytelling engine for a ${campaign.setting} campaign. Your ONLY job is to generate immersive story content.
 
@@ -933,6 +1782,7 @@ You are the storytelling engine for a ${campaign.setting} campaign. Your ONLY jo
 ❌ NO action options or choices - that's handled separately  
 ❌ NO dice requests - dice are handled separately
 ❌ NO game mechanics discussion
+❌ NO repetition of previous responses
 ✅ ONLY pure story narrative describing what happens
 
 RESPONSE FORMAT:
@@ -943,7 +1793,7 @@ RESPONSE FORMAT:
 - Natural story progression
 - End with the scene resolution (no choices needed)
 
-📏 CRITICAL: Your response must be AT LEAST 100 words long. Short responses are not acceptable.
+📏 CRITICAL: Your response must be AT LEAST 100 words long and UNIQUE. Short or repetitive responses are not acceptable.
 
 START IMMEDIATELY WITH STORY CONTENT - NO PREAMBLE!`;
 
@@ -952,39 +1802,34 @@ START IMMEDIATELY WITH STORY CONTENT - NO PREAMBLE!`;
                 { role: 'user', content: storyContext }
             ]);
 
-            console.log('🎭 STORY AI: Generated response length:', response?.length || 0);
+            if (response) {
+                this.addToRecentResponses(response);
+            }
+
+            console.log('🎭 Generated response length:', response?.length || 0);
             return response;
 
         } catch (error) {
-            console.error('🎭 STORY AI: Error generating story response:', error);
+            console.error('🎭 Error generating story response:', error);
             return this.getStoryFallback(actionData.action);
         } finally {
             this.isGeneratingStory = false;
         }
     }
 
-    /**
-     * CHOICE AI - Generates contextual action buttons based on current situation
-     */
     async generateActionChoices(currentStory = '') {
         if (this.isGeneratingChoices) {
-            console.log('Choice AI already processing, ignoring duplicate request');
+            console.log('Choice generation already processing, ignoring duplicate request');
             return this.getGenericOptions();
         }
 
         this.isGeneratingChoices = true;
-        console.log('🎯 CHOICE AI: Using rule-based contextual generation (AI bypass)');
+        console.log('🎯 Using rule-based contextual generation');
 
         try {
-            // TEMPORARY: Skip AI entirely and use rule-based generation
             const contextualOptions = this.generateContextualFallbackOptions(currentStory);
-            console.log('🎯 CHOICE AI: Generated', contextualOptions.length, 'contextual options:', contextualOptions);
+            console.log('🎯 Generated', contextualOptions.length, 'contextual options:', contextualOptions);
             return contextualOptions;
-
-            // TODO: Re-enable AI generation when we can get it to stop meta-commenting
-            /*
-            const character = gameState.getCharacter();
-            const campaign = gameState.getCampaign();
             
             // Build context for choice generation
             const choiceContext = `CURRENT SITUATION:
@@ -1071,20 +1916,14 @@ RULES:
                 return options.length > 0 ? options : this.getGenericOptions();
             }
 
-            return this.getGenericOptions();
-            */
-
         } catch (error) {
-            console.error('🎯 CHOICE AI: Error generating choices:', error);
+            console.error('🎯 Error generating choices:', error);
             return this.getGenericOptions();
         } finally {
             this.isGeneratingChoices = false;
         }
     }
 
-    /**
-     * Get fallback story content
-     */
     getStoryFallback(action) {
         const fallbacks = [
             `You ${action.toLowerCase()} with careful consideration. The environment around you shifts subtly in response to your actions. New details become apparent as you focus your attention on the task at hand. The atmosphere grows more intense as possibilities unfold before you.`,
@@ -1304,107 +2143,157 @@ RULES:
         return descriptions[difficulty] || descriptions.medium;
     }
     
-    /**
-     * Call AI API
-     */
     async callAI(messages) {
-        console.log('🔥 AI CALL STARTED');
+        console.log('🤗 HuggingFace AI call started');
         
-        // Use HuggingFace AI (Primary - prompt-engineered for RPG)
-        if (this.useHuggingFace && this.huggingFaceAI) {
-            console.log('🤗 USING HUGGINGFACE AI - Prompt-engineered for RPG storytelling');
+        try {
+            const character = gameState.getCharacter();
+            const campaign = gameState.getCampaign();
+            let settingData = null;
             
-            try {
-                // Get character and setting data for enhanced context
-                const character = gameState.getCharacter();
-                const campaign = gameState.getCampaign();
-                let settingData = null;
-                
-                // Get setting details from character manager if available
-                if (typeof characterManager !== 'undefined' && campaign.setting) {
-                    settingData = characterManager.settings[campaign.setting];
-                }
-                
-                const lastMessage = messages[messages.length - 1]?.content || '';
-                const isChoiceGeneration = lastMessage.includes('action choices') || 
-                                         lastMessage.includes('choice options') ||
-                                         lastMessage.includes('what can') ||
-                                         lastMessage.includes('options are');
-                
-                let response;
-                if (isChoiceGeneration) {
-                    const choices = await this.huggingFaceAI.generateChoices(lastMessage, character, settingData);
-                    response = Array.isArray(choices) ? choices.join('\n') : choices;
-                } else {
-                    response = await this.huggingFaceAI.generateStory(lastMessage, 'narrative', character, settingData);
-                }
-                
-                if (response && response.length > 20 && this.validateResponseLength(response, 100)) {
-                    console.log('🤗 HUGGINGFACE SUCCESS:', response.length, 'chars,', response.trim().split(/\s+/).length, 'words');
-                    return response;
-                }
-                
-                throw new Error('HuggingFace response too short or failed word count validation');
-                
-            } catch (error) {
-                console.error('🤗 HUGGINGFACE FAILED:', error);
-                throw new Error(`HuggingFace AI failed: ${error.message}`);
+            if (typeof characterManager !== 'undefined' && campaign.setting) {
+                settingData = characterManager.settings[campaign.setting];
             }
+            
+            // Extract the main content from messages
+            const lastMessage = messages[messages.length - 1]?.content || '';
+            const systemMessage = messages.find(msg => msg.role === 'system')?.content || '';
+            
+            // Combine system and user messages for HuggingFace
+            let fullPrompt = '';
+            if (systemMessage) {
+                fullPrompt += `SYSTEM CONTEXT: ${systemMessage}\n\n`;
+            }
+            fullPrompt += `USER REQUEST: ${lastMessage}`;
+            
+            // Determine if this is choice generation or narrative
+            const isChoiceGeneration = lastMessage.includes('action choices') || 
+                                     lastMessage.includes('choice options') ||
+                                     lastMessage.includes('what can') ||
+                                     lastMessage.includes('options are');
+            
+            let response;
+            if (isChoiceGeneration) {
+                console.log('🤗 Generating choices with HuggingFace');
+                const choices = await this.generateHuggingFaceChoices(fullPrompt, character, settingData);
+                response = Array.isArray(choices) ? choices.join('\n') : choices;
+            } else {
+                console.log('🤗 Generating story with HuggingFace');
+                response = await this.generateHuggingFaceStory(fullPrompt, 'narrative', character, settingData);
+            }
+            
+            if (response && response.length > 20 && this.validateResponseLength(response, 80)) {
+                console.log('🤗 HuggingFace Success:', response.length, 'chars,', response.trim().split(/\s+/).length, 'words');
+                return response;
+            }
+            
+            throw new Error('HuggingFace response too short or failed validation');
+            
+        } catch (error) {
+            console.error('🤗 HuggingFace AI failed:', error);
+            
+            // Use enhanced fallback response
+            console.log('🤗 Using enhanced fallback response');
+            return this.getHuggingFaceFallbackResponse('narrative');
+        }
+    }
+    
+    /**
+     * Generate story response using HuggingFace
+     */
+    async generateStoryResponse(actionData) {
+        console.log('🤗 Generating story response for action:', actionData.action);
+        
+        const character = gameState.getCharacter();
+        const campaign = gameState.getCampaign();
+        let settingData = null;
+        
+        if (typeof characterManager !== 'undefined' && campaign.setting) {
+            settingData = characterManager.settings[campaign.setting];
         }
         
-        // No fallbacks - only HuggingFace
-        throw new Error('HuggingFace AI is not available or disabled');
+        // Build context for the story response
+        const context = this.buildActionContext(character, campaign, actionData);
+        
+        try {
+            const response = await this.generateHuggingFaceStory(context, 'narrative', character, settingData);
+            return response;
+        } catch (error) {
+            console.error('🤗 Story generation failed:', error);
+            return this.getHuggingFaceFallbackResponse('narrative', settingData);
+        }
+    }
+    
+    /**
+     * Build action context for HuggingFace prompts
+     */
+    buildActionContext(character, campaign, actionData) {
+        const characterName = character.name || 'the adventurer';
+        const characterClass = character.class || 'adventurer';
+        const currentStory = campaign.story_state || 'The adventure begins...';
+        
+        let context = `Current story: ${currentStory}\n\n`;
+        context += `${characterName} the ${characterClass} decides to: ${actionData.action}\n\n`;
+        
+        if (actionData.diceResult) {
+            const result = actionData.diceResult.result || actionData.diceResult.total;
+            const dice = actionData.diceResult.dice || actionData.diceResult.type;
+            context += `They rolled ${dice} and got ${result}.\n\n`;
+        }
+        
+        context += `Continue the story based on this action and describe what happens next.`;
+        
+        return context;
     }
     
     generateFallbackResponse(userMessage = '') {
-        // Try to detect user intent from their message
         const message = userMessage.toLowerCase();
         
         if (message.includes('sleep') || message.includes('rest')) {
             const sleepResponses = [
-                "You find a safe spot to rest. The fatigue in your body is real, and sleep comes quickly. Your dreams are filled with strange visions of the adventure ahead. You wake refreshed and ready for what comes next. Roll a D6 to see how your rest affects your next actions!",
-                "Finding shelter, you settle down for some much-needed rest. Sleep brings clarity to your thoughts and strength to your body. As dawn breaks, you feel renewed and prepared for the challenges ahead. Roll a D8 to determine what you discover upon waking!",
-                "You decide rest is the wisest choice. As you sleep, your subconscious processes the events of your journey. You wake with new insights and restored energy. The path forward seems clearer now. Roll a D10 to see what opportunities await!"
+                "You settle into a comfortable resting spot, feeling the day's adventures catch up with you. Sleep comes easily, and your dreams are filled with visions of ancient magic and distant lands. When you wake, your body feels refreshed and your mind sharp. Roll a D6 to discover what new energy flows through you!",
+                "The weight of exhaustion finally claims you as you find shelter for the night. Your sleep is deep and restorative, and strange whispers in your dreams speak of hidden knowledge. Dawn brings renewed vigor and a sense of purpose. Roll a D8 to see what insight your rest has provided!",
+                "You decide that rest is exactly what you need right now. As you close your eyes, the sounds of the world fade away, replaced by peaceful silence. Your dreams take you on journeys through realms of possibility. You awaken with clarity and determination. Roll a D10 to see what opportunities await!"
             ];
             return sleepResponses[Math.floor(Math.random() * sleepResponses.length)];
         }
         
         if (message.includes('attack') || message.includes('fight') || message.includes('battle')) {
             const combatResponses = [
-                "You leap into action with determined resolve. Your weapon feels steady in your hands as you engage. The outcome will depend on both skill and fortune. Roll a D12 to determine the result of your attack!",
-                "Combat erupts as you make your move. Time slows as you focus on your opponent's weaknesses. Your training guides your actions, but victory is never guaranteed. Roll a D20 to see how the battle unfolds!",
-                "You strike with precision and courage. The clash of battle fills the air as you fight for your goal. Success or failure hangs in the balance. Roll a D8 to determine your combat effectiveness!"
+                "Your warrior instincts take over as you spring into action. The familiar weight of your weapon in your hands brings confidence, and your movements flow with practiced precision. The heat of battle fills your veins as you face whatever challenges await. Roll a D12 to determine your combat prowess!",
+                "Combat erupts around you as you engage with fierce determination. Time seems to slow as your training guides every movement, every decision crucial to the outcome. Your opponent's weaknesses become clear as you press your advantage. Roll a D20 to see how the tide of battle turns!",
+                "You charge forward with courage blazing in your heart. The clash of steel rings through the air as you fight with everything you have. Victory or defeat hangs in the balance, but you've never backed down from a challenge. Roll a D8 to discover the result of your bold assault!"
             ];
             return combatResponses[Math.floor(Math.random() * combatResponses.length)];
         }
         
         if (message.includes('explore') || message.includes('search') || message.includes('investigate')) {
             const exploreResponses = [
-                "You begin your careful exploration of the area. Your senses are alert as you search for clues, treasures, or hidden dangers. What you discover could change everything. Roll a D10 to see what you find!",
-                "Your investigation reveals more than you expected. The space holds secrets waiting to be uncovered. Your thorough approach pays off as you notice details others might miss. Roll a D12 to determine what you discover!",
-                "You search methodically, leaving no stone unturned. The environment responds to your careful attention, revealing its hidden aspects. Knowledge gained here will serve you well. Roll a D6 to see what secrets are revealed!"
+                "Your curiosity leads you deeper into the unknown as you carefully examine every detail around you. Hidden secrets begin to reveal themselves to your keen observation, and you sense that important discoveries lie just beyond your reach. Roll a D10 to uncover what mysteries await!",
+                "You begin a methodical investigation of your surroundings, noting every shadow, every unusual marking, every hint of something more. Your patience and attention to detail start to pay off as patterns emerge from the chaos. Roll a D12 to see what significant clues you discover!",
+                "Your explorer's instincts guide you as you search with growing excitement. Each step forward reveals new wonders and possibilities, and you can feel that you're on the verge of something important. The thrill of discovery pulses through your veins. Roll a D6 to determine what treasures you find!"
             ];
             return exploreResponses[Math.floor(Math.random() * exploreResponses.length)];
         }
         
         if (message.includes('talk') || message.includes('speak') || message.includes('negotiate') || message.includes('convince')) {
             const socialResponses = [
-                "You choose your words carefully, reading the situation before speaking. Communication can open doors that force cannot. Your approach will determine how others respond to you. Roll a D8 to see how your words are received!",
-                "Your attempt at diplomacy shows wisdom. Sometimes the right words at the right time can resolve what weapons cannot. The response you receive will guide your next steps. Roll a D10 to determine the outcome of your conversation!",
-                "You engage in meaningful dialogue, hoping to find common ground. Your sincerity and tact could make all the difference here. The power of words should not be underestimated. Roll a D6 to see how your approach works!"
+                "You choose your words with careful consideration, understanding that the right phrase at the right moment can change everything. Your voice carries confidence and sincerity as you speak your truth. The power of communication opens new paths forward. Roll a D8 to see how your words resonate!",
+                "Diplomacy becomes your weapon of choice as you engage in meaningful conversation. Your approach is thoughtful and respectful, seeking common ground where others might see only conflict. Sometimes the greatest victories come through understanding. Roll a D10 to determine how your diplomatic efforts unfold!",
+                "You step forward with words instead of weapons, believing in the power of honest communication. Your sincerity and wisdom shine through as you attempt to bridge differences and find solutions. The art of persuasion requires both courage and compassion. Roll a D6 to see the impact of your approach!"
             ];
             return socialResponses[Math.floor(Math.random() * socialResponses.length)];
         }
         
-        // Default generic responses if no specific action detected
-        const genericResponses = [
-            "Your decision leads to new developments. The situation responds to your choice in ways you couldn't have predicted. Adventure awaits around every corner. Roll a D8 to see what happens next!",
-            "You take action with confidence. The world around you shifts in response to your choices. Your path forward becomes clearer with each step. Roll a D10 to determine the outcome!",
-            "Your bold move sets events in motion. The consequences of your actions will soon become apparent. Fortune favors those who act decisively. Roll a D6 to see how things unfold!",
-            "You proceed with determination. Your choices shape the adventure as it unfolds around you. Each decision brings new possibilities and challenges. Roll a D12 to discover what awaits!"
+        const uniqueResponses = [
+            "Your bold decision sets in motion a cascade of unexpected events. The world around you seems to hold its breath as your choice ripples through the fabric of reality, creating new possibilities that didn't exist moments before. Roll a D8 to discover what fascinating developments unfold!",
+            "With unwavering determination, you take action that will be remembered. Your choice carries weight beyond what you might imagine, and the consequences begin to take shape in ways both subtle and profound. Roll a D10 to see how destiny responds to your courage!",
+            "The path you've chosen leads into uncharted territory where few have dared to venture. Your decision resonates with ancient powers that have long waited for someone brave enough to step forward. Roll a D6 to uncover what extraordinary forces you've awakened!",
+            "Your instincts guide you toward an action that feels both necessary and transformative. The energy of change crackles in the air around you as your choice begins to reshape the very nature of your adventure. Roll a D12 to witness the remarkable results!",
+            "You move forward with purpose, your decision creating waves of change that spread far beyond your immediate surroundings. The universe seems to align itself with your intent, opening doors that were previously invisible. Roll a D20 to discover what incredible opportunities emerge!"
         ];
         
-        return genericResponses[Math.floor(Math.random() * genericResponses.length)];
+        return uniqueResponses[Math.floor(Math.random() * uniqueResponses.length)];
     }
 
     /**
@@ -1417,18 +2306,51 @@ RULES:
         let outcomeText = '';
         
         if (successLevel === 'critical_success') {
-            outcomeText = `Your exceptional roll of ${result} leads to outstanding success! Everything goes better than you could have hoped, opening up new opportunities and possibilities. The favorable outcome puts you in an advantageous position moving forward.`;
+            const criticalSuccessResponses = [
+                `Your exceptional roll of ${result} leads to outstanding success! Everything goes better than you could have hoped, opening up incredible new opportunities and possibilities. The favorable outcome propels you forward with tremendous advantage.`,
+                `With a magnificent roll of ${result}, you achieve extraordinary success! Fortune smiles upon you as events unfold in ways that exceed even your most optimistic expectations. This triumph creates new pathways to victory.`,
+                `Your remarkable roll of ${result} produces spectacular results! The stars align in your favor, and what seemed challenging becomes a resounding victory. This critical success changes the entire dynamic of your situation.`
+            ];
+            outcomeText = criticalSuccessResponses[Math.floor(Math.random() * criticalSuccessResponses.length)];
         } else if (successLevel === 'success') {
-            outcomeText = `Your solid roll of ${result} allows you to succeed in your endeavor. Things work out as you intended, and you can proceed with confidence. The positive result gives you momentum to continue.`;
+            const successResponses = [
+                `Your solid roll of ${result} allows you to succeed with confidence. Things unfold exactly as you intended, and you can proceed knowing your approach was sound. The positive result builds momentum for future challenges.`,
+                `With your reliable roll of ${result}, you achieve your goal effectively. Your skill and determination pay off as circumstances align in your favor. This success demonstrates your growing competence and adaptability.`,
+                `Your steady roll of ${result} delivers the success you were seeking. The outcome validates your strategy and opens the path forward with clear advantages. You've proven that persistence and wisdom yield results.`
+            ];
+            outcomeText = successResponses[Math.floor(Math.random() * successResponses.length)];
         } else if (successLevel === 'partial') {
-            outcomeText = `Your roll of ${result} produces mixed results. You achieve some of what you set out to do, but there are complications or unexpected developments that require your attention. Success comes with a twist.`;
+            const partialResponses = [
+                `Your roll of ${result} produces interesting mixed results. You achieve some of what you set out to accomplish, but unexpected complications add fascinating new dimensions to your situation. Progress comes with intriguing twists.`,
+                `With your roll of ${result}, you succeed partially while uncovering new complexities. Your efforts bear fruit, but the outcome reveals layers of challenge and opportunity you hadn't anticipated. Success rarely comes without surprises.`,
+                `Your roll of ${result} brings both achievement and revelation. While you accomplish part of your goal, the experience teaches you valuable lessons about the true nature of your circumstances. Partial victory often leads to greater wisdom.`
+            ];
+            outcomeText = partialResponses[Math.floor(Math.random() * partialResponses.length)];
         } else if (successLevel === 'failure') {
-            outcomeText = `Your roll of ${result} doesn't quite get you where you wanted to go. The attempt doesn't work out as planned, forcing you to reconsider your approach or deal with the consequences of the setback.`;
+            const failureResponses = [
+                `Your roll of ${result} doesn't achieve your intended goal, but it opens different pathways forward. Sometimes what appears to be failure is actually guidance toward a better approach. The experience provides valuable insight for your next attempt.`,
+                `With your roll of ${result}, things don't go according to plan, forcing you to adapt and reconsider your strategy. This setback challenges you to think creatively and find alternative solutions. Every master knows that failure teaches what success cannot.`,
+                `Your roll of ${result} leads to an unexpected outcome that redirects your path. While your original plan doesn't succeed, this experience reveals new information about your situation. Sometimes the universe has different plans in mind.`
+            ];
+            outcomeText = failureResponses[Math.floor(Math.random() * failureResponses.length)];
         } else if (successLevel === 'critical_failure') {
-            outcomeText = `Your unfortunate roll of ${result} leads to significant complications. Not only does your attempt fail, but it creates new challenges that you'll need to overcome. However, even failures can lead to interesting developments.`;
+            const criticalFailureResponses = [
+                `Your challenging roll of ${result} creates significant complications that demand immediate attention. While this outcome presents serious obstacles, it also opens up entirely new storylines and opportunities for heroic problem-solving. Great adventures often begin with great challenges.`,
+                `With your roll of ${result}, events take a dramatic turn that no one could have predicted. This critical development transforms your entire situation, creating both danger and opportunity in equal measure. True heroes rise to meet such moments.`,
+                `Your roll of ${result} triggers a cascade of unexpected consequences that reshape everything around you. While the immediate situation becomes more complex, these dramatic changes often lead to the most memorable and rewarding adventures. Adversity breeds legends.`
+            ];
+            outcomeText = criticalFailureResponses[Math.floor(Math.random() * criticalFailureResponses.length)];
         }
         
-        const fullResponse = `${outcomeText} The adventure continues, and your next actions will be crucial in determining how things unfold. Roll a D10 to see what happens next!`;
+        const continuationPrompts = [
+            "The adventure continues to evolve, and your next actions will be crucial in determining how this new chapter unfolds. Roll a D10 to see what emerges from this situation!",
+            "Your story takes on new dimensions, and the choices you make now will echo through future events. Roll a D8 to discover what opportunities or challenges await!",
+            "The narrative threads weave together in fascinating ways, creating fresh possibilities for heroic action. Roll a D12 to unveil what destiny has in store!",
+            "New paths reveal themselves as your adventure transforms and grows. Roll a D6 to see what unexpected developments arise from these circumstances!",
+            "The tale continues with renewed energy and possibility. Roll a D20 to determine what remarkable twists await in the next phase of your journey!"
+        ];
+        
+        const fullResponse = `${outcomeText} ${continuationPrompts[Math.floor(Math.random() * continuationPrompts.length)]}`;
         
         this.displayStoryContent(fullResponse, 'dm-response');
         this.promptForDiceRoll(fullResponse);
@@ -1436,80 +2358,57 @@ RULES:
         console.log('🎲 Fallback dice outcome displayed');
     }
     
-    async callGeminiAPI(messages) {
+    /**
+     * Add response to recent responses tracker
+     */
+    addToRecentResponses(response) {
+        if (!response || typeof response !== 'string') return;
         
-        try {
-            // Convert OpenAI-style messages to Gemini format
-            const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
-            const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n\n');
-            
-            const combinedPrompt = systemPrompt ? `${systemPrompt}\n\n${userMessages}` : userMessages;
-            
-            const requestBody = {
-                contents: [{
-                    parts: [{
-                        text: combinedPrompt
-                    }]
-                }],
-                generationConfig: {
-                    maxOutputTokens: this.maxTokens,
-                    temperature: 0.4,
-                    topP: 0.8,
-                    topK: 40
-                }
-            };
-            
-            console.log('🔥 Request body size:', JSON.stringify(requestBody).length);
-            console.log('🔥 Combined prompt (first 200 chars):', combinedPrompt.substring(0, 200));
-            
-            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            console.log('🔥 API Response Status:', response.status);
-            console.log('🔥 API Response OK:', response.ok);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('🔥 API Error Response:', errorText);
-                throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log('🔥 API Response Data Keys:', Object.keys(data));
-            console.log('🔥 API Response Candidates Count:', data.candidates?.length);
-            
-            const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            console.log('🔥 API Response Content Length:', content?.length);
-            console.log('🔥 API Response Content (first 200 chars):', content?.substring(0, 200));
-            console.log('🔥 API Response Content (last 200 chars):', content?.substring(Math.max(0, (content?.length || 0) - 200)));
-            
-            if (!content) {
-                console.error('🔥 No content in Gemini response, full data:', data);
-                throw new Error('No content in Gemini response');
-            }
-            
-            // Add to conversation history (keep original format for compatibility)
-            this.conversationHistory.push(...messages, {
-                role: 'assistant',
-                content: content
-            });
-            
-            // Trim history if too long
-            this.trimConversationHistory();
-            
-            console.log('🔥 GEMINI API CALL COMPLETED SUCCESSFULLY');
-            return content;
-            
-        } catch (error) {
-            console.error('🔥 GEMINI API CALL FAILED:', error);
-            logger.error('Gemini API call failed:', error);
-            throw error;
+        // Keep only the first 100 characters for comparison
+        const responseSignature = response.substring(0, 100).toLowerCase().trim();
+        this.recentResponses.push(responseSignature);
+        
+        // Keep only the most recent responses
+        if (this.recentResponses.length > this.maxRecentResponses) {
+            this.recentResponses.shift();
         }
+    }
+    
+    /**
+     * Check if a response is too similar to recent ones
+     */
+    isResponseTooSimilar(response) {
+        if (!response || typeof response !== 'string' || this.recentResponses.length === 0) {
+            return false;
+        }
+        
+        const responseSignature = response.substring(0, 100).toLowerCase().trim();
+        
+        // Check similarity with recent responses
+        for (const recentResponse of this.recentResponses) {
+            const similarity = this.calculateSimilarity(responseSignature, recentResponse);
+            if (similarity > 0.7) { // 70% similarity threshold
+                console.log('🚫 High similarity detected:', similarity);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Calculate similarity between two strings using simple word overlap
+     */
+    calculateSimilarity(str1, str2) {
+        const words1 = str1.split(/\s+/).filter(word => word.length > 3);
+        const words2 = str2.split(/\s+/).filter(word => word.length > 3);
+        
+        if (words1.length === 0 || words2.length === 0) return 0;
+        
+        const commonWords = words1.filter(word => words2.includes(word));
+        const similarity = (commonWords.length * 2) / (words1.length + words2.length);
+        
+        return similarity;
     }
     
     /**
@@ -1527,6 +2426,49 @@ RULES:
     /**
      * Display story content in the UI
      */
+    /**
+     * Enhanced display method that includes evaluation and improvement
+     */
+    async displayEnhancedStoryContent(content, type = 'dm-response', context = {}) {
+        let finalContent = content;
+        
+        // Evaluate and potentially improve DM responses
+        if (this.enableEvaluation && this.dmEvaluator && type === 'dm-response') {
+            const evaluation = this.dmEvaluator.evaluateResponse(content, context);
+            
+            console.log('📊 DM Response Evaluation:', {
+                score: evaluation.totalScore,
+                feedback: evaluation.feedback,
+                suggestions: evaluation.suggestions.slice(0, 2)
+            });
+            
+            // If auto-improvement is enabled and score is low, try to improve
+            if (this.autoImprove && evaluation.totalScore < 6.5) {
+                console.log('🔧 Attempting to improve response (Score: ' + evaluation.totalScore.toFixed(1) + '/10)...');
+                try {
+                    const improvedContent = await this.dmEvaluator.iterateResponse(content, evaluation, this);
+                    if (improvedContent && improvedContent !== content) {
+                        console.log('✨ Response improved!');
+                        finalContent = improvedContent;
+                        
+                        // Re-evaluate the improved response
+                        const newEvaluation = this.dmEvaluator.evaluateResponse(finalContent, {
+                            ...context,
+                            type: context.type + '_improved',
+                            originalScore: evaluation.totalScore
+                        });
+                        console.log('📈 Improved Response Score:', newEvaluation.totalScore.toFixed(1) + '/10');
+                    }
+                } catch (error) {
+                    console.error('Failed to improve response:', error);
+                }
+            }
+        }
+        
+        this.displayStoryContent(finalContent, type);
+        return finalContent;
+    }
+
     displayStoryContent(content, type = 'dm-response') {
         const storyContent = document.getElementById('story-content');
         if (!storyContent) return;
@@ -1977,17 +2919,43 @@ RULES:
     }
     
     /**
-     * Show fallback content when AI fails
+     * Show fallback content when system fails
      */
     showFallbackStart() {
-        const fallbackContent = `
-            Welcome to your adventure! The world stretches out before you, full of mysteries and opportunities.
-            
-            You find yourself at the beginning of what promises to be an epic journey. The path ahead is uncertain,
-            but your skills and determination will guide you through whatever challenges await.
-            
-            What would you like to do first?
-        `;
+        const character = gameState.getCharacter();
+        const campaign = gameState.getCampaign();
+        const setting = characterManager?.settings?.[campaign.setting] || {};
+        const characterName = character.name || 'Hero';
+        const characterClass = character.class || 'adventurer';
+        
+        // Create contextual fallback scenarios
+        const fallbackScenarios = {
+            'medieval-fantasy': `The ancient stones beneath your feet seem to whisper secrets as you pause in the candlelit entrance of an old tavern. The scent of roasted meat and aged ale fills the air, while flickering flames cast dancing shadows on weathered wooden walls. Your keen senses as a ${characterClass} pick up the subtle tension in the room - hushed conversations, darting glances, and the unmistakable feeling that something momentous is about to unfold.
+
+A hooded figure in the corner raises their head slightly, revealing eyes that seem to recognize you, ${characterName}. The tavern keeper polishes a tankard with nervous energy, occasionally glancing toward the stairs that lead to the upper rooms. Outside, rain patters against diamond-paned windows, and you can hear the distant sound of hoofbeats on cobblestone streets.
+
+What do you choose to do in this moment that feels heavy with possibility?`,
+
+            'modern-day': `The neon glow of the 24-hour diner reflects off the rain-slicked asphalt as you sit in your car, engine idling quietly. Your phone buzzes with an encrypted message while the police scanner crackles with reports of "unusual activity" downtown. As a ${characterClass}, you've learned to trust your instincts, and right now they're telling you that this seemingly ordinary Seattle night is anything but ordinary.
+
+Through the diner's window, you spot a figure in a dark coat who's been nursing the same cup of coffee for two hours, occasionally glancing in your direction. The message on your phone reads: "They know you've been investigating. Time to choose a side, ${characterName}." Your training has prepared you for moments like this, but the weight of the decision ahead feels heavier than usual.
+
+What do you decide to do as the rain continues to fall and the city holds its breath?`,
+
+            'sci-fi-space': `The observation deck of Deep Space Station Kepler-442 offers a breathtaking view of the gas giant below, its swirling storms painted in shades of amber and crimson. The distant hum of the station's life support systems provides a constant reminder that you're suspended in the vast emptiness of space, surrounded by the unknown. Your experience as a ${characterClass} has brought you to this frontier outpost, where every day brings new challenges and discoveries.
+
+Your comm unit chirps with an incoming priority message from Station Command. The artificial gravity beneath your feet feels reassuring as you consider the sealed orders in your quarters and the strange energy readings that have been detected near the outer rim. Other spacers, traders, and travelers move past you in the corridor, each carrying their own secrets and agendas in this crossroads of the galaxy.
+
+${characterName}, your expertise is needed, and the choices you make here could affect the fate of entire systems. What do you choose to do?`,
+
+            'eldritch-horror': `The gaslight flickers against fog-shrouded streets as you stand before the towering gates of Miskatonic University, its Gothic spires disappearing into the murky Arkham night. The year is 1925, and the weight of forbidden knowledge presses against your mind like a physical force. Your work as a ${characterClass} has brought you face-to-face with mysteries that rational minds refuse to accept, and tonight feels like another step down a path from which there may be no return.
+
+Professor Armitage's urgent telegram crinkles in your coat pocket: "The symbols match. Ancient forces stir. Your expertise required immediately." The shadows between the buildings seem to move independently of their sources, and you swear you can hear whispers in a language that predates human civilization. Your sanity has already been tested by previous encounters with the unknown, but something tells you that what awaits ahead will challenge everything you thought you knew about reality.
+
+${characterName}, the very foundations of your understanding are about to be shaken. What do you choose to do as the fog swirls around you?`
+        };
+
+        const fallbackContent = fallbackScenarios[campaign.setting] || fallbackScenarios['medieval-fantasy'];
         
         this.displayStoryContent(fallbackContent, 'dm-response');
         this.generateActionOptions();
@@ -2024,6 +2992,7 @@ window.testAI = async function() {
 };
 
 // Also add direct access to aiManager for debugging
+window.AIManager = AIManager;
 window.aiManager = aiManager;
 
 console.log('🔧 AI SYSTEM LOADED - Type testAI() in console to test');

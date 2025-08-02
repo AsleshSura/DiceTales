@@ -13,7 +13,7 @@ Found a bug? Help us fix it!
 - Add screenshots if helpful
 
 ### 💡 Feature Requests
-Have a great idea for DiceTales?
+Have a great idea for DiceTales?    
 - Check if it's already been suggested
 - Use the feature request template
 - Explain the use case and benefits

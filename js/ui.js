@@ -519,6 +519,13 @@ class UIManager {
                     </div>
                 </div>
                 
+                <div class="settings-section">
+                    <h3>Campaign Story</h3>
+                    <div id="campaign-story-section">
+                        ${this.generateCampaignStoryHTML()}
+                    </div>
+                </div>
+                
                 <div class="settings-actions">
                     <button type="button" class="btn btn-primary" id="save-settings">Save Settings</button>
                     <button type="button" class="btn btn-secondary" id="reset-settings">Reset to Defaults</button>
@@ -1095,11 +1102,121 @@ class UIManager {
             }
         }, 10000);
     }
+    
+    /**
+     * Generate campaign story HTML for settings
+     */
+    generateCampaignStoryHTML() {
+        if (typeof aiManager === 'undefined' || !aiManager.hasCampaignStory()) {
+            return `
+                <div class="campaign-story-empty">
+                    <p><em>No campaign story generated yet.</em></p>
+                    <button type="button" class="btn btn-primary" onclick="uiManager.generateCampaignStory()">
+                        📚 Generate Campaign Story
+                    </button>
+                </div>
+            `;
+        }
+        
+        const story = aiManager.getCampaignStory();
+        return `
+            <div class="campaign-story-display">
+                <div class="story-header">
+                    <h4>📚 ${story.title}</h4>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="uiManager.regenerateCampaignStory()">
+                        🔄 Regenerate
+                    </button>
+                </div>
+                
+                <div class="story-content">
+                    <p><strong>Plot:</strong> ${story.plot}</p>
+                    <p><strong>Starting Situation:</strong> ${story.start}</p>
+                    <p><strong>Key Locations:</strong> ${story.locations.join(', ')}</p>
+                    <p><strong>Main Antagonist:</strong> ${story.antagonist}</p>
+                    <p><strong>Stakes:</strong> ${story.stakes}</p>
+                    <p><strong>Personal Hook:</strong> ${story.hook}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * Generate a new campaign story
+     */
+    async generateCampaignStory() {
+        if (typeof aiManager === 'undefined') {
+            showToast('AI Manager not available', 'error');
+            return;
+        }
+        
+        showToast('Generating campaign story...', 'info');
+        
+        try {
+            const character = gameState.getCharacter();
+            const campaign = gameState.getCampaign();
+            
+            // Get setting data
+            let settingData = null;
+            if (typeof characterManager !== 'undefined' && campaign.setting) {
+                settingData = characterManager.settings[campaign.setting];
+            }
+            
+            await aiManager.generateCampaignStory(character, settingData);
+            
+            // Refresh the settings modal if it's open
+            const modal = document.getElementById('settings-modal');
+            if (modal && modal.classList.contains('active')) {
+                this.openSettingsModal();
+            }
+            
+            showToast('Campaign story generated!', 'success');
+        } catch (error) {
+            console.error('Failed to generate campaign story:', error);
+            showToast('Failed to generate campaign story', 'error');
+        }
+    }
+    
+    /**
+     * Regenerate the campaign story
+     */
+    async regenerateCampaignStory() {
+        if (typeof aiManager === 'undefined') {
+            showToast('AI Manager not available', 'error');
+            return;
+        }
+        
+        showToast('Regenerating campaign story...', 'info');
+        
+        try {
+            const character = gameState.getCharacter();
+            const campaign = gameState.getCampaign();
+            
+            // Get setting data
+            let settingData = null;
+            if (typeof characterManager !== 'undefined' && campaign.setting) {
+                settingData = characterManager.settings[campaign.setting];
+            }
+            
+            await aiManager.regenerateCampaignStory(character, settingData);
+            
+            // Refresh the settings modal
+            const modal = document.getElementById('settings-modal');
+            if (modal && modal.classList.contains('active')) {
+                this.openSettingsModal();
+            }
+            
+            showToast('Campaign story regenerated!', 'success');
+        } catch (error) {
+            console.error('Failed to regenerate campaign story:', error);
+            showToast('Failed to regenerate campaign story', 'error');
+        }
+    }
 }
 
 // Initialize UI manager
 const uiManager = new UIManager();
 
 // Export to global scope
+window.UIManager = UIManager;
 window.uiManager = uiManager;
 window.debugScreens = () => uiManager.debugScreenStates();

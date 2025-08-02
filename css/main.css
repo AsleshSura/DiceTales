@@ -1785,3 +1785,72 @@ button:focus {
         text-align: center;
     }
 }
+
+/* Campaign Story Styles */
+.campaign-story-empty {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background: var(--background-light);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.campaign-story-display {
+    background: var(--background-medium);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.story-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.story-header h4 {
+    margin: 0;
+    color: var(--secondary-color);
+    font-family: var(--font-family-heading);
+}
+
+.story-content {
+    padding: var(--spacing-md);
+}
+
+.story-content p {
+    margin: 0 0 var(--spacing-md) 0;
+    line-height: 1.5;
+}
+
+.story-content p:last-child {
+    margin-bottom: 0;
+}
+
+.story-content strong {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.btn-small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.campaign-intro {
+    background: linear-gradient(135deg, var(--background-dark), var(--background-medium));
+    border: 2px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.campaign-intro h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    font-family: var(--font-family-heading);
+}

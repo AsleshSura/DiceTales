@@ -26,3 +26,28 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Development and testing files
+*-test.html
+*test.html
+debug.html
+quick-start.html
+quickstart.html
+
+# Development documentation
+*_CONVERSION.md
+*_SUMMARY.md
+*_FIXES_SUMMARY.md
+*_EVALUATION_GUIDE.md
+*_CONSOLIDATION_SUMMARY.md
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Build artifacts (if you add a build process)
+dist/
+build/
+*.min.js
+*.min.css

@@ -487,4 +487,5 @@ class AudioManager {
 const audioManager = new AudioManager();
 
 // Export to global scope
+window.AudioManager = AudioManager;
 window.audioManager = audioManager;

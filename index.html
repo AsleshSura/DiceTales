@@ -3,13 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiceTales - AI Dungeon Master</title>
-    <meta name="description" content="An AI-powered D&D experience with dynamic storytelling and immersive gameplay">
+    <title>DiceTales - Adventure Game</title>
+    <meta name="description" content="An AI-powered adventure game with dynamic storytelling and immersive gameplay">
+    <!-- Local config override (optional) -->
+    <script src="js/config.local.js" onerror="console.log('Local config not found - using default config')"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/character.js"></script>
+    <script src="js/dice.js"></script>
+    <script src="js/dmEvaluator.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
     
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/character.css">
     <link rel="stylesheet" href="css/dice.css">
+    <link rel="stylesheet" href="css/evaluation.css">
     <link rel="stylesheet" href="css/responsive.css">
     
     <!-- Favicon -->
@@ -29,10 +41,6 @@
             <div class="loading-tips">
                 <p class="loading-tip">✨ Every roll tells a story</p>
             </div>
-            <!-- Manual start button embedded in loading screen -->
-            <button id="embedded-start-btn" class="btn-magical" style="position: relative; margin-top: 2rem; transform: none; top: auto; left: auto;">
-                ✨ Start Your Adventure ✨
-            </button>
         </div>
         <div class="loading-particles">
             <div class="particle"></div>
@@ -62,11 +70,11 @@
                     <button id="campaign-log-btn" class="nav-btn" title="Campaign Log">
                         <span class="icon">📜</span>
                     </button>
+                    <button id="dm-evaluation-btn" class="nav-btn" title="DM Quality Metrics">
+                        <span class="icon">📊</span>
+                    </button>
                     <button id="save-game-btn" class="nav-btn" title="Save Game">
                         <span class="icon">💾</span>
-                    </button>
-                    <button id="debug-screen-btn" class="nav-btn" title="Debug Screen" style="background: rgba(255,0,0,0.2);">
-                        <span class="icon">🔧</span>
                     </button>
                 </nav>
             </div>
@@ -128,6 +136,8 @@
                             <h3 style="margin-bottom: 15px; color: var(--text-primary);">Your Adventure Awaits</h3>
                             <p style="margin-bottom: 25px; font-size: 1.1rem; opacity: 0.8;">Create your character to begin your epic tale</p>
                             <p style="font-size: 0.9rem; opacity: 0.6;">📜 Stories will unfold here as you make choices and shape your destiny</p>
+                            
+
                         </div>
                     </div>
                 </div>
@@ -246,6 +256,62 @@
             </div>
         </div>
 
+        <!-- DM Evaluation Modal -->
+        <div class="modal" id="dm-evaluation-modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>🎭 Game Master Quality Metrics</h2>
+                    <button class="modal-close" data-modal="dm-evaluation-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="dm-evaluation-content">
+                    <div class="evaluation-controls">
+                        <div class="evaluation-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enable-evaluation" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Enable AI Evaluation</span>
+                        </div>
+                        <div class="evaluation-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="auto-improve" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Auto-Improve Responses</span>
+                        </div>
+                    </div>
+                    
+                    <div class="evaluation-stats" id="evaluation-stats">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="overall-score">-</div>
+                                <div class="stat-label">Overall Score</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-evaluations">-</div>
+                                <div class="stat-label">Total Responses</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="improvement-rate">-</div>
+                                <div class="stat-label">Improvement Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="evaluation-categories" id="evaluation-categories">
+                        <!-- Category scores will be populated by JS -->
+                    </div>
+                    
+                    <div class="recent-evaluations" id="recent-evaluations">
+                        <h3>Recent Response Evaluations</h3>
+                        <div class="evaluations-list" id="evaluations-list">
+                            <!-- Recent evaluations will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Inventory Modal -->
         <div class="modal" id="inventory-modal">
             <div class="modal-content">
@@ -264,7 +330,6 @@
     <script src="js/config.js"></script>
     <!-- Optional local config (git-ignored, for development) -->
     <script src="js/config.local.js" onerror="console.log('Local config not found - using default config')"></script>
-    <script src="js/huggingfaceAI.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/gameState.js"></script>
     <script src="js/character.js"></script>
@@ -272,73 +337,8 @@
     <script src="js/ai.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/evaluationUI.js"></script>
     <script src="js/main.js"></script>
     
-    <!-- Debug: Manual trigger if app doesn't start -->
-    <script>
-        // Global debug functions
-        window.debugForceStart = function() {
-            console.log('🎲 Debug: Force starting DiceTales...');
-            
-            // Hide loading screen
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-                loadingScreen.classList.remove('active');
-            }
-            
-            // Try to initialize manually
-            if (typeof DiceTalesApp !== 'undefined') {
-                console.log('🎲 Debug: DiceTalesApp found, creating instance...');
-                if (!window.app) {
-                    window.app = new DiceTalesApp();
-                }
-            } else {
-                console.log('🎲 Debug: DiceTalesApp not found, showing character creation directly...');
-                
-                // Show character creation screen directly
-                const characterScreen = document.getElementById('character-creation');
-                if (characterScreen) {
-                    characterScreen.style.display = 'flex';
-                    characterScreen.classList.add('active');
-                    
-                    // Hide other screens
-                    document.querySelectorAll('.screen').forEach(screen => {
-                        if (screen !== characterScreen) {
-                            screen.style.display = 'none';
-                        }
-                    });
-                    
-                    // Try to initialize character manager
-                    if (typeof CharacterManager !== 'undefined') {
-                        if (!window.characterManager) {
-                            window.characterManager = new CharacterManager();
-                        }
-                        window.characterManager.showCharacterCreation();
-                    }
-                }
-            }
-        };
-        
-        // Fallback timer
-        // Handle embedded start button
-        document.addEventListener('DOMContentLoaded', () => {
-            const embeddedStartBtn = document.getElementById('embedded-start-btn');
-            if (embeddedStartBtn) {
-                embeddedStartBtn.onclick = () => {
-                    console.log('🎲 Embedded start button clicked!');
-                    if (window.debugForceStart) {
-                        window.debugForceStart();
-                    } else {
-                        console.log('🎲 debugForceStart not available, hiding loading screen manually');
-                        const loadingScreen = document.getElementById('loading-screen');
-                        if (loadingScreen) {
-                            loadingScreen.classList.remove('active');
-                        }
-                    }
-                };
-            }
-        });
-    </script>
 </body>
 </html>
