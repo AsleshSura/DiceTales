@@ -2,16 +2,34 @@
 
 Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fantasy RPG adventure game that runs entirely in your browser with advanced HuggingFace AI storytelling.
 
-## 📚 Documentation Overview
+# DiceTales Documentation
 
+Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fantasy RPG adventure game that runs entirely in your browser with advanced HuggingFace AI storytelling.
+
+## 📚 Complete Documentation Index
+
+### 🚀 Getting Started
 | Document | Description | Audience |
 |----------|-------------|----------|
-| [**Setup Guide**](SETUP_GUIDE.md) | Quick start and HuggingFace configuration | All Users |
-| [**Game Guide**](GAME_GUIDE.md) | How to play DiceTales effectively | Players |
-| [**Technical Overview**](TECHNICAL_OVERVIEW.md) | Architecture and AI system design | Developers |
-| [**API Reference**](API_REFERENCE.md) | Code documentation and APIs | Developers |
-| [**Deployment Guide**](DEPLOYMENT_GUIDE.md) | How to deploy your own instance | Developers |
-| [**Contributing Guide**](CONTRIBUTING.md) | How to contribute to the project | Contributors |
+| **[📖 Setup Guide](SETUP_GUIDE.md)** | Quick start and HuggingFace configuration | All Users |
+| **[🎮 Game Guide](GAME_GUIDE.md)** | How to play DiceTales effectively | Players |
+| **[🚀 Deployment Guide](DEPLOYMENT_GUIDE.md)** | How to deploy your own instance | Developers |
+
+### 🏗️ Architecture Documentation
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[🏗️ Technical Overview](TECHNICAL_OVERVIEW.md)** | Architecture and AI system design | Developers |
+| **[🏛️ File Architecture](FILE_ARCHITECTURE.md)** | Complete guide to every file and their interactions | Developers |
+| **[🔄 System Interactions](SYSTEM_INTERACTIONS.md)** | Detailed system communication and data flow | Developers |
+| **[🎨 CSS Architecture](CSS_ARCHITECTURE.md)** | Styling system, design tokens, and responsive design | Frontend Devs |
+| **[📊 Data Flow & API](DATA_FLOW_API.md)** | Data structures, APIs, and information flow | Developers |
+
+### 🔧 Development & Maintenance
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[📋 API Reference](API_REFERENCE.md)** | Complete code documentation and APIs | Developers |
+| **[🤝 Contributing Guide](CONTRIBUTING.md)** | How to contribute to the project | Contributors |
+| **[🐛 Debugging Guide](DEBUGGING_GUIDE.md)** | Troubleshooting, testing, and debugging tools | Developers |
 
 ## 🎲 What is DiceTales?
 
