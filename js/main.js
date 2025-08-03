@@ -35,8 +35,13 @@ class DiceTalesApp {
             if (hasExistingGame) {
                 await this.loadExistingGame();
             } else {
-                // Always show character creation for now
-                this.showCharacterCreation();
+                // Check if user wants to skip character creation with existing data
+                const canSkipCreation = await this.checkCanSkipCharacterCreation();
+                if (canSkipCreation) {
+                    this.showCharacterSelectionScreen();
+                } else {
+                    this.showCharacterCreation();
+                }
             }
             
             this.initialized = true;
@@ -104,10 +109,10 @@ class DiceTalesApp {
             { name: 'uiManager', instance: window.uiManager || uiManager, required: true }
         ];
         
-        // Debug each system
+        // Verify all systems initialized properly
         systems.forEach(system => {
             const status = typeof system.instance !== 'undefined' ? 'OK' : 'MISSING';
-            console.log(`System ${system.name}: ${status}`, system.instance);
+            logger.debug(`System ${system.name}: ${status}`, system.instance);
         });
         
         const missingRequired = systems.filter(s => s.required && typeof s.instance === 'undefined');
@@ -196,7 +201,14 @@ class DiceTalesApp {
         
         eventBus.on('player:action', (data) => {
             logger.info('Player action received:', data);
-            this.handlePlayerAction(data.action);
+            // Forward player actions to AI system instead of handling locally
+            if (window.aiManager && typeof window.aiManager.processPlayerAction === 'function') {
+                logger.debug('🎯 Forwarding player action to AI system:', data);
+                window.aiManager.processPlayerAction(data);
+            } else {
+                logger.warn('⚠️ AI Manager not available, falling back to local handling');
+                this.handlePlayerAction(data.action);
+            }
         });
         
         // Audio interaction handler
@@ -285,19 +297,39 @@ class DiceTalesApp {
         try {
             const savedData = gameState.loadGameState();
             
-            // Check if we have valid character data
-            if (savedData && savedData.character && savedData.character.name) {
-                logger.info('Found existing game data for character:', savedData.character.name);
+            // Check if we have valid character data AND campaign progress
+            if (savedData && savedData.character && savedData.character.name && 
+                savedData.campaign && (savedData.campaign.setting || savedData.campaign.story_state)) {
+                logger.info('Found existing complete game data for character:', savedData.character.name);
                 return true;
             }
             
-            // Check if we have a character in progress
+            return false;
+        } catch (error) {
+            logger.error('Error checking existing game:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Check if user has existing character data that could skip character creation
+     */
+    async checkCanSkipCharacterCreation() {
+        try {
+            // Check game state for character data
+            const savedData = gameState.loadGameState();
+            if (savedData && savedData.character && savedData.character.name) {
+                logger.info('Found existing character in game state:', savedData.character.name);
+                return true;
+            }
+            
+            // Check localStorage for character data
             const characterData = localStorage.getItem('dicetales_character');
             if (characterData) {
                 try {
                     const character = JSON.parse(characterData);
                     if (character.name) {
-                        logger.info('Found existing character:', character.name);
+                        logger.info('Found existing character in localStorage:', character.name);
                         return true;
                     }
                 } catch (error) {
@@ -305,9 +337,23 @@ class DiceTalesApp {
                 }
             }
             
+            // Check for character data manager data
+            const characterManagerData = localStorage.getItem('dicetales_character_data');
+            if (characterManagerData) {
+                try {
+                    const characterData = JSON.parse(characterManagerData);
+                    if (characterData.basic_info && characterData.basic_info.name) {
+                        logger.info('Found existing character in character manager:', characterData.basic_info.name);
+                        return true;
+                    }
+                } catch (error) {
+                    logger.warn('Invalid character manager data:', error);
+                }
+            }
+            
             return false;
         } catch (error) {
-            logger.error('Error checking existing game:', error);
+            logger.error('Error checking for existing character data:', error);
             return false;
         }
     }
@@ -369,6 +415,355 @@ class DiceTalesApp {
         }
     }
     
+    /**
+     * Show character selection screen for returning users
+     */
+    showCharacterSelectionScreen() {
+        logger.info('Showing character selection screen...');
+        
+        // Force hide loading screen first
+        this.hideLoadingScreen();
+        
+        // Create character selection screen
+        this.createCharacterSelectionHTML();
+        
+        // Show the character selection screen
+        this.showScreen('character-selection');
+    }
+    
+    /**
+     * Create character selection HTML structure
+     */
+    createCharacterSelectionHTML() {
+        // Remove existing selection screen if any
+        const existingSelection = document.getElementById('character-selection');
+        if (existingSelection) {
+            existingSelection.remove();
+        }
+        
+        const selectionHTML = `
+            <section class="character-selection" id="character-selection">
+                <div class="selection-header">
+                    <h1>Welcome Back, Adventurer!</h1>
+                    <p>Choose how you'd like to continue your journey</p>
+                </div>
+                
+                <div class="selection-content">
+                    <div class="existing-characters" id="existing-characters">
+                        <!-- Existing characters will be populated by JS -->
+                    </div>
+                    
+                    <div class="selection-actions">
+                        <button id="continue-character-btn" class="btn btn-primary btn-large" style="display: none;">
+                            Continue with Selected Character
+                        </button>
+                        <button id="create-new-character-btn" class="btn btn-secondary btn-large">
+                            Create New Character
+                        </button>
+                        <button id="import-character-btn" class="btn btn-secondary btn-large">
+                            Import Character
+                        </button>
+                    </div>
+                </div>
+            </section>
+        `;
+        
+        document.querySelector('.app').insertAdjacentHTML('beforeend', selectionHTML);
+        
+        // Populate with existing characters
+        this.populateExistingCharacters();
+        
+        // Bind event listeners
+        this.bindCharacterSelectionEvents();
+    }
+    
+    /**
+     * Populate existing characters list
+     */
+    populateExistingCharacters() {
+        const container = document.getElementById('existing-characters');
+        if (!container) return;
+        
+        const characters = this.getExistingCharacters();
+        
+        if (characters.length === 0) {
+            container.innerHTML = `
+                <div class="no-characters">
+                    <p>No existing characters found.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const charactersHTML = characters.map((character, index) => `
+            <div class="character-card" data-character-index="${index}">
+                <div class="character-info">
+                    <h3 class="character-name">${character.name}</h3>
+                    <p class="character-details">
+                        ${character.class ? `${character.class}` : 'Unknown Class'} • 
+                        Level ${character.level || 1}
+                    </p>
+                    <p class="character-setting">
+                        ${character.setting || 'Unknown Setting'}
+                    </p>
+                    ${character.lastPlayed ? `<p class="last-played">Last played: ${new Date(character.lastPlayed).toLocaleDateString()}</p>` : ''}
+                </div>
+                <div class="character-actions">
+                    <button class="btn btn-primary select-character-btn">Select</button>
+                    <button class="btn btn-danger delete-character-btn" title="Delete Character">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = charactersHTML;
+    }
+    
+    /**
+     * Get all existing characters from various sources
+     */
+    getExistingCharacters() {
+        const characters = [];
+        
+        try {
+            // Check game state
+            const savedData = gameState.loadGameState();
+            if (savedData && savedData.character && savedData.character.name) {
+                characters.push({
+                    name: savedData.character.name,
+                    class: savedData.character.class,
+                    level: savedData.character.level,
+                    setting: savedData.campaign?.setting,
+                    lastPlayed: savedData.meta?.last_played,
+                    source: 'gameState',
+                    data: savedData.character
+                });
+            }
+            
+            // Check localStorage character data
+            const characterData = localStorage.getItem('dicetales_character');
+            if (characterData) {
+                try {
+                    const character = JSON.parse(characterData);
+                    if (character.name && !characters.find(c => c.name === character.name)) {
+                        characters.push({
+                            name: character.name,
+                            class: character.class,
+                            level: character.level,
+                            setting: character.setting,
+                            lastPlayed: character.lastPlayed,
+                            source: 'localStorage',
+                            data: character
+                        });
+                    }
+                } catch (error) {
+                    logger.warn('Invalid character data in localStorage:', error);
+                }
+            }
+            
+            // Check character data manager
+            const characterManagerData = localStorage.getItem('dicetales_character_data');
+            if (characterManagerData) {
+                try {
+                    const characterData = JSON.parse(characterManagerData);
+                    if (characterData.basic_info && characterData.basic_info.name) {
+                        const name = characterData.basic_info.name;
+                        if (!characters.find(c => c.name === name)) {
+                            characters.push({
+                                name: name,
+                                class: characterData.basic_info.character_class,
+                                level: characterData.basic_info.level,
+                                setting: characterData.basic_info.setting,
+                                lastPlayed: characterData.metadata?.last_updated,
+                                source: 'characterManager',
+                                data: characterData
+                            });
+                        }
+                    }
+                } catch (error) {
+                    logger.warn('Invalid character manager data:', error);
+                }
+            }
+            
+        } catch (error) {
+            logger.error('Error getting existing characters:', error);
+        }
+        
+        return characters;
+    }
+    
+    /**
+     * Bind character selection event listeners
+     */
+    bindCharacterSelectionEvents() {
+        // Create new character button
+        const createNewBtn = document.getElementById('create-new-character-btn');
+        if (createNewBtn) {
+            createNewBtn.addEventListener('click', () => {
+                this.showCharacterCreation();
+                // Clear existing data for new character
+                if (typeof characterManager !== 'undefined') {
+                    characterManager.showCharacterCreation(true);
+                }
+            });
+        }
+        
+        // Import character button
+        const importBtn = document.getElementById('import-character-btn');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                if (typeof uiManager !== 'undefined') {
+                    uiManager.openImportExportModal();
+                } else {
+                    logger.warn('UI Manager not available for import');
+                    this.showCharacterCreation();
+                }
+            });
+        }
+        
+        // Character selection
+        const container = document.getElementById('existing-characters');
+        if (container) {
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('select-character-btn')) {
+                    const card = e.target.closest('.character-card');
+                    const index = parseInt(card.dataset.characterIndex);
+                    this.selectExistingCharacter(index);
+                } else if (e.target.classList.contains('delete-character-btn')) {
+                    const card = e.target.closest('.character-card');
+                    const index = parseInt(card.dataset.characterIndex);
+                    this.deleteExistingCharacter(index);
+                }
+            });
+        }
+    }
+    
+    /**
+     * Select an existing character
+     */
+    selectExistingCharacter(index) {
+        const characters = this.getExistingCharacters();
+        const character = characters[index];
+        
+        if (!character) {
+            logger.error('Character not found at index:', index);
+            return;
+        }
+        
+        logger.info('Loading existing character:', character.name);
+        
+        try {
+            // Load character data into game state
+            if (character.source === 'gameState') {
+                // Already in game state, check if we have campaign data
+                const savedData = gameState.loadGameState();
+                if (savedData.campaign && savedData.campaign.setting) {
+                    // Complete game data, go to game
+                    this.showScreen('game');
+                } else {
+                    // Character but no campaign, continue character creation at campaign step
+                    this.showCharacterCreation();
+                    if (typeof characterManager !== 'undefined') {
+                        characterManager.currentStep = 0; // Start at setting selection
+                    }
+                }
+            } else {
+                // Load from other sources into game state
+                this.loadCharacterIntoGameState(character);
+                // Continue to campaign selection
+                this.showCharacterCreation();
+                if (typeof characterManager !== 'undefined') {
+                    characterManager.currentStep = 0; // Start at setting selection
+                }
+            }
+            
+        } catch (error) {
+            logger.error('Error loading character:', error);
+            this.showCharacterCreation();
+        }
+    }
+    
+    /**
+     * Load character data into game state
+     */
+    loadCharacterIntoGameState(character) {
+        try {
+            const characterData = character.data;
+            
+            // Map different data formats to game state format
+            if (character.source === 'characterManager') {
+                // Character manager format
+                gameState.set('character.name', characterData.basic_info.name);
+                gameState.set('character.class', characterData.basic_info.character_class);
+                gameState.set('character.level', characterData.basic_info.level || 1);
+                gameState.set('character.background', characterData.basic_info.background || '');
+                
+                if (characterData.stats) {
+                    Object.keys(characterData.stats).forEach(stat => {
+                        gameState.set(`character.stats.${stat}`, characterData.stats[stat]);
+                    });
+                }
+                
+                if (characterData.basic_info.setting) {
+                    gameState.set('campaign.setting', characterData.basic_info.setting);
+                }
+                
+            } else {
+                // Standard format
+                gameState.set('character.name', characterData.name);
+                gameState.set('character.class', characterData.class);
+                gameState.set('character.level', characterData.level || 1);
+                gameState.set('character.background', characterData.background || '');
+                
+                if (characterData.stats) {
+                    Object.keys(characterData.stats).forEach(stat => {
+                        gameState.set(`character.stats.${stat}`, characterData.stats[stat]);
+                    });
+                }
+                
+                if (characterData.setting) {
+                    gameState.set('campaign.setting', characterData.setting);
+                }
+            }
+            
+            logger.info('Character loaded into game state successfully');
+            
+        } catch (error) {
+            logger.error('Error loading character into game state:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Delete an existing character
+     */
+    deleteExistingCharacter(index) {
+        const characters = this.getExistingCharacters();
+        const character = characters[index];
+        
+        if (!character) return;
+        
+        if (confirm(`Are you sure you want to delete "${character.name}"? This action cannot be undone.`)) {
+            try {
+                if (character.source === 'gameState') {
+                    // Clear game state
+                    gameState.reset();
+                } else if (character.source === 'localStorage') {
+                    localStorage.removeItem('dicetales_character');
+                } else if (character.source === 'characterManager') {
+                    localStorage.removeItem('dicetales_character_data');
+                }
+                
+                // Refresh the character list
+                this.populateExistingCharacters();
+                
+                logger.info('Character deleted:', character.name);
+                
+            } catch (error) {
+                logger.error('Error deleting character:', error);
+            }
+        }
+    }
+
     /**
      * Force hide the loading screen
      */
@@ -1084,7 +1479,7 @@ What do you do?`;
      * Force start the game if all else fails
      */
     forceGameStart() {
-        console.log('🚨 FORCE STARTING GAME - All initialization failed');
+        logger.error('🚨 FORCE STARTING GAME - All initialization failed');
         
         try {
             // Hide loading screen
@@ -1115,12 +1510,12 @@ What do you do?`;
                 }
                 
                 // Action buttons removed - players now type their actions directly
-                console.log('🎯 Action buttons disabled - players type actions in text area');
+                logger.debug('🎯 Action buttons disabled - players type actions in text area');
                 
                 this.currentScreen = 'game';
                 this.initialized = true;
                 
-                console.log('🚨 FORCE START COMPLETE - Game should be playable now');
+                logger.info('🚨 FORCE START COMPLETE - Game should be playable now');
             }
         } catch (error) {
             console.error('🚨 FORCE START FAILED:', error);
@@ -1195,60 +1590,13 @@ window.DiceTalesApp = DiceTalesApp;
 // Initialize the application
 let app;
 
-// Debug: Add immediate console log
-console.log('main.js loading...');
-
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
-    console.log('DOM still loading, waiting for DOMContentLoaded...');
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOMContentLoaded fired, initializing app...');
         app = new DiceTalesApp();
         window.app = app; // Make globally available immediately after creation
     });
 } else {
-    console.log('DOM already ready, initializing app immediately...');
     app = new DiceTalesApp();
     window.app = app; // Make globally available immediately after creation
 }
-
-// Global debug functions
-window.debugHideLoading = function() {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
-        loadingScreen.classList.remove('active');
-        loadingScreen.style.visibility = 'hidden';
-        loadingScreen.style.opacity = '0';
-        console.log('Loading screen manually hidden');
-    }
-};
-
-window.debugShowCharacterCreation = function() {
-    if (app && app.showCharacterCreation) {
-        app.showCharacterCreation();
-    } else {
-        console.log('App not ready or showCharacterCreation not available');
-    }
-};
-
-window.debugForceStart = function() {
-    window.debugHideLoading();
-    setTimeout(() => {
-        window.debugShowCharacterCreation();
-    }, 500);
-};
-
-// Debug: Log after 3 seconds to check initialization status
-setTimeout(() => {
-    console.log('Debug check after 3 seconds:');
-    console.log('- App exists:', typeof app !== 'undefined');
-    console.log('- App initialized:', app?.initialized);
-    console.log('- Current screen:', app?.currentScreen);
-    
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        console.log('- Loading screen active:', loadingScreen.classList.contains('active'));
-        console.log('- Loading screen display:', loadingScreen.style.display);
-    }
-}, 3000);

@@ -209,14 +209,18 @@ class CharacterManager {
     /**
      * Show character creation interface
      */
-    showCharacterCreation() {
+    showCharacterCreation(clearExisting = false) {
         console.log('CharacterManager: showCharacterCreation() called');
         
-        // DEBUG: Clear character data to start fresh
-        console.log('DEBUG: Clearing character data for fresh start');
-        gameState.set('character.class', '');
-        gameState.set('character.name', '');
-        gameState.set('character.background', '');
+        // Only clear character data if explicitly requested
+        if (clearExisting) {
+            console.log('DEBUG: Clearing character data for fresh start');
+            gameState.set('character.class', '');
+            gameState.set('character.name', '');
+            gameState.set('character.background', '');
+        } else {
+            console.log('Preserving existing character data if any');
+        }
         
         const creationScreen = document.getElementById('character-creation');
         
@@ -277,6 +281,9 @@ class CharacterManager {
                 
                 <div class="step-navigation">
                     <div class="nav-buttons">
+                        <button id="back-to-selection-btn" class="btn btn-outline btn-nav" style="margin-right: auto;">
+                            ← Back to Selection
+                        </button>
                         <button id="prev-step-btn" class="btn btn-secondary btn-nav" disabled>
                             ← Previous
                         </button>
@@ -308,10 +315,23 @@ class CharacterManager {
         // Wait for DOM to update, then bind events
         setTimeout(() => {
             // Bind navigation buttons
+            const backToSelectionBtn = document.getElementById('back-to-selection-btn');
             const prevBtn = document.getElementById('prev-step-btn');
             const nextBtn = document.getElementById('next-step-btn');
             const completeBtn = document.getElementById('complete-creation-btn');
             
+            if (backToSelectionBtn) {
+                backToSelectionBtn.addEventListener('click', () => {
+                    // Check if we have existing characters before going back
+                    if (typeof window.app !== 'undefined' && window.app.getExistingCharacters && 
+                        window.app.getExistingCharacters().length > 0) {
+                        window.app.showCharacterSelectionScreen();
+                    } else {
+                        // No existing characters, hide the button
+                        backToSelectionBtn.style.display = 'none';
+                    }
+                });
+            }
             if (prevBtn) prevBtn.addEventListener('click', () => this.prevStep());
             if (nextBtn) nextBtn.addEventListener('click', () => this.nextStep());
             if (completeBtn) {
@@ -732,38 +752,35 @@ class CharacterManager {
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label required" for="character-traits">Character Traits *</label>
+                        <label class="form-label" for="character-traits">Character Traits (Optional)</label>
+                        <p class="form-help">Add personality details to make your character more engaging. You can skip this and configure your DM settings next!</p>
                         <div class="traits-container">
                             <div class="trait-section">
                                 <label for="character-personality" class="trait-label">Personality Trait</label>
                                 <input type="text" id="character-personality" class="form-input" 
                                        value="${character.personality || ''}" 
-                                       placeholder="e.g., I always have a plan for what to do when things go wrong"
-                                       required>
+                                       placeholder="e.g., I always have a plan for what to do when things go wrong">
                             </div>
                             <div class="trait-section">
                                 <label for="character-ideal" class="trait-label">Ideal</label>
                                 <input type="text" id="character-ideal" class="form-input" 
                                        value="${character.ideal || ''}" 
-                                       placeholder="e.g., Knowledge is power, and power must be used responsibly"
-                                       required>
+                                       placeholder="e.g., Knowledge is power, and power must be used responsibly">
                             </div>
                             <div class="trait-section">
                                 <label for="character-bond" class="trait-label">Bond</label>
                                 <input type="text" id="character-bond" class="form-input" 
                                        value="${character.bond || ''}" 
-                                       placeholder="e.g., I owe everything to my mentor who saved my life"
-                                       required>
+                                       placeholder="e.g., I owe everything to my mentor who saved my life">
                             </div>
                             <div class="trait-section">
                                 <label for="character-flaw" class="trait-label">Flaw</label>
                                 <input type="text" id="character-flaw" class="form-input" 
                                        value="${character.flaw || ''}" 
-                                       placeholder="e.g., I can't resist a pretty face or a good mystery"
-                                       required>
+                                       placeholder="e.g., I can't resist a pretty face or a good mystery">
                             </div>
                         </div>
-                        <small class="form-help">These traits define your character's personality and motivations</small>
+                        <small class="form-help">These traits help define your character's personality (optional but recommended)</small>
                     </div>
                     
                     <div class="form-group">
@@ -785,7 +802,7 @@ class CharacterManager {
             </div>
         `;
     }
-    
+
     /**
      * Bind events for character details form
      */
@@ -1230,7 +1247,7 @@ class CharacterManager {
         const background = backgrounds.find(bg => bg.key === backgroundKey);
         return background ? background.description : '';
     }
-    
+
     /**
      * Bind events for current step
      */
@@ -1679,14 +1696,8 @@ class CharacterManager {
                     return false;
                 }
                 
-                // Check character traits (personality, ideal, bond, flaw)
-                const requiredTraits = ['personality', 'ideal', 'bond', 'flaw'];
-                const hasAllTraits = requiredTraits.every(trait => {
-                    const value = character?.[trait]?.trim();
-                    return value && value.length > 0;
-                });
-                
-                return hasAllTraits;
+                // Character traits are now optional
+                return true;
             default:
                 return true;
         }
@@ -1734,7 +1745,7 @@ class CharacterManager {
                 }
                 return true;
             case 'details':
-                // Check mandatory fields: name, background, and character traits
+                // Check mandatory fields: name and background
                 const character = gameState.get('character');
                 
                 // Check name
@@ -1749,21 +1760,8 @@ class CharacterManager {
                     return false;
                 }
                 
-                // Check character traits (personality, ideal, bond, flaw)
-                const requiredTraits = ['personality', 'ideal', 'bond', 'flaw'];
-                const missingTraits = [];
-                
-                requiredTraits.forEach(trait => {
-                    const value = character?.[trait]?.trim();
-                    if (!value || value.length === 0) {
-                        missingTraits.push(trait.charAt(0).toUpperCase() + trait.slice(1));
-                    }
-                });
-                
-                if (missingTraits.length > 0) {
-                    this.showValidationToast(`Please fill in all character details: ${missingTraits.join(', ')}`);
-                    return false;
-                }
+                // Character traits are now optional to make progression easier
+                // Users can skip traits and go directly to DM Settings
                 
                 // Clear validation toast if all requirements are met
                 this.clearValidationToast();
@@ -1824,6 +1822,9 @@ class CharacterManager {
                 } else {
                     message = 'Please complete all required character details to continue.';
                 }
+                break;
+            case 'dm_settings':
+                message = 'Please select a DM difficulty level to continue.';
                 break;
             default:
                 message = 'Please complete the required fields to continue.';

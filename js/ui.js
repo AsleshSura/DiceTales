@@ -50,6 +50,39 @@ class UIManager {
             if (e.target.classList.contains('modal')) {
                 this.closeModal(e.target.id);
             }
+
+            // Character options menu buttons
+            if (e.target.id === 'view-character-sheet-btn') {
+                this.openCharacterSheetView();
+            }
+            
+            if (e.target.id === 'character-selection-btn') {
+                this.closeModal('character-sheet-modal');
+                this.showCharacterSelection();
+            }
+            
+            if (e.target.id === 'create-new-character-option-btn') {
+                this.closeModal('character-sheet-modal');
+                this.startCharacterCreation();
+            }
+            
+            if (e.target.id === 'import-character-option-btn') {
+                this.closeModal('character-sheet-modal');
+                this.showImportCharacterDialog();
+            }
+
+            // Import character dialog buttons
+            if (e.target.id === 'select-character-file-btn') {
+                document.getElementById('character-file-input').click();
+            }
+            
+            if (e.target.id === 'import-character-file-btn') {
+                this.importCharacterFile();
+            }
+            
+            if (e.target.id === 'cancel-import-btn') {
+                this.showCharacterOptionsMenu();
+            }
             
             // Button click sounds
             if (e.target.tagName === 'BUTTON') {
@@ -81,6 +114,13 @@ class UIManager {
         
         eventBus.on('character:levelUp', (data) => {
             this.showLevelUpModal(data);
+        });
+
+        // Character file input event listener
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'character-file-input') {
+                this.handleCharacterFileSelection(e);
+            }
         });
     }
     
@@ -132,14 +172,7 @@ class UIManager {
             importExportBtn.addEventListener('click', () => this.openImportExportModal());
         }
         
-        // Debug button (temporary)
-        const debugBtn = document.getElementById('debug-screen-btn');
-        if (debugBtn) {
-            debugBtn.addEventListener('click', () => {
-                console.log('🔧 DEBUG BUTTON CLICKED');
-                this.debugScreenStates();
-            });
-        }
+        // Remove debug functionality for production
         
         // Inventory button
         const inventoryBtn = document.getElementById('quick-inventory-btn');
@@ -229,14 +262,14 @@ class UIManager {
             </div>
         `;
         
-        console.log('[UI] Input dice rolled:', this.pendingDiceRoll);
+        logger.debug('[UI] Input dice rolled:', this.pendingDiceRoll);
     }
     
     /**
      * Open modal by ID
      */
     openModal(modalId) {
-        console.log('🔧 Opening modal:', modalId);
+        logger.debug('🔧 Opening modal:', modalId);
         
         // Debug: Check current game screen visibility before opening modal
         const gameScreen = document.getElementById('game-screen');
@@ -498,6 +531,7 @@ class UIManager {
                 
                 <div class="settings-section">
                     <h3>AI Dungeon Master</h3>
+                    <p class="settings-note">💡 <strong>Note:</strong> These settings are configured during character creation. Changes here will apply to your current campaign.</p>
                     
                     <div class="form-group">
                         <label class="form-label" for="dm-difficulty">DM Difficulty</label>
@@ -716,11 +750,69 @@ class UIManager {
      * Open character sheet modal
      */
     openCharacterSheetModal() {
+        // Show character options menu first
+        this.showCharacterOptionsMenu();
+    }
+
+    /**
+     * Show character options menu
+     */
+    showCharacterOptionsMenu() {
+        const content = document.getElementById('character-sheet-content');
+        if (content) {
+            content.innerHTML = this.renderCharacterOptionsMenu();
+        }
+        this.openModal('character-sheet-modal');
+    }
+
+    /**
+     * Render character options menu
+     */
+    renderCharacterOptionsMenu() {
+        return `
+            <div class="character-options-menu">
+                <div class="character-options-header">
+                    <h3>Character Options</h3>
+                    <p>Choose what you'd like to access</p>
+                </div>
+                
+                <div class="character-options-grid">
+                    <button id="view-character-sheet-btn" class="character-option-card">
+                        <div class="option-icon">📋</div>
+                        <h4>View Character Sheet</h4>
+                        <p>View your character's stats, abilities, and inventory</p>
+                    </button>
+                    
+                    <button id="character-selection-btn" class="character-option-card">
+                        <div class="option-icon">👥</div>
+                        <h4>Character Selection</h4>
+                        <p>Switch characters or manage your character roster</p>
+                    </button>
+                    
+                    <button id="create-new-character-option-btn" class="character-option-card">
+                        <div class="option-icon">✨</div>
+                        <h4>Create New Character</h4>
+                        <p>Start fresh with a brand new character</p>
+                    </button>
+                    
+                    <button id="import-character-option-btn" class="character-option-card">
+                        <div class="option-icon">📂</div>
+                        <h4>Import Character</h4>
+                        <p>Import a character from a saved file</p>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Open character sheet view
+     */
+    openCharacterSheetView() {
         const content = document.getElementById('character-sheet-content');
         if (content) {
             content.innerHTML = this.renderCharacterSheet();
         }
-        this.openModal('character-sheet-modal');
     }
     
     /**
@@ -853,12 +945,136 @@ class UIManager {
             </div>
         `).join('');
     }
+
+    /**
+     * Show character selection screen
+     */
+    showCharacterSelection() {
+        // Access main app instance to show character selection
+        if (typeof window.app !== 'undefined') {
+            window.app.showCharacterSelectionScreen();
+        } else {
+            showToast('Character selection not available', 'error');
+        }
+    }
+
+    /**
+     * Start character creation process
+     */
+    startCharacterCreation() {
+        // Access main app instance to start character creation
+        if (typeof window.app !== 'undefined') {
+            window.app.showScreen('character-creation');
+        } else {
+            showToast('Character creation not available', 'error');
+        }
+    }
+
+    /**
+     * Show import character dialog
+     */
+    showImportCharacterDialog() {
+        const content = document.getElementById('character-sheet-content');
+        if (content) {
+            content.innerHTML = this.renderImportCharacterDialog();
+        }
+    }
+
+    /**
+     * Render import character dialog
+     */
+    renderImportCharacterDialog() {
+        return `
+            <div class="import-character-dialog">
+                <div class="import-header">
+                    <h3>Import Character</h3>
+                    <p>Select a character file to import</p>
+                </div>
+                
+                <div class="import-content">
+                    <div class="file-input-container">
+                        <input type="file" id="character-file-input" accept=".json" style="display: none;">
+                        <button id="select-character-file-btn" class="btn btn-secondary btn-large">
+                            📂 Select Character File
+                        </button>
+                        <p class="file-info" id="selected-file-info">No file selected</p>
+                    </div>
+                    
+                    <div class="import-actions">
+                        <button id="import-character-file-btn" class="btn btn-primary" disabled>
+                            Import Character
+                        </button>
+                        <button id="cancel-import-btn" class="btn btn-secondary">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Handle character file selection
+     */
+    handleCharacterFileSelection(event) {
+        const file = event.target.files[0];
+        const fileInfo = document.getElementById('selected-file-info');
+        const importBtn = document.getElementById('import-character-file-btn');
+        
+        if (file) {
+            fileInfo.textContent = `Selected: ${file.name}`;
+            importBtn.disabled = false;
+        } else {
+            fileInfo.textContent = 'No file selected';
+            importBtn.disabled = true;
+        }
+    }
+
+    /**
+     * Import character from file
+     */
+    importCharacterFile() {
+        const fileInput = document.getElementById('character-file-input');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            showToast('Please select a file to import', 'error');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const characterData = JSON.parse(e.target.result);
+                
+                // Validate character data structure
+                if (!characterData.name) {
+                    throw new Error('Invalid character file: missing character name');
+                }
+                
+                // Store character data
+                if (typeof window.app !== 'undefined' && window.app.characterDataManager) {
+                    window.app.characterDataManager.saveCharacter(characterData);
+                    showToast(`Character "${characterData.name}" imported successfully!`, 'success');
+                    this.closeModal('character-sheet-modal');
+                } else {
+                    throw new Error('Character data manager not available');
+                }
+                
+            } catch (error) {
+                console.error('Error importing character:', error);
+                showToast('Failed to import character: ' + error.message, 'error');
+            }
+        };
+        
+        reader.readAsText(file);
+    }
     
     /**
      * Open campaign log modal
      */
     openCampaignLogModal() {
-        console.log('🔧 Opening campaign log modal');
+        logger.debug('🔧 Opening campaign log modal');
         
         const content = document.getElementById('campaign-log-content');
         if (content) {
@@ -961,6 +1177,38 @@ class UIManager {
         // Check if dice has been rolled
         if (!this.pendingDiceRoll) {
             showToast('Please roll a die first before submitting your action', 'warning');
+            
+            // Auto-highlight the dice section to help user
+            const diceSection = document.querySelector('.dice-input-section');
+            if (diceSection) {
+                diceSection.style.border = '2px solid var(--warning-color)';
+                diceSection.style.borderRadius = '8px';
+                setTimeout(() => {
+                    diceSection.style.border = '';
+                    diceSection.style.borderRadius = '';
+                }, 3000);
+            }
+            
+            // Also provide an option to auto-roll a D20
+            const autoRollBtn = document.createElement('button');
+            autoRollBtn.textContent = 'Auto-roll D20';
+            autoRollBtn.className = 'btn btn-secondary';
+            autoRollBtn.style.margin = '10px 0';
+            autoRollBtn.onclick = () => {
+                this.rollInputDice('d20', document.getElementById('input-dice-result'));
+                const diceButtons = document.querySelectorAll('.dice-btn');
+                diceButtons.forEach(btn => btn.style.background = 'var(--accent-primary)');
+                document.querySelector('[data-dice="d20"]').style.background = 'var(--success-color)';
+                autoRollBtn.remove();
+                showToast('D20 rolled! Now you can submit your action.', 'success');
+            };
+            
+            const submitBtn = document.getElementById('submit-action-btn');
+            if (submitBtn && !document.querySelector('.auto-roll-temp')) {
+                autoRollBtn.classList.add('auto-roll-temp');
+                submitBtn.parentNode.insertBefore(autoRollBtn, submitBtn);
+            }
+            
             return;
         }
         
@@ -977,10 +1225,18 @@ class UIManager {
         const diceButtons = document.querySelectorAll('.dice-btn');
         diceButtons.forEach(btn => btn.style.background = 'var(--accent-primary)');
         
+        // Remove any temporary auto-roll buttons
+        const autoRollBtn = document.querySelector('.auto-roll-temp');
+        if (autoRollBtn) autoRollBtn.remove();
+        
         // Add to input history
         gameState.addToInputHistory(action);
         
+        // Show feedback that action is being processed
+        showToast('Processing your action...', 'info');
+        
         // Emit action event with dice roll included
+        console.log('🎯 UI: Emitting player:action event', { action: action, diceRoll: this.pendingDiceRoll });
         eventBus.emit('player:action', { 
             action: action,
             diceRoll: this.pendingDiceRoll
@@ -1183,8 +1439,17 @@ class UIManager {
             showToast('Campaign imported successfully!', 'success');
             logger.info('Campaign imported successfully');
 
-            // Refresh the page to ensure all UI is updated
+            // Check if we should show character selection screen
             setTimeout(() => {
+                if (typeof window.app !== 'undefined' && window.app.getExistingCharacters && 
+                    window.app.getExistingCharacters().length > 1) {
+                    if (confirm('Campaign imported! Would you like to go to the character selection screen to choose which character to use?')) {
+                        window.app.showCharacterSelectionScreen();
+                        return;
+                    }
+                }
+                
+                // Otherwise, offer to refresh the page
                 if (confirm('Campaign imported! The page will refresh to update all displays.')) {
                     window.location.reload();
                 }

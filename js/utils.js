@@ -529,7 +529,7 @@ class Logger {
 // Global logger instance
 const logger = new Logger();
 
-// Enable debug mode in development
+// Production mode - disable debug logging
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     window.DEBUG_MODE = true;
 }

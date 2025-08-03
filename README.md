@@ -15,12 +15,6 @@
 - **Improved Accessibility**: Better focus indicators, ARIA labels, and semantic HTML
 - **Smooth Animations**: Subtle transitions and micro-interactions for better UX
 
-**🧹 Cleaned Codebase**
-- Removed unnecessary development files (dev-test.html, test files, etc.)
-- Streamlined project structure for production readiness
-- Modern CSS architecture with CSS custom properties
-- Performance optimizations and reduced bundle size
-
 ## 🌌 The Quantum Relay Experience
 
 Embark on an epic space opera where an alien artifact threatens the fate of Earth and its colonies. This AI-powered adventure combines:
@@ -35,12 +29,11 @@ Embark on an epic space opera where an alien artifact threatens the fate of Eart
 ### 🎮 Quick Start
 
 1. **[🚀 Play Instantly](index.html)** - No setup required!
-2. **[🎨 Preview New UI](preview.html)** - See the modern components
-3. **Create Your Space Explorer** - Craft your character with the new interface
-4. **Begin "The Quantum Relay"** - Experience the enhanced storytelling UI
-5. **Make Galactic Choices** - Use the improved input system
-6. **Roll Advanced Dice** - Enjoy the modern dice selection interface
-7. **Level Up in Style** - Track progress with the sleek status panel
+2. **Create Your Space Explorer** - Craft your character with the modern interface
+3. **Begin "The Quantum Relay"** - Experience the enhanced storytelling UI
+4. **Make Galactic Choices** - Use the improved input system
+5. **Roll Advanced Dice** - Enjoy the modern dice selection interface
+6. **Level Up in Style** - Track progress with the sleek status panel
 
 ## 🎨 Modern UI Features
 

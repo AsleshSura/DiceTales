@@ -486,6 +486,119 @@ class GameState {
         });
     }
     
+    /**
+     * Memory helper methods for AI
+     */
+    
+    /**
+     * Add or update an NPC relationship
+     */
+    updateNPCRelationship(npcName, relationship, description = null) {
+        const npcs = this.get('campaign.npcs_encountered') || [];
+        const existingNPC = npcs.find(npc => npc.name === npcName);
+        
+        if (existingNPC) {
+            existingNPC.relationship = relationship;
+            if (description) existingNPC.description = description;
+            existingNPC.last_interaction = new Date().toISOString();
+        } else {
+            npcs.push({
+                name: npcName,
+                relationship: relationship,
+                description: description || 'NPC encountered during adventure',
+                met_at: new Date().toISOString(),
+                last_interaction: new Date().toISOString()
+            });
+        }
+        
+        this.set('campaign.npcs_encountered', npcs);
+    }
+    
+    /**
+     * Add important location to memory
+     */
+    addImportantLocation(locationName, description = null) {
+        const locations = this.get('campaign.important_locations') || [];
+        const existingLocation = locations.find(loc => loc.name === locationName);
+        
+        if (!existingLocation) {
+            locations.push({
+                name: locationName,
+                description: description || 'Important location visited',
+                discovered_at: new Date().toISOString()
+            });
+            this.set('campaign.important_locations', locations);
+        }
+    }
+    
+    /**
+     * Set campaign flag for memory tracking
+     */
+    setCampaignFlag(key, value) {
+        this.set(`campaign.campaign_flags.${key}`, {
+            value: value,
+            set_at: new Date().toISOString()
+        });
+    }
+    
+    /**
+     * Get campaign flag value
+     */
+    getCampaignFlag(key) {
+        const flag = this.get(`campaign.campaign_flags.${key}`);
+        return flag ? flag.value : null;
+    }
+    
+    /**
+     * Update current quest
+     */
+    updateQuest(questData) {
+        const currentQuest = this.get('campaign.current_quest');
+        if (currentQuest) {
+            this.set('campaign.current_quest', { ...currentQuest, ...questData });
+        } else {
+            this.set('campaign.current_quest', {
+                ...questData,
+                started_at: new Date().toISOString()
+            });
+        }
+    }
+    
+    /**
+     * Complete current quest
+     */
+    completeCurrentQuest() {
+        const currentQuest = this.get('campaign.current_quest');
+        if (currentQuest) {
+            const completedQuest = {
+                ...currentQuest,
+                completed_at: new Date().toISOString()
+            };
+            this.push('campaign.completed_quests', completedQuest);
+            this.set('campaign.current_quest', null);
+            return completedQuest;
+        }
+        return null;
+    }
+    
+    /**
+     * Update world state for memory persistence
+     */
+    updateWorldState(key, value) {
+        this.set(`campaign.world_state.${key}`, {
+            value: value,
+            updated_at: new Date().toISOString()
+        });
+    }
+    
+    /**
+     * Get world state value
+     */
+    getWorldState(key) {
+        const state = this.get(`campaign.world_state.${key}`);
+        return state ? state.value : null;
+    }
+    
     addNPCEncounter(npc) {
         const existing = this.get('campaign.npcs_encountered').find(n => n.name === npc.name);
         if (existing) {
