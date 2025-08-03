@@ -118,12 +118,16 @@ class AIManager {
      * Initialize memory manager integration
      */
     initializeMemoryManager() {
-        if (typeof memoryManager !== 'undefined') {
-            this.memoryManager = memoryManager;
-            this.memoryManager.initialize();
-            console.log('🧠 Memory Manager integrated with AI system');
-        } else {
-            console.warn('🧠 Memory Manager not available - some features may be limited');
+        try {
+            if (typeof memoryManager !== 'undefined') {
+                this.memoryManager = memoryManager;
+                this.memoryManager.initialize();
+                logger.info('🧠 Memory Manager integrated with AI system');
+            } else {
+                logger.warn('🧠 Memory Manager not available - some features may be limited');
+            }
+        } catch (error) {
+            logger.error('🧠 Failed to initialize Memory Manager:', error);
         }
     }
     

@@ -1,9 +1,8 @@
-# 🚀 DiceTales: The Quantum Relay
+# 🚀 DiceTales: Advanced AI-Powered RPG Adventure
 
-**A Modern AI-Powered Sci-Fi RPG Adventure - Completely Revamped UI Experience**
+**A Modern AI-Powered RPG Experience with Enhanced Memory System - Completely Revamped**
 
 [![Play Now](https://img.shields.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](index.html)
-[![Preview](https://img.shields.io/badge/🎨-UI%20Preview-orange?style=for-the-badge&logo=palette)](preview.html)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-green?style=for-the-badge&logo=book)](docs/README.md)
 
 ## ✨ What's New in This Version?
@@ -15,39 +14,90 @@
 - **Improved Accessibility**: Better focus indicators, ARIA labels, and semantic HTML
 - **Smooth Animations**: Subtle transitions and micro-interactions for better UX
 
-## 🌌 The Quantum Relay Experience
+**🧠 Advanced AI Memory System**
+- **Campaign Continuity**: AI remembers all past decisions, NPCs, and story events
+- **Character Development**: Tracks skill usage, relationship progression, and growth
+- **World Consistency**: Maintains detailed location descriptions and world state
+- **Enhanced Storytelling**: References past events and character history naturally
 
-Embark on an epic space opera where an alien artifact threatens the fate of Earth and its colonies. This AI-powered adventure combines:
+## 🌌 The Complete RPG Experience
 
-- **🤖 Advanced AI Storytelling**: Specialized models create immersive sci-fi narratives
-- **Classic D20 System**: Tabletop RPG mechanics adapted for space adventures  
-- **👨‍� Character Progression**: Six stats, leveling, and equipment for space explorers
-- **💾 Save/Load System**: Continue your galactic adventure anytime
-- **📂 Import/Export**: Share campaigns and play across devices
-- **🌐 Zero Installation**: Runs entirely in your browser
+DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI technology:
+
+- **🤖 Advanced AI Storytelling**: Enhanced HuggingFace models create immersive narratives
+- **Classic RPG Mechanics**: D20 system with six core stats and skill progression
+- **👨‍💼 Character Progression**: Comprehensive character system with backgrounds and abilities
+- **🧠 Persistent Memory**: AI remembers your entire campaign history
+- **💾 Save/Load System**: Continue your adventure anytime with full state preservation
+- **📂 Import/Export**: Share campaigns and characters across devices
+- **🌐 Zero Installation**: Runs entirely in your browser with modern web technologies
 
 ### 🎮 Quick Start
 
 1. **[🚀 Play Instantly](index.html)** - No setup required!
-2. **Create Your Space Explorer** - Craft your character with the modern interface
-3. **Begin "The Quantum Relay"** - Experience the enhanced storytelling UI
-4. **Make Galactic Choices** - Use the improved input system
-5. **Roll Advanced Dice** - Enjoy the modern dice selection interface
-6. **Level Up in Style** - Track progress with the sleek status panel
+2. **Create Your Character** - Use the enhanced character creation system
+3. **Begin Your Adventure** - Experience AI-driven storytelling with memory
+4. **Make Meaningful Choices** - Every decision shapes your ongoing narrative
+5. **Roll Strategic Dice** - Turn-based dice mechanics with tactical depth
+6. **Build Relationships** - NPCs remember your actions and evolve over time
 
 ## 🎨 Modern UI Features
 
 ### Visual Design
 - **Glass-morphism Effects**: Translucent panels with backdrop blur
 - **Animated Backgrounds**: Subtle particle effects and flowing gradients  
-- **Neon Accents**: Sci-fi inspired color palette with glowing elements
-- **Modern Icons**: Space-themed emojis and symbols throughout
+- **Modern Color Palette**: Elegant dark theme with accent colors
+- **Modern Icons**: Intuitive interface symbols throughout
 - **Smooth Transitions**: 60fps animations with hardware acceleration
 
 ### User Experience
-- **Intuitive Navigation**: Streamlined header with smart button grouping
+- **Intuitive Navigation**: Streamlined interface with smart organization
 - **Enhanced Character Creation**: Step-by-step wizard with progress indicators
 - **Improved Story Display**: Better typography and reading experience
+- **Interactive Elements**: Responsive buttons and hover effects
+- **Mobile Optimized**: Touch-friendly interface for all devices
+
+## 🤖 Advanced AI System
+
+### Enhanced Storytelling
+- **Modern Language Models**: Uses latest HuggingFace conversational AI
+- **Dynamic Context Building**: Comprehensive character and world awareness
+- **Memory Integration**: Persistent campaign history and character development
+- **Natural Responses**: Human-like dialogue with immersive descriptions
+
+### Model Priority System
+1. **GODEL-v1_1-large-seq2seq**: Advanced conversational AI
+2. **BlenderBot-400M-distill**: Optimized dialogue generation
+3. **DialoGPT-large**: Proven conversational model
+4. **Automatic Fallbacks**: Seamless model switching for reliability
+
+## 🧠 Memory & Character Systems
+
+### Persistent Memory
+- **Decision Tracking**: Remembers all significant player choices
+- **Relationship Management**: NPCs remember past interactions
+- **World State**: Consistent locations and environmental changes
+- **Character Growth**: Skill usage patterns and development tracking
+
+### Character System
+- **Comprehensive Stats**: Six core abilities with modifiers
+- **Background Integration**: Character history affects gameplay
+- **Equipment Management**: Detailed inventory and gear systems
+- **Progression Tracking**: Experience, leveling, and skill development
+
+## 📊 Technical Features
+
+### Performance
+- **Optimized Rendering**: Efficient DOM updates and animations
+- **Smart Caching**: Reduces API calls and improves response time
+- **Progressive Loading**: Smooth startup with loading indicators
+- **Error Recovery**: Graceful handling of network issues
+
+### Compatibility
+- **Modern Browsers**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
+- **Cross-Platform**: Works on desktop, tablet, and mobile
+- **Offline Capable**: Local storage for character data and saves
+- **No Installation**: Pure web application
 - **Smart Dice System**: Visual feedback and result highlighting
 - **Responsive Layout**: Adapts beautifully to any screen size
 

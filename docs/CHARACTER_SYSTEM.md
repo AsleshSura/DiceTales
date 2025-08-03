@@ -1,53 +1,107 @@
 # DiceTales Character System
 
-This document explains the enhanced character system using `character.json` for storing comprehensive character data.
+This document explains the enhanced character system with comprehensive data management and AI integration.
 
 ## Overview
 
-The character system consists of three main components:
+The character system consists of several integrated components:
 
-1. **`character.json`** - The master character data file
-2. **`characterDataManager.js`** - JavaScript class for managing character data
-3. **`characterIntegration.js`** - Integration utilities for existing systems
+1. **CharacterManager** (`character.js`) - Core character creation and management
+2. **CharacterDataManager** (`characterDataManager.js`) - Data persistence and storage
+3. **CharacterIntegration** (`characterIntegration.js`) - Integration with game systems
+4. **Game State Integration** - Seamless integration with campaign and memory systems
 
-## Files
+## Core Components
 
-### character.json
+### CharacterManager Class
 
-A comprehensive JSON file that stores all character details including:
+The main character management system that handles:
 
-- **Basic Info**: Name, class, level, experience, background
-- **Campaign Setting**: Setting type, icons, currency, technology level
-- **Ability Scores**: Base stats, point-buy allocations, final values, modifiers
-- **Health & Vitals**: HP, AC, initiative, speed, proficiency bonus
-- **Class Features**: Abilities, spellcasting info, saving throws
-- **Skills**: All skills with proficiencies and modifiers
-- **Equipment**: Weapons, armor, consumables, tools, currency
-- **Progression**: XP tracking, level progression, ability improvements  
-- **Personality**: Traits, ideals, bonds, flaws, languages
-- **Backstory**: Background details, personal history, connections
-- **Campaign Data**: Quests, locations, NPCs, story beats, flags
-- **AI Context**: Personality summary, preferences for AI interactions
+- **Character Creation**: Step-by-step character generation with validation
+- **Settings Management**: Race, class, background, and setting configurations
+- **Stat Calculation**: Ability scores, modifiers, and derived statistics
+- **Skill Systems**: Proficiency, expertise, and skill modifier calculations
+- **Equipment Management**: Weapon, armor, and inventory systems
 
-### characterDataManager.js
+#### Key Methods
+```javascript
+// Create a new character
+const character = characterManager.createCharacter({
+    name: "Aelindra Moonwhisper",
+    race: "Elf",
+    class: "Ranger", 
+    background: "Folk Hero"
+});
 
-JavaScript class providing methods to:
+// Get character sheet display
+const sheet = characterManager.getCharacterSheet(character);
 
-- Load/save character data from JSON or localStorage
-- Update character stats, health, experience
-- Add/remove inventory items
-- Manage quests and campaign flags
-- Handle level progression
-- Export/import character data
-- Sync with existing gameState system
+// Update character progression
+characterManager.levelUpCharacter(character, newLevel);
+```
 
-### characterIntegration.js
+### Character Data Structure
 
-Utility functions that:
+Characters are stored with comprehensive information:
 
-- Initialize the character system on page load
-- Convert existing gameState data to new format
-- Enhance character creation with detailed data
+```javascript
+{
+    // Basic Identity
+    name: "Character Name",
+    race: "Race",
+    class: "Class",
+    background: "Background",
+    level: 1,
+    experience: 0,
+    
+    // Core Statistics
+    stats: {
+        str: 10, dex: 10, con: 10,
+        int: 10, wis: 10, cha: 10
+    },
+    
+    // Health and Vitals
+    health: {
+        current: 25,
+        maximum: 25,
+        temporary: 0
+    },
+    
+    // Skills and Proficiencies
+    skills: {
+        "Acrobatics": { modifier: 2, proficient: true },
+        "Investigation": { modifier: 4, proficient: true }
+        // ... more skills
+    },
+    
+    // Equipment and Inventory
+    inventory: [
+        { name: "Longbow", type: "weapon", equipped: true },
+        { name: "Leather Armor", type: "armor", equipped: true }
+    ],
+    
+    // Character Development
+    personality_traits: ["Trait 1", "Trait 2"],
+    ideals: ["Ideal"],
+    bonds: ["Bond"],
+    flaws: ["Flaw"]
+}
+```
+
+### Settings and Configurations
+
+The system supports multiple campaign settings:
+
+- **Medieval Fantasy**: Classic D&D-style fantasy
+- **Modern Day**: Contemporary supernatural adventures  
+- **Sci-Fi Space**: Futuristic space exploration
+- **Eldritch Horror**: Cosmic horror investigations
+
+Each setting includes:
+- Appropriate races and classes
+- Technology level and equipment
+- Thematic abilities and backgrounds
+- AI storytelling hints and atmosphere
 - Hook into inventory and progression systems
 - Handle automatic syncing between systems
 

@@ -5,99 +5,221 @@ Complete code documentation for developers working with the DiceTales codebase.
 ## 📋 Table of Contents
 
 - [Core Classes](#core-classes)
-- [AI System](#ai-system)
-- [Game Logic](#game-logic)
-- [Utility Functions](#utility-functions)
+- [AI System](#ai-system) 
+- [Memory System](#memory-system)
+- [Character System](#character-system)
+- [Dice System](#dice-system)
+- [UI System](#ui-system)
 - [Configuration](#configuration)
 - [Events](#events)
 
 ## 🎮 Core Classes
 
-### GameController
+### DiceTalesApp
 **File**: `js/main.js`
-**Purpose**: Main game coordinator and initialization
+**Purpose**: Main application controller and coordination of all game systems
 
 #### Constructor
 ```javascript
-new GameController()
+new DiceTalesApp()
+```
+
+#### Properties
+```javascript
+{
+    initialized: false,
+    currentScreen: 'loading',
+    gameLoop: null
+}
 ```
 
 #### Methods
 
 ##### `async init()`
-Initializes the game system and loads saved state.
+Initializes all game systems and handles application flow.
 ```javascript
-await gameController.init();
+await app.init();
 ```
 
-##### `startNewGame()`
-Begins a new adventure with character creation.
+##### `async checkExistingGame()`
+Checks for existing saved game state.
 ```javascript
-gameController.startNewGame();
+const hasGame = await app.checkExistingGame();
 ```
 
-##### `async processChoice(choiceIndex, choiceText)`
-Processes player choice and generates next story segment.
+##### `showCharacterCreation()`
+Displays character creation interface.
 ```javascript
-await gameController.processChoice(0, "Search the ancient ruins");
-```
-- **Parameters**:
-  - `choiceIndex` (number): Index of chosen option
-  - `choiceText` (string): Text of the chosen action
-- **Returns**: Promise resolving to updated game state
-
-##### `rollDice(statName = null)`
-Performs a D20 roll with optional stat modifier.
-```javascript
-const result = gameController.rollDice('strength');
-// Returns: { roll: 15, modifier: 3, total: 18, isCritical: false }
+app.showCharacterCreation();
 ```
 
 ---
 
 ## 🤖 AI System
 
-### HuggingFaceAI
-**File**: `js/huggingfaceAI.js`
-**Purpose**: Primary AI service using HuggingFace Inference API
+### AIManager
+**File**: `js/ai.js`
+**Purpose**: Unified AI system with HuggingFace integration for dynamic storytelling
 
 #### Constructor
 ```javascript
-new HuggingFaceAI()
+new AIManager()
 ```
 
 #### Properties
 ```javascript
 {
-    baseUrl: 'https://api-inference.huggingface.co/models/',
-    modelQueue: [
+    useHuggingFace: true,
+    huggingFaceModelQueue: [
+        'microsoft/GODEL-v1_1-large-seq2seq',
+        'facebook/blenderbot-400M-distill',
+        'microsoft/GODEL-v1_1-base-seq2seq',
+        'facebook/blenderbot-1B-distill',
         'microsoft/DialoGPT-large',
         'microsoft/DialoGPT-medium',
         'gpt2-large',
-        'gpt2',
         'distilgpt2'
     ],
-    currentModel: 'microsoft/DialoGPT-large',
-    isReady: false,
-    retryCount: 0,
-    maxRetries: 3
+    conversationConfig: {
+        maxContextLength: 2048,
+        temperature: 0.8,
+        topP: 0.9,
+        repetitionPenalty: 1.1,
+        maxNewTokens: 150,
+        doSample: true,
+        numBeams: 3
+    },
+    memoryConfig: {
+        maxConversationHistory: 20,
+        plotContextWindow: 5,
+        characterMemoryDepth: 10
+    }
 }
 ```
 
 #### Methods
 
-##### `async generateStory(context, type = 'narrative')`
-Generates story continuation using AI.
+##### `async initialize()`
+Initializes AI system and tests connections.
 ```javascript
-const story = await huggingfaceAI.generateStory(
-    "You enter a dark forest...", 
-    'narrative'
+await aiManager.initialize();
+```
+
+##### `async startCampaign()`
+Starts a new campaign with initial story generation.
+```javascript
+await aiManager.startCampaign();
+```
+
+##### `async processPlayerAction(actionData)`
+Processes player actions and generates AI responses.
+```javascript
+await aiManager.processPlayerAction({
+    action: "Search the ancient ruins",
+    type: "exploration"
+});
+```
+
+##### `buildMemoryContext(character, campaign)`
+Builds comprehensive memory context for AI prompts.
+```javascript
+const context = aiManager.buildMemoryContext(character, campaign);
+```
+
+##### `async callAI(messages)`
+Makes API calls to HuggingFace models with fallback system.
+```javascript
+const response = await aiManager.callAI([
+    { role: 'system', content: 'You are a helpful DM.' },
+    { role: 'user', content: 'What happens next?' }
+]);
+```
+
+---
+
+## 🧠 Memory System
+
+### MemoryManager
+**File**: `js/memoryManager.js`
+**Purpose**: Enhanced memory system for persistent storytelling and character continuity
+
+#### Constructor
+```javascript
+new MemoryManager()
+```
+
+#### Properties
+```javascript
+{
+    initialized: false,
+    memoryKeys: {
+        decisions: 'memory.decisions',
+        relationships: 'memory.relationships',
+        discoveries: 'memory.discoveries',
+        skills_used: 'memory.skills_used',
+        items_gained: 'memory.items_gained',
+        locations_described: 'memory.locations_described',
+        plot_threads: 'memory.plot_threads'
+    }
+}
+```
+
+#### Methods
+
+##### `initialize()`
+Initializes memory system with game state integration.
+```javascript
+memoryManager.initialize();
+```
+
+##### `recordDecision(decision, consequence, context)`
+Records significant player decisions.
+```javascript
+memoryManager.recordDecision(
+    "Agreed to help the village elder",
+    "Gained trust of villagers",
+    "Village meeting hall"
 );
 ```
-- **Parameters**:
-  - `context` (string): Current story context
-  - `type` (string): 'narrative', 'character', or 'choice'
-- **Returns**: Promise resolving to generated story text
+
+##### `updateRelationship(npcName, relationship, notes)`
+Updates NPC relationship status.
+```javascript
+memoryManager.updateRelationship(
+    "Elder Marcus",
+    "friendly",
+    "Grateful for helping with goblin problem"
+);
+```
+
+##### `recordDiscovery(discovery, type, significance)`
+Records important findings and discoveries.
+```javascript
+memoryManager.recordDiscovery(
+    "Ancient rune stone with mystical properties",
+    "artifact",
+    "high"
+);
+```
+
+##### `recordSkillUse(skillName, success, context)`
+Tracks skill usage for character development.
+```javascript
+memoryManager.recordSkillUse("Stealth", true, "Sneaking past guards");
+```
+
+##### `getMemorySummary()`
+Returns comprehensive memory summary for AI context.
+```javascript
+const summary = memoryManager.getMemorySummary();
+// Returns: { recent_decisions, key_relationships, important_discoveries, ... }
+```
+
+##### `getAIContext()`
+Provides plot grounding context for AI responses.
+```javascript
+const context = memoryManager.getAIContext();
+```
 
 ##### `async generateChoices(context)`
 Generates action choices for the player.

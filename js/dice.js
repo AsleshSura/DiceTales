@@ -1,37 +1,30 @@
 /**
- *        this.diceIcons = {
-            'd4': '🔺',
-            'd6': '⚀',
-            'd8': '♦️',
-            'd10': '🔟',
-            'd12': '🟢',
-            'd20': 'D20',
-            'd100': '💯'
-        };s - Simple Dice Display System
+ * DiceTales - Simple Dice Display System
  * Shows dice images when AI requests rolls
  */
 
 class DiceSystem {
     constructor() {
-        this.diceImages = {
-            'd4': '🔺',
-            'd6': '⚀',
-            'd8': '♦️',
-            'd10': '🔟',
-            'd12': '🟢',
-            'd20': '🎲',
-            'd100': '💯'
+        // Single source of truth for dice configuration
+        this.diceConfig = {
+            'd4': { icon: '🔺', name: 'D4' },
+            'd6': { icon: '⚀', name: 'D6' },
+            'd8': { icon: '♦️', name: 'D8' },
+            'd10': { icon: '🔟', name: 'D10' },
+            'd12': { icon: '🟢', name: 'D12' },
+            'd20': { icon: '🎲', name: 'D20' },
+            'd100': { icon: '💯', name: 'D100' }
         };
         
-        this.diceNames = {
-            'd4': 'D4',
-            'd6': 'D6', 
-            'd8': 'D8',
-            'd10': 'D10',
-            'd12': 'D12',
-            'd20': 'D20',
-            'd100': 'D100'
-        };
+        // Create legacy properties for backwards compatibility
+        this.diceImages = {};
+        this.diceNames = {};
+        
+        // Populate legacy properties from config
+        Object.keys(this.diceConfig).forEach(key => {
+            this.diceImages[key] = this.diceConfig[key].icon;
+            this.diceNames[key] = this.diceConfig[key].name;
+        });
         
         this.isDiceRequestActive = false; // Track if dice request is currently active
         this.currentTurnId = null; // Track current turn ID

@@ -1,11 +1,11 @@
-# DiceTales Setup Guide (v2.0)
+# DiceTales Setup Guide
 
-Get DiceTales running in less than 5 minutes! This streamlined guide covers everything from local development to deployment for the HuggingFace-powered storytelling system.
+Get DiceTales running in less than 5 minutes! This streamlined guide covers everything from local play to development setup.
 
 ## 🚀 Quick Start
 
 ### Option 1: Play Online (Easiest)
-Simply visit the [live demo](#) and start playing immediately - no setup required!
+Simply open `index.html` in your browser and start playing immediately - no setup required!
 
 ### Option 2: Download and Play Locally
 1. **Download the repository**
@@ -20,19 +20,18 @@ Simply visit the [live demo](#) and start playing immediately - no setup require
 
 3. **Start playing!**
    - Click "New Game" to begin your adventure
-   - The HuggingFace AI will generate your story in real-time
+   - The AI will generate your story in real-time using HuggingFace models
 
 ## 📋 Requirements
 
 ### Minimum Requirements
 - **Browser**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
 - **JavaScript**: Must be enabled
-- **Internet**: Required for HuggingFace AI storytelling
-- **Storage**: ~1MB for game saves (LocalStorage)
+- **Internet**: Required for AI storytelling (HuggingFace API)
+- **Storage**: ~2MB for game saves and character data (LocalStorage)
 
 ### Recommended
-- **Screen**: 1024x768 or larger for best experience
-- **Audio**: Speakers/headphones for atmospheric sounds
+- **Screen**: 1024x768 or larger for optimal experience
 - **Connection**: Stable internet for consistent AI responses
 - **HuggingFace Access**: Unrestricted access to HuggingFace Inference API
 

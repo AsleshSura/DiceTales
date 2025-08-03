@@ -105,15 +105,27 @@ class UIManager {
             }
         });
         
-        // Game state events
+        // Game state events - enhanced for better integration
         eventBus.on('gameState:changed', (data) => {
+            logger.debug('🔄 Game state changed, updating UI', data);
             if (data.path.startsWith('character')) {
                 this.updateCharacterDisplay();
             }
         });
         
         eventBus.on('character:levelUp', (data) => {
+            logger.debug('📈 Character leveled up', data);
             this.showLevelUpModal(data);
+        });
+        
+        eventBus.on('character:changed', (character) => {
+            logger.debug('👤 Character changed, updating display', character);
+            this.updateCharacterDisplay();
+        });
+        
+        eventBus.on('gameState:imported', (state) => {
+            logger.debug('📥 Game state imported, refreshing UI', state);
+            this.updateCharacterDisplay();
         });
 
         // Character file input event listener
@@ -170,6 +182,12 @@ class UIManager {
         const importExportBtn = document.getElementById('import-export-btn');
         if (importExportBtn) {
             importExportBtn.addEventListener('click', () => this.openImportExportModal());
+        }
+        
+        // DM Evaluation button
+        const dmEvaluationBtn = document.getElementById('dm-evaluation-btn');
+        if (dmEvaluationBtn) {
+            dmEvaluationBtn.addEventListener('click', () => this.openDMEvaluationModal());
         }
         
         // Remove debug functionality for production
@@ -1269,6 +1287,19 @@ class UIManager {
     }
 
     /**
+     * Open DM evaluation modal
+     */
+    openDMEvaluationModal() {
+        // Initialize evaluation UI if it exists
+        if (typeof evaluationUI !== 'undefined' && evaluationUI.showModal) {
+            evaluationUI.showModal();
+        } else {
+            // Fallback to basic modal
+            this.openModal('dm-evaluation-modal');
+        }
+    }
+
+    /**
      * Setup import/export modal content
      */
     setupImportExportContent() {
@@ -1287,15 +1318,16 @@ class UIManager {
         if (exportCampaignSetting) exportCampaignSetting.textContent = campaign.setting || 'No campaign started';
         if (exportLastPlayed) exportLastPlayed.textContent = meta.last_played ? formatTimestamp(meta.last_played) : 'Never';
 
-        // Setup export button
+        // Setup export button with proper cleanup
         const exportBtn = document.getElementById('export-campaign-btn');
         if (exportBtn) {
-            exportBtn.replaceWith(exportBtn.cloneNode(true)); // Remove existing listeners
-            const newExportBtn = document.getElementById('export-campaign-btn');
+            // Remove existing listeners without cloning
+            const newExportBtn = exportBtn.cloneNode(true);
+            exportBtn.parentNode.replaceChild(newExportBtn, exportBtn);
             newExportBtn.addEventListener('click', () => this.exportCampaign());
         }
 
-        // Setup import file selection
+        // Setup import file selection with proper cleanup
         const selectFileBtn = document.getElementById('select-import-file-btn');
         const fileInput = document.getElementById('import-file-input');
         const selectedFileName = document.getElementById('selected-file-name');
@@ -1303,14 +1335,19 @@ class UIManager {
         const importBtn = document.getElementById('import-campaign-btn');
 
         if (selectFileBtn && fileInput) {
-            selectFileBtn.replaceWith(selectFileBtn.cloneNode(true)); // Remove existing listeners
-            const newSelectFileBtn = document.getElementById('select-import-file-btn');
+            // Remove existing listeners by replacing element
+            const newSelectFileBtn = selectFileBtn.cloneNode(true);
+            selectFileBtn.parentNode.replaceChild(newSelectFileBtn, selectFileBtn);
             
             newSelectFileBtn.addEventListener('click', () => {
                 fileInput.click();
             });
-
-            fileInput.addEventListener('change', (e) => {
+            
+            // Clear existing file input listeners
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            
+            newFileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     this.handleImportFileSelection(file, selectedFileName, importPreview, importBtn);
@@ -1318,14 +1355,12 @@ class UIManager {
             });
         }
 
-        // Setup import button
+        // Setup import button with proper cleanup
         if (importBtn) {
-            importBtn.replaceWith(importBtn.cloneNode(true)); // Remove existing listeners
-            const newImportBtn = document.getElementById('import-campaign-btn');
+            const newImportBtn = importBtn.cloneNode(true);
+            importBtn.parentNode.replaceChild(newImportBtn, importBtn);
             newImportBtn.addEventListener('click', () => this.importCampaign());
-        }
-
-        // Reset import section
+        }        // Reset import section
         if (selectedFileName) selectedFileName.textContent = '';
         if (importPreview) importPreview.style.display = 'none';
         if (importBtn) importBtn.style.display = 'none';

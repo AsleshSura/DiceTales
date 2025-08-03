@@ -1,53 +1,49 @@
 # DiceTales Documentation
 
-Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fantasy RPG adventure game that runs entirely in your browser with advanced HuggingFace AI storytelling.
-
-# DiceTales Documentation
-
-Welcome to the comprehensive documentation for **DiceTales** - an AI-powered fantasy RPG adventure game that runs entirely in your browser with advanced HuggingFace AI storytelling.
+Welcome to the comprehensive documentation for **DiceTales** - an AI-powered RPG adventure game that runs entirely in your browser with advanced AI storytelling and persistent memory systems.
 
 ## 📚 Complete Documentation Index
 
 ### 🚀 Getting Started
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[📖 Setup Guide](SETUP_GUIDE.md)** | Quick start and HuggingFace configuration | All Users |
+| **[📖 Setup Guide](SETUP_GUIDE.md)** | Quick start and system configuration | All Users |
 | **[🎮 Game Guide](GAME_GUIDE.md)** | How to play DiceTales effectively | Players |
 | **[🚀 Deployment Guide](DEPLOYMENT_GUIDE.md)** | How to deploy your own instance | Developers |
 
-### 🏗️ Architecture Documentation
-| Document | Description | Audience |
-|----------|-------------|----------|
-| **[🏗️ Technical Overview](TECHNICAL_OVERVIEW.md)** | Architecture and AI system design | Developers |
-| **[🏛️ File Architecture](FILE_ARCHITECTURE.md)** | Complete guide to every file and their interactions | Developers |
-| **[🔄 System Interactions](SYSTEM_INTERACTIONS.md)** | Detailed system communication and data flow | Developers |
-| **[🎨 CSS Architecture](CSS_ARCHITECTURE.md)** | Styling system, design tokens, and responsive design | Frontend Devs |
-| **[📊 Data Flow & API](DATA_FLOW_API.md)** | Data structures, APIs, and information flow | Developers |
-
-### 🔧 Development & Maintenance
+### 🏗️ System Documentation
 | Document | Description | Audience |
 |----------|-------------|----------|
 | **[📋 API Reference](API_REFERENCE.md)** | Complete code documentation and APIs | Developers |
-| **[🤝 Contributing Guide](CONTRIBUTING.md)** | How to contribute to the project | Contributors |
-| **[🐛 Debugging Guide](DEBUGGING_GUIDE.md)** | Troubleshooting, testing, and debugging tools | Developers |
+| **[🤖 Enhanced AI System](ENHANCED_AI_SYSTEM.md)** | AI system architecture and features | Developers |
+| **[🧠 AI Memory System](AI_MEMORY_SYSTEM.md)** | Memory system and persistence | Developers |
+| **[👤 Character System](CHARACTER_SYSTEM.md)** | Character creation and management | Developers |
+| **[⚙️ DM Settings Integration](DM_SETTINGS_INTEGRATION.md)** | Campaign settings and configuration | Developers |
+
+### � Additional Resources
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[� Import/Export Guide](IMPORT_EXPORT_GUIDE.md)** | Character and save data management | Players/Developers |
+| **[🎯 AI Setting Implementation](AI_SETTING_IMPLEMENTATION.md)** | Campaign setting development | Advanced Users |
 
 ## What is DiceTales?
 
 DiceTales is a web-based tabletop RPG experience that combines:
 
-- **🤗 HuggingFace AI Storytelling**: Advanced language models create immersive narratives  
-- **🎯 Turn-Based Dice System**: Strategic one-roll-per-turn mechanics with D4-D20 dice
-- **⚔️ Character Progression**: Manage stats, health, and inventory across adventures
-- **🎭 Interactive Choices**: Make decisions that dynamically shape your story
+- **� Advanced AI Storytelling**: Modern language models create immersive narratives with memory
+- **🎯 Strategic Dice System**: Turn-based mechanics with meaningful consequences  
+- **⚔️ Character Progression**: Manage stats, health, inventory, and relationships
+- **🧠 Persistent Memory**: AI remembers all decisions, NPCs, and story elements
+- **🎭 Dynamic Relationships**: NPCs remember and react to past interactions
 - **🌐 No Installation Required**: Runs entirely in modern web browsers
-- **🔧 HuggingFace Integration**: Uses powerful inference API for storytelling
+- **🔧 Advanced Integration**: Seamless AI, memory, and character systems
 
 ## 🚀 Quick Links
 
 - **[Play Now](../index.html)** - Start your adventure immediately
 - **[GitHub Repository](https://github.com/AsleshSura/DiceTales)** - Source code and issues
-- **[Setup Guide](SETUP_GUIDE.md)** - Configure HuggingFace AI in 5 minutes
-- **[Game Guide](GAME_GUIDE.md)** - Master the turn-based dice system
+- **[Setup Guide](SETUP_GUIDE.md)** - Get started in 5 minutes
+- **[Game Guide](GAME_GUIDE.md)** - Master the strategic gameplay mechanics
 
 ## 🏗️ Current Architecture (v2.0)
 

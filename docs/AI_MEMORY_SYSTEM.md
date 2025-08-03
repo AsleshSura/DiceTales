@@ -2,10 +2,10 @@
 
 ## Overview
 
-The DiceTales AI memory system has been significantly enhanced to ensure the AI Dungeon Master remembers and references:
+The DiceTales AI memory system ensures the AI Dungeon Master remembers and references:
 - Past decisions and their consequences
-- Campaign setting and world state
-- User's character class, skills, and abilities
+- Campaign setting and world state  
+- Character class, skills, and abilities
 - Inventory and equipment
 - NPCs encountered and relationships
 - Locations visited and described
@@ -17,29 +17,30 @@ The DiceTales AI memory system has been significantly enhanced to ensure the AI 
 ### Memory Manager (`memoryManager.js`)
 A dedicated memory management system that tracks and organizes important game information:
 
-- **Decisions**: Records player choices and their consequences
-- **Relationships**: Tracks NPC interactions and relationship status
-- **Discoveries**: Logs important findings and secrets
-- **Skills**: Monitors skill usage patterns and success rates
-- **Items**: Records item acquisition and usage
-- **Locations**: Maintains detailed location descriptions
+- **Decisions**: Records player choices and their consequences with context
+- **Relationships**: Tracks NPC interactions and relationship status over time
+- **Discoveries**: Logs important findings and secrets with significance levels
+- **Skills**: Monitors skill usage patterns and success rates for character development
+- **Items**: Records item acquisition and usage with acquisition methods
+- **Locations**: Maintains detailed location descriptions for world consistency
 - **Plot Threads**: Tracks ongoing storylines and their status
+- **Character Growth**: Records character development moments and personality changes
 
 ### Enhanced AI System (`ai.js`)
-The AI system has been upgraded with:
+The AI system integrates seamlessly with the Memory Manager:
 
-1. **Memory Integration**: Automatic integration with the Memory Manager
-2. **Context Building**: Enhanced context building that includes comprehensive memory data
-3. **Automatic Tracking**: AI responses are automatically parsed to extract and store important information
-4. **Skill Detection**: Player actions are analyzed to detect skill usage for character development tracking
+1. **Memory Integration**: Automatic integration with MemoryManager for context building
+2. **Context Building**: Enhanced prompts that include comprehensive memory data
+3. **Automatic Tracking**: AI response parsing to extract and store important information
+4. **Skill Detection**: Analysis of player actions to detect skill usage automatically
+5. **Campaign Continuity**: Maintains story consistency across sessions
 
-### Game State Enhancements (`gameState.js`)
-New helper methods for memory management:
+### Game State Integration (`gameState.js`)
+Memory data is stored in the game state system for persistence:
 
-- `updateNPCRelationship()`: Manage NPC relationships
-- `setCampaignFlag()` / `getCampaignFlag()`: Track important decisions
-- `updateQuest()` / `completeCurrentQuest()`: Manage quest progression
-- `updateWorldState()` / `getWorldState()`: Maintain world consistency
+- Uses nested data structure under `memory.*` keys
+- Automatic cleanup of old memories while preserving important information
+- Integration with character and campaign data for comprehensive context
 
 ## Key Features
 
@@ -48,6 +49,73 @@ The AI now remembers:
 - Character class and abilities
 - Proficient skills and usage patterns
 - Current inventory and equipped items
+- Health status and combat experiences
+- Background and personality traits
+- Level progression and experience gained
+
+### 2. Dynamic NPC Relationships
+Enhanced relationship tracking includes:
+- First meeting details and impressions
+- Relationship progression over time
+- Interaction history with timestamps
+- Current relationship status (friendly, hostile, neutral, etc.)
+- Detailed notes about each interaction
+
+### 3. World State Continuity
+The system maintains:
+- Detailed location descriptions
+- Important world events and their consequences
+- Quest progress and objective completion
+- Discovery of secrets and hidden information
+- Changes to the world based on player actions
+
+### 4. Intelligent Context Building
+AI prompts now include:
+- Recent player decisions and their consequences
+- Active plot threads and story elements
+- Key relationships that should influence interactions
+- Frequently used skills for character consistency
+- Important discoveries that shape the narrative
+
+## Implementation Details
+
+### Memory Context Building
+The `buildMemoryContext()` method creates comprehensive context for AI:
+
+```javascript
+// Recent decisions with consequences
+🧠 RECENT DECISIONS: Agreed to help the village, Chose stealth over combat
+
+// Key relationships affecting current story
+👥 KEY RELATIONSHIPS: Elder Marcus (friendly), Captain Thorne (suspicious)
+
+// Important discoveries that shape the narrative
+🔍 IMPORTANT DISCOVERIES: Ancient rune stone, Hidden passage beneath tavern
+
+// Frequently used skills showing character development
+🎯 FREQUENTLY USED SKILLS: Stealth (8/10), Investigation (6/8)
+
+// Current equipment affecting capabilities
+⚔️ EQUIPPED: Longbow, Leather Armor, Cloak of Elvenkind
+```
+
+### Automatic Information Extraction
+The AI system automatically parses responses to extract:
+
+- **New NPCs**: Character names and initial relationship status
+- **Location Details**: Descriptions of new areas for consistency
+- **Quest Information**: Objectives, progress, and completion
+- **Item Discoveries**: New equipment and their significance
+- **Character Growth**: Moments of development and change
+
+### Memory Management
+The system includes intelligent cleanup:
+
+- **Decision Limit**: Last 20 decisions (critical ones preserved)
+- **Discovery Limit**: Last 10 discoveries (high/critical significance preserved)
+- **Item Limit**: Last 5 items (significant items preserved)
+- **Relationships**: All relationships maintained permanently
+- **Locations**: All location descriptions maintained permanently
 - Health status and ability scores
 - Background and personality traits
 

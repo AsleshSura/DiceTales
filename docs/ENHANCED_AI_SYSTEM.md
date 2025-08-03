@@ -2,7 +2,7 @@
 
 ## Overview
 
-DiceTales now features an advanced AI system that provides human-like conversations with comprehensive memory and plot grounding. The system uses modern conversational models from Hugging Face to deliver immersive, consistent storytelling experiences.
+DiceTales features an advanced AI system that provides human-like conversations with comprehensive memory and plot grounding. The system uses modern conversational models from Hugging Face to deliver immersive, consistent storytelling experiences with full campaign continuity.
 
 ## Key Features
 
@@ -10,7 +10,7 @@ DiceTales now features an advanced AI system that provides human-like conversati
 
 **Primary Models (in order of preference):**
 1. `microsoft/GODEL-v1_1-large-seq2seq` - Advanced conversational AI with superior context understanding
-2. `facebook/blenderbot-400M-distill` - Optimized for natural dialogue generation
+2. `facebook/blenderbot-400M-distill` - Optimized for natural dialogue generation  
 3. `microsoft/GODEL-v1_1-base-seq2seq` - Balanced quality and performance
 4. `facebook/blenderbot-1B-distill` - Large-scale conversational model
 
@@ -21,30 +21,35 @@ DiceTales now features an advanced AI system that provides human-like conversati
 
 ### 💭 Enhanced Conversation Management
 
-**Conversation History:**
-- Maintains last 20 conversational exchanges
-- Contextual awareness of previous interactions
-- Natural flow and continuity between responses
+**Dynamic Context Building:**
+- Integrates character stats, equipment, and current health
+- References past decisions and their consequences
+- Maintains awareness of NPC relationships and interactions
+- Incorporates discovered locations and world state
+- Uses active plot threads for story continuity
 
-**Response Quality Enhancement:**
-- Removes AI artifacts and formatting issues
+**Response Enhancement:**
+- Removes AI artifacts and meta-commentary
 - Adds natural variations to prevent repetition
 - Enhances descriptive language for immersion
 - Maintains proper grammar and sentence structure
+- Contextualizes responses to character background and class
 
 ### 🧠 Advanced Memory System Integration
 
-**Plot Grounding:**
-- Tracks recent player decisions and consequences
-- Monitors active plot threads and quests
-- Remembers important character relationships
-- Records significant discoveries and events
+**Comprehensive Memory Context:**
+- Tracks recent player decisions with consequences
+- Monitors active plot threads and quest progression
+- Remembers important character relationships and their history
+- Records significant discoveries and their impact
+- Maintains detailed location descriptions for consistency
 
 **Character Consistency:**
-- Maintains character state awareness
-- Tracks character growth and development
-- Remembers past interactions with NPCs
-- Preserves narrative continuity
+- Integrates character class abilities and background
+- Tracks skill usage patterns and development
+- Remembers character personality traits and choices
+- References equipment and inventory appropriately
+- Maintains continuity across gaming sessions
 
 ### ⚙️ Configuration Settings
 
@@ -70,33 +75,81 @@ MEMORY_SETTINGS: {
 }
 ```
 
-## Implementation Details
-
 ### Enhanced AI Manager Class
 
-The `AIManager` class has been significantly enhanced with:
+The `AIManager` class provides comprehensive storytelling capabilities:
 
-- **Contextual Prompt Preparation**: Integrates conversation history, plot context, and character state
+- **Contextual Prompt Building**: Integrates character data, campaign history, and memory context
 - **Response Quality Enhancement**: Post-processes AI responses for better human-like quality
-- **Memory Integration**: Works seamlessly with the MemoryManager for plot consistency
+- **Memory Integration**: Works seamlessly with MemoryManager for plot consistency  
 - **Model Fallback System**: Automatically tries multiple models for reliability
+- **Campaign Continuity**: Maintains story consistency across sessions
+- **Character Integration**: Uses character class, background, and abilities appropriately
 
 ### Memory Manager Integration
 
-The `MemoryManager` now provides:
+The `MemoryManager` provides AI with:
 
-- **AI Context Generation**: Creates grounding prompts from stored memories
-- **Conversation Analysis**: Automatically extracts memorable elements from exchanges
-- **Plot Thread Tracking**: Maintains active story elements for consistency
-- **Relationship Management**: Remembers NPC interactions and character development
+- **Comprehensive Context**: Recent decisions, relationships, discoveries, and plot threads
+- **Character Development**: Skill usage patterns and growth moments
+- **World Consistency**: Location descriptions and world state changes
+- **Relationship Tracking**: NPC interactions and relationship progression
+- **Plot Continuity**: Active storylines and their current status
 
 ## Usage Examples
 
-### Basic Conversation
+### Basic Campaign Start
 ```javascript
 // Initialize the enhanced AI system
 const aiManager = new AIManager();
 await aiManager.initialize();
+
+// Start a new campaign with memory integration
+await aiManager.startCampaign();
+```
+
+### Processing Player Actions
+```javascript
+// Process an action with full context integration
+await aiManager.processPlayerAction({
+    action: "Approach the mysterious stranger carefully",
+    type: "social"
+});
+```
+
+### Memory Context Building
+```javascript
+// Build comprehensive memory context for AI
+const character = gameState.getCharacter();
+const campaign = gameState.getCampaign();
+const memoryContext = aiManager.buildMemoryContext(character, campaign);
+```
+
+## Technical Implementation
+
+### AI Context Structure
+The AI receives comprehensive context including:
+
+```
+🎭 CHARACTER PROFILE: [Name, Class, Level, Background, Current Status]
+📊 ABILITY SCORES: [STR, DEX, CON, INT, WIS, CHA with current values]
+❤️ HEALTH STATUS: [Current/Max HP, conditions, injuries]
+🎒 INVENTORY: [Equipped items, carried equipment, special items]
+🧠 RECENT DECISIONS: [Last 3 significant choices and consequences]
+👥 KEY RELATIONSHIPS: [Important NPCs and relationship status]
+🔍 DISCOVERIES: [Recent findings and their significance]
+🎯 SKILLS USED: [Frequently used skills and success patterns]
+📖 ACTIVE PLOTS: [Current story threads and objectives]
+🗺️ LOCATION CONTEXT: [Current area and relevant locations]
+```
+
+### Response Processing Pipeline
+
+1. **Context Assembly**: Builds comprehensive prompt with character and memory data
+2. **API Request**: Sends request to HuggingFace models with fallback handling
+3. **Response Enhancement**: Cleans and enhances raw AI output for immersion
+4. **Memory Extraction**: Automatically extracts important information for storage
+5. **Display Processing**: Formats response for game interface display
 
 // Send a message with full context
 const response = await aiManager.generateStoryContent(

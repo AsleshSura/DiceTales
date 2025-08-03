@@ -94,7 +94,7 @@ class DiceTalesApp {
         // Systems are already initialized via their constructors
         // We just need to ensure they're all ready
         
-        logger.info('Checking system availability...');
+        logger.info('🚀 Initializing game systems...');
         
         // Give systems a moment to initialize
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -106,7 +106,9 @@ class DiceTalesApp {
             { name: 'diceSystem', instance: window.diceSystem || diceSystem, required: true },
             { name: 'aiManager', instance: window.aiManager || aiManager, required: false },
             { name: 'audioManager', instance: window.audioManager || audioManager, required: false },
-            { name: 'uiManager', instance: window.uiManager || uiManager, required: true }
+            { name: 'uiManager', instance: window.uiManager || uiManager, required: true },
+            { name: 'memoryManager', instance: window.memoryManager || memoryManager, required: false },
+            { name: 'characterDataManager', instance: window.characterDataManager || characterDataManager, required: false }
         ];
         
         // Verify all systems initialized properly
@@ -118,14 +120,12 @@ class DiceTalesApp {
         const missingRequired = systems.filter(s => s.required && typeof s.instance === 'undefined');
         if (missingRequired.length > 0) {
             const missing = missingRequired.map(s => s.name).join(', ');
-            console.error('Missing required systems:', missing);
+            logger.error('Missing required systems:', missing);
             
-            // Try to provide more helpful error info
-            console.error('Available global objects:', Object.keys(window).filter(k => k.includes('Manager') || k.includes('System') || k.includes('State')));
+            // Provide helpful error info
+            logger.debug('Available global objects:', Object.keys(window).filter(k => k.includes('Manager') || k.includes('System') || k.includes('State')));
             
-            // Instead of continuing with missing systems, let's throw an error
-            // to trigger the recovery process that will show character creation
-            throw new Error(`Required systems not loaded: ${missing}`);
+            throw new Error(`Required systems not loaded: ${missing}. Please refresh the page.`);
         }
         
         logger.info('All required systems detected');

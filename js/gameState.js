@@ -297,7 +297,10 @@ class GameState {
             this.save();
             
             logger.info('Game state imported successfully');
+            
+            // Emit events for other systems to respond
             eventBus.emit('gameState:imported', this.state);
+            eventBus.emit('character:changed', this.state.character);
             
             return true;
         } catch (error) {

@@ -70,6 +70,10 @@
                         <span class="icon">📂</span>
                         <span class="nav-text">Import/Export</span>
                     </button>
+                    <button id="dm-evaluation-btn" class="nav-btn" title="DM Evaluation" aria-label="View DM performance metrics">
+                        <span class="icon">📊</span>
+                        <span class="nav-text">DM Metrics</span>
+                    </button>
                 </nav>
             </div>
         </header>
@@ -351,6 +355,54 @@
                 </div>
             </div>
         </div>
+
+        <!-- DM Evaluation Modal -->
+        <div class="modal" id="dm-evaluation-modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>📊 DM Performance Evaluation</h2>
+                    <button class="modal-close" data-modal="dm-evaluation-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="dm-evaluation-content">
+                    <div class="evaluation-container">
+                        <!-- Evaluation Settings -->
+                        <div class="evaluation-settings">
+                            <h3>Settings</h3>
+                            <div class="setting-row">
+                                <label class="switch">
+                                    <input type="checkbox" id="enable-evaluation">
+                                    <span class="slider"></span>
+                                </label>
+                                <span>Enable DM Evaluation</span>
+                            </div>
+                            <div class="setting-row">
+                                <label class="switch">
+                                    <input type="checkbox" id="auto-improve">
+                                    <span class="slider"></span>
+                                </label>
+                                <span>Auto-Improve DM Responses</span>
+                            </div>
+                        </div>
+
+                        <!-- Evaluation Metrics -->
+                        <div class="evaluation-metrics">
+                            <h3>Performance Metrics</h3>
+                            <div id="evaluation-stats">
+                                <!-- Stats will be populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Recent Evaluations -->
+                        <div class="evaluation-history">
+                            <h3>Recent Evaluations</h3>
+                            <div id="recent-evaluations">
+                                <!-- Recent evaluations will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- JavaScript Files -->
@@ -368,6 +420,9 @@
     <script src="js/ai.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/evaluationUI.js"></script>
+    <!-- System Integration Verification -->
+    <script src="js/systemIntegration.js"></script>
     <script src="js/main.js"></script>
 
     

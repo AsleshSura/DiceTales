@@ -7,35 +7,47 @@
  * Initialize character data system
  */
 async function initializeCharacterSystem() {
+    logger.info('🎭 Initializing character data system');
+    
     try {
+        // Ensure characterDataManager is available
+        if (typeof characterDataManager === 'undefined') {
+            logger.error('⚠️ CharacterDataManager not available');
+            return false;
+        }
+        
         // Try to load existing character from localStorage first
         const savedCharacter = localStorage.getItem('dicetales_character_data');
         
         if (savedCharacter) {
-            console.log('Loading character from localStorage...');
+            logger.info('Loading character from localStorage...');
             characterDataManager.character = JSON.parse(savedCharacter);
         } else {
             // Try to load from character.json file
-            console.log('Loading character from character.json...');
+            logger.info('Loading character from character.json...');
             await characterDataManager.loadCharacter();
         }
         
         // Sync with existing gameState if available
         if (typeof gameState !== 'undefined') {
-            characterDataManager.syncToGameState(characterDataManager.character);
+            const existingCharacter = gameState.getCharacter();
+            if (existingCharacter && existingCharacter.name) {
+                logger.info('🔄 Syncing existing character with enhanced system');
+                characterDataManager.syncToGameState(characterDataManager.character);
+            }
         }
         
-        console.log('Character system initialized successfully');
+        logger.info('✅ Character system initialized successfully');
         return true;
         
     } catch (error) {
-        console.warn('Could not load character.json, will create from gameState or defaults');
+        logger.warn('Could not load character.json, will create from gameState or defaults', error);
         
         // Try to import from existing gameState
         if (typeof gameState !== 'undefined') {
             const imported = characterDataManager.importFromGameState();
             if (imported) {
-                console.log('Character imported from gameState');
+                logger.info('Character imported from gameState');
                 return true;
             }
         }
