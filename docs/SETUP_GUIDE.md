@@ -152,16 +152,18 @@ Upload all files to any web server that serves static files:
 ## 🔧 Configuration Options
 
 ### HuggingFace AI Settings
-Edit `js/huggingfaceAI.js` to customize AI behavior:
+Edit `advanced/js/ai.js` to customize AI behavior:
 
 ```javascript
 // Model configuration (models tried in order)
-const MODELS = [
-    'microsoft/DialoGPT-large',
-    'microsoft/DialoGPT-medium', 
-    'gpt2-large',
-    'gpt2'
-];
+const AI_CONFIG = {
+    HF_MODELS: [
+        'microsoft/GODEL-v1_1-large-seq2seq',
+        'microsoft/DialoGPT-large',
+        'facebook/blenderbot-400M-distill',
+        'microsoft/DialoGPT-medium'
+    ]
+};
 
 // Response settings
 const MAX_NEW_TOKENS = 150;
@@ -169,10 +171,10 @@ const TEMPERATURE = 0.8;
 const TOP_P = 0.9;
 ```
 
-**Note**: DiceTales v2.0 uses HuggingFace exclusively - no fallback systems.
+**Note**: DiceTales uses advanced HuggingFace models with intelligent fallback responses for reliability.
 
 ### Audio Settings
-Edit `js/audio.js` to customize sound effects:
+Edit `advanced/js/audio.js` to customize sound effects:
 - Enable/disable background music
 - Adjust volume levels
 - Add custom sound files

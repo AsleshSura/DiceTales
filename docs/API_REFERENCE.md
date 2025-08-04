@@ -16,7 +16,7 @@ Complete code documentation for developers working with the DiceTales codebase.
 ## 🎮 Core Classes
 
 ### DiceTalesApp
-**File**: `js/main.js`
+**File**: `advanced/js/main.js`
 **Purpose**: Main application controller and coordination of all game systems
 
 #### Constructor
@@ -58,7 +58,7 @@ app.showCharacterCreation();
 ## 🤖 AI System
 
 ### AIManager
-**File**: `js/ai.js`
+**File**: `advanced/js/ai.js`
 **Purpose**: Unified AI system with HuggingFace integration for dynamic storytelling
 
 #### Constructor
@@ -140,7 +140,7 @@ const response = await aiManager.callAI([
 ## 🧠 Memory System
 
 ### MemoryManager
-**File**: `js/memoryManager.js`
+**File**: `advanced/js/memoryManager.js`
 **Purpose**: Enhanced memory system for persistent storytelling and character continuity
 
 #### Constructor
@@ -224,7 +224,7 @@ const context = memoryManager.getAIContext();
 ##### `async generateChoices(context)`
 Generates action choices for the player.
 ```javascript
-const choices = await huggingfaceAI.generateChoices(
+const choices = await aiManager.generateChoices(
     "You stand before a locked door..."
 );
 // Returns: ["Force the door open", "Search for a key", ...]
@@ -233,7 +233,7 @@ const choices = await huggingfaceAI.generateChoices(
 ##### `async makeRequest(prompt, options = {})`
 Low-level API request to HuggingFace.
 ```javascript
-const response = await huggingfaceAI.makeRequest(
+const response = await aiManager.callAI(
     "Continue this story: ...",
     { max_length: 400, temperature: 0.8 }
 );
@@ -243,64 +243,12 @@ const response = await huggingfaceAI.makeRequest(
   - `options` (object): Generation parameters
 - **Returns**: Promise resolving to raw AI response
 
-### SimpleAI
-**File**: `js/simpleAI.js`
-**Purpose**: Template-based AI fallback system
-
-#### Constructor
-```javascript
-new SimpleAI()
-```
-
-#### Methods
-
-##### `generateStory(context, type, characterStats)`
-Generates story using templates and context analysis.
-```javascript
-const story = simpleAI.generateStory(
-    "Ancient temple context...",
-    'narrative',
-    character.stats
-);
-```
-
-##### `generateChoices(context, characterStats)`
-Creates contextual choices based on situation and character.
-```javascript
-const choices = simpleAI.generateChoices(context, character.stats);
-```
-
-##### `analyzeContext(context)`
-Determines scenario type from story context.
-```javascript
-const scenario = simpleAI.analyzeContext("You hear footsteps approaching...");
-// Returns: { type: 'danger', confidence: 0.8, keywords: ['footsteps', 'approaching'] }
-```
-
-### MockAI
-**File**: `js/mockAI.js`
-**Purpose**: Hardcoded fallback responses
-
-#### Methods
-
-##### `generateStory(context, type)`
-Returns pre-written story segments.
-```javascript
-const story = mockAI.generateStory(context, 'narrative');
-```
-
-##### `generateChoices(context)`
-Returns generic but appropriate action choices.
-```javascript
-const choices = mockAI.generateChoices(context);
-```
-
 ---
 
-## Game Logic
+## 🧠 Memory System
 
 ### Character
-**File**: `js/character.js`
+**File**: `advanced/js/character.js`
 **Purpose**: Character stats, progression, and abilities
 
 #### Constructor
@@ -381,7 +329,7 @@ character.addItem({
 ```
 
 ### DiceSystem
-**File**: `js/dice.js`
+**File**: `advanced/js/dice.js`
 **Purpose**: Dice rolling and success determination
 
 #### Constructor
@@ -435,7 +383,7 @@ const result = diceSystem.rollWithDisadvantage(2);
 ```
 
 ### GameState
-**File**: `js/gameState.js`
+**File**: `advanced/js/gameState.js`
 **Purpose**: Game state management and persistence
 
 #### Constructor
@@ -503,7 +451,7 @@ const success = gameState.importSave(jsonString);
 ## 🎨 User Interface
 
 ### UIManager
-**File**: `js/ui.js`
+**File**: `advanced/js/ui.js`
 **Purpose**: User interface updates and interactions
 
 #### Constructor
@@ -567,7 +515,7 @@ uiManager.showModal(
 ```
 
 ### AudioManager
-**File**: `js/audio.js`
+**File**: `advanced/js/audio.js`
 **Purpose**: Sound effects and music management
 
 #### Constructor
@@ -606,7 +554,7 @@ audioManager.setMasterVolume(0.5); // 50% volume
 ## 🔧 Utility Functions
 
 ### Utils
-**File**: `js/utils.js`
+**File**: `advanced/js/utils.js`
 **Purpose**: Common utility functions
 
 #### `randomChoice(array)`
@@ -663,7 +611,7 @@ const id = generateId(12); // "a7b2c9d1e4f8"
 ## ⚙️ Configuration
 
 ### CONFIG Object
-**File**: `js/config.js`
+**File**: `advanced/js/config.js`
 **Purpose**: Global configuration settings
 
 ```javascript
@@ -814,11 +762,11 @@ class UIError extends Error {
 ```javascript
 // AI Service error handling
 try {
-    const result = await huggingfaceAI.generateStory(context);
+    const result = await aiManager.callAI(context);
     return result;
 } catch (error) {
-    console.warn('Primary AI failed, trying fallback:', error);
-    return await simpleAI.generateStory(context);
+    console.warn('AI service failed:', error);
+    return aiManager.getHuggingFaceFallbackResponse('narrative');
 }
 
 // Game logic error handling

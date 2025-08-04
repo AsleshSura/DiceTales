@@ -17,14 +17,15 @@ Complete guide for deploying DiceTales to various hosting platforms and environm
 ### Required Files
 Ensure these files are present in your repository:
 - [ ] `index.html` - Main game interface
-- [ ] `css/` directory with all stylesheets
-- [ ] `js/` directory with all JavaScript files
+- [ ] `advanced/` directory with game files
+- [ ] `better-dm/` directory for campaign management
+- [ ] `base/` directory for simple game version
 - [ ] `docs/` directory (optional but recommended)
 - [ ] `README.md` - Project description
 - [ ] `.gitignore` - Git ignore patterns
 
 ### Configuration Check
-- [ ] `js/config.js` has correct settings for production
+- [ ] `advanced/js/config.js` has correct settings for production
 - [ ] AI services are properly configured
 - [ ] No debug flags enabled in production
 - [ ] HTTPS compatibility verified
@@ -433,8 +434,8 @@ Create `vercel.json` in root directory:
 ```html
 <!-- Add to index.html head -->
 <link rel="preconnect" href="https://api-inference.huggingface.co">
-<link rel="preload" href="css/main.css" as="style">
-<link rel="preload" href="js/main.js" as="script">
+<link rel="preload" href="advanced/css/main.css" as="style">
+<link rel="preload" href="advanced/js/main.js" as="script">
 ```
 
 ### Compression
@@ -538,8 +539,8 @@ const trackAIPerformance = (service, duration, success) => {
 ### Debug Mode
 Enable debug mode for troubleshooting:
 ```javascript
-// In js/config.js
-const CONFIG = {
+// In advanced/js/config.js
+const AI_CONFIG = {
     DEBUG_MODE: true,          // Enable debug logging
     SHOW_AI_PROMPTS: true,     // Log AI requests
     LOG_PERFORMANCE: true      // Track performance metrics

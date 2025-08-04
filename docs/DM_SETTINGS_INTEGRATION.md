@@ -24,9 +24,9 @@ The DM Settings functionality has been completely removed from the character cre
 - Restored original DM personality system using only setting-based hints
 
 ### Files Modified
-- **js/character.js**: Removed DM Settings step, methods, and validation
-- **css/character.css**: Removed all DM Settings related styles
-- **js/ai.js**: Reverted to original system prompt without custom DM settings
+- **advanced/js/character.js**: Removed DM Settings step, methods, and validation
+- **advanced/css/character.css**: Removed all DM Settings related styles
+- **advanced/js/ai.js**: Reverted to original system prompt without custom DM settings
 - **index.html**: Cleaned up debug scripts
 
 ## Current State

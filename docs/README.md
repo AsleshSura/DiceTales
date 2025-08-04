@@ -19,11 +19,21 @@ Welcome to the comprehensive documentation for **DiceTales** - an AI-powered RPG
 | **[🧠 AI Memory System](AI_MEMORY_SYSTEM.md)** | Memory system and persistence | Developers |
 | **[👤 Character System](CHARACTER_SYSTEM.md)** | Character creation and management | Developers |
 | **[⚙️ DM Settings Integration](DM_SETTINGS_INTEGRATION.md)** | Campaign settings and configuration | Developers |
+| **[🗺️ Better DM System](../better-dm/docs/README.md)** | Advanced campaign management system | Advanced Users |
 
-### � Additional Resources
+### 🤖 AI System Documentation
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[� Import/Export Guide](IMPORT_EXPORT_GUIDE.md)** | Character and save data management | Players/Developers |
+| **[🎯 AI Systems Overview](AI_SYSTEMS_OVERVIEW.md)** | Complete AI ecosystem architecture | All Users |
+| **[🤖 Main AI System](AI_MAIN_SYSTEM.md)** | Core HuggingFace storytelling AI engine | Developers |
+| **[🧠 Memory Manager](AI_MEMORY_MANAGER.md)** | Persistent memory and context system | Developers |
+| **[📊 DM Evaluator](AI_DM_EVALUATOR.md)** | Response quality assessment system | Developers |
+| **[🗺️ Better DM AI](AI_BETTER_DM.md)** | Advanced campaign management AI | Advanced Users |
+
+### 📚 Additional Resources
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[📂 Import/Export Guide](IMPORT_EXPORT_GUIDE.md)** | Character and save data management | Players/Developers |
 | **[🎯 AI Setting Implementation](AI_SETTING_IMPLEMENTATION.md)** | Campaign setting development | Advanced Users |
 
 ## What is DiceTales?
@@ -50,17 +60,19 @@ DiceTales is a web-based tabletop RPG experience that combines:
 ```
 DiceTales/
 ├── index.html          # Main game interface
-├── quick-start.html    # Simplified game version
-├── css/               # Responsive styling and themes
-├── js/                # Core game logic (HuggingFace only)
-│   ├── main.js        # Game controller
-│   ├── ai.js          # AI coordination layer (HuggingFace only)
-│   ├── huggingfaceAI.js # Primary AI service (no fallbacks)
-│   ├── character.js   # Advanced character system
-│   ├── dice.js        # Turn-based dice mechanics
-│   ├── gameState.js   # Save/load with turn tracking
-│   └── ui.js          # Enhanced user interface
-└── docs/              # Updated documentation
+├── advanced/           # Main application
+│   ├── index.html      # Advanced game interface
+│   ├── css/            # Responsive styling and themes
+│   └── js/             # Core game logic
+│       ├── main.js     # Game controller
+│       ├── ai.js       # AI coordination layer
+│       ├── character.js # Advanced character system
+│       ├── dice.js     # Turn-based dice mechanics
+│       ├── gameState.js # Save/load with turn tracking
+│       └── ui.js       # Enhanced user interface
+├── better-dm/          # Advanced campaign management
+├── base/               # Simple game version
+└── docs/               # Updated documentation
 ```
 
 ## 🔧 Technology Stack (v2.0)

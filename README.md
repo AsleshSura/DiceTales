@@ -1,11 +1,29 @@
 # 🚀 DiceTales: Advanced AI-Powered RPG Adventure
 
-**A Modern AI-Powered RPG Experience with Enhanced Memory System - Completely Revamped**
+**A Production-Ready AI-Powered RPG Experience with Enhanced Memory System & Advanced Campaign Management**
 
 [![Play Now](https://img.shields.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](index.html)
+[![Better DM](https://img.shields.io/badge/🗺️-Better%20DM-purple?style=for-the-badge&logo=map)](better-dm/index.html)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-green?style=for-the-badge&logo=book)](docs/README.md)
 
 ## ✨ What's New in This Version?
+
+🆕 **Better DM - Revolutionary Campaign Management**
+- **Campaign Roadmap Generation**: Complete adventure planning from first interaction
+- **Intelligent Adaptation**: AI dynamically adapts campaigns while maintaining story coherence  
+- **Visual Progress Tracking**: Interactive roadmap showing campaign structure and progress
+- **Emergency Scenarios**: Backup content for when players go completely off-track
+
+🔧 **System Integration & Optimization**
+- **Memory Leak Fixes**: Proper event handler cleanup prevents memory accumulation
+- **Enhanced Error Handling**: Graceful degradation with better error recovery
+- **System Integration Monitoring**: Real-time verification of all system components
+- **Performance Improvements**: Faster initialization and reduced memory usage
+
+📚 **Comprehensive Documentation Update**
+- **Updated API Reference**: Complete documentation matching current implementation
+- **Enhanced Memory System Docs**: Detailed architecture and integration guides
+- **Production-Ready**: All debug code removed, clean deployment-ready codebase
 
 **🎨 Completely Revamped Modern UI**
 - **Sleek Sci-Fi Design**: Dark theme with neon accents and glass-morphism effects
@@ -22,24 +40,48 @@
 
 ## 🌌 The Complete RPG Experience
 
-DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI technology:
+DiceTales is a sophisticated AI-powered RPG system that combines traditional tabletop mechanics with cutting-edge artificial intelligence. Now featuring the revolutionary **Better DM** system for advanced campaign management.
+
+### 🎮 Core Features
 
 - **🤖 Advanced AI Storytelling**: Enhanced HuggingFace models create immersive narratives
+- **🗺️ Better DM Campaign System**: Revolutionary AI-powered campaign planning and adaptation
 - **Classic RPG Mechanics**: D20 system with six core stats and skill progression
 - **👨‍💼 Character Progression**: Comprehensive character system with backgrounds and abilities
-- **🧠 Persistent Memory**: AI remembers your entire campaign history
+- **🧠 Persistent Memory**: AI remembers your entire campaign history and relationships
 - **💾 Save/Load System**: Continue your adventure anytime with full state preservation
 - **📂 Import/Export**: Share campaigns and characters across devices
+- **🔧 System Integration**: Robust error handling and performance monitoring
 - **🌐 Zero Installation**: Runs entirely in your browser with modern web technologies
+
+### 🗺️ Better DM - Advanced Campaign Management
+
+Experience the next evolution of AI dungeon mastering:
+
+- **📋 Complete Campaign Planning**: Generates full adventure structures with chapters and objectives
+- **🧠 Intelligent Story Adaptation**: Modifies plans based on player choices while maintaining coherence
+- **🎯 Visual Progress Tracking**: Interactive roadmap showing where you are and where you're going
+- **⚡ Emergency Content Generation**: Handles unexpected player actions gracefully
+- **🔄 Real-time Updates**: Campaign roadmap reflects changes immediately
+
+**[🗺️ Launch Better DM](better-dm/index.html)** - Experience revolutionary campaign management
 
 ### 🎮 Quick Start
 
+#### Classic DiceTales Experience
 1. **[🚀 Play Instantly](index.html)** - No setup required!
 2. **Create Your Character** - Use the enhanced character creation system
 3. **Begin Your Adventure** - Experience AI-driven storytelling with memory
 4. **Make Meaningful Choices** - Every decision shapes your ongoing narrative
 5. **Roll Strategic Dice** - Turn-based dice mechanics with tactical depth
 6. **Build Relationships** - NPCs remember your actions and evolve over time
+
+#### Better DM Campaign Experience  
+1. **[🗺️ Launch Better DM](better-dm/index.html)** - Advanced campaign management
+2. **Start Campaign Planning** - AI generates complete adventure roadmaps
+3. **Track Your Progress** - Visual roadmap shows campaign structure
+4. **Experience Adaptive Storytelling** - AI intelligently adjusts to your choices
+5. **See the Big Picture** - Understand how your actions affect the larger story
 
 ## 🎨 Modern UI Features
 
@@ -87,11 +129,19 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 
 ## 📊 Technical Features
 
+### System Integration & Reliability
+- **🔧 Robust Error Handling**: Graceful degradation when components are unavailable
+- **🔍 Real-time Monitoring**: Automatic system integration verification
+- **⚡ Performance Optimized**: Memory leak fixes and efficient resource management
+- **🛡️ Production Ready**: Clean, deployment-ready codebase with debug mode disabled
+- **📊 System Health Checks**: Built-in diagnostics and integration verification
+
 ### Performance
 - **Optimized Rendering**: Efficient DOM updates and animations
 - **Smart Caching**: Reduces API calls and improves response time
 - **Progressive Loading**: Smooth startup with loading indicators
 - **Error Recovery**: Graceful handling of network issues
+- **Memory Management**: Proper cleanup prevents memory leaks
 
 ### Compatibility
 - **Modern Browsers**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
@@ -110,12 +160,25 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 
 ## 🏗️ Modern Technology Stack
 
+### Core Technologies
 - **Frontend**: Semantic HTML5, Modern CSS3 with Custom Properties, ES6+ JavaScript
 - **Fonts**: Google Fonts (Inter + Orbitron) for professional typography
 - **Design**: Glass-morphism, CSS Grid, Flexbox, CSS Animations
-- **AI Services**: HuggingFace models for "The Quantum Relay" storylines
+- **AI Services**: HuggingFace models with intelligent fallback systems
 - **Storage**: LocalStorage with error handling and data validation
 - **Performance**: Optimized CSS, minimal JavaScript, lazy loading
+
+### Better DM System
+- **Campaign Management**: Advanced roadmap generation and tracking
+- **Adaptive AI**: Intelligent story modification based on player choices
+- **Visual Interface**: Interactive campaign progress visualization
+- **Emergency Systems**: Backup content generation for unexpected scenarios
+
+### System Architecture
+- **Modular Design**: Cleanly separated components with clear interfaces
+- **Event-Driven**: Robust inter-component communication system
+- **Error Resilience**: Comprehensive error handling and recovery
+- **Integration Monitoring**: Real-time system health verification
 
 ## 📚 Documentation
 
@@ -123,11 +186,12 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 |-------|-------------|
 | **[📖 Setup Guide](docs/SETUP_GUIDE.md)** | Get started in 5 minutes |
 | **[🎮 Game Guide](docs/GAME_GUIDE.md)** | Master the art of adventure |
-| **[📂 Import/Export Guide](docs/IMPORT_EXPORT_GUIDE.md)** | Share and backup campaigns |
-| **[🏗️ Technical Overview](docs/TECHNICAL_OVERVIEW.md)** | Architecture and development |
+| **[�️ Better DM Guide](better-dm/docs/README.md)** | Advanced campaign management system |
+| **[�📂 Import/Export Guide](docs/IMPORT_EXPORT_GUIDE.md)** | Share and backup campaigns |
 | **[📋 API Reference](docs/API_REFERENCE.md)** | Complete code documentation |
+| **[🧠 AI Memory System](docs/AI_MEMORY_SYSTEM.md)** | Advanced memory architecture |
+| **[👤 Character System](docs/CHARACTER_SYSTEM.md)** | Character management documentation |
 | **[🚀 Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | Host your own instance |
-| **[🤝 Contributing Guide](docs/CONTRIBUTING.md)** | Join the development |
 
 ## 🎯 Game Mechanics
 
@@ -137,7 +201,7 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 - **Inventory Management**: Weapons, armor, and magical items
 
 ### AI Storytelling
-- **Multi-Tier System**: HuggingFace → Simple AI → Mock AI fallbacks
+- **Advanced HuggingFace Models**: Multiple AI models with intelligent fallback system
 - **RPG-Optimized Prompts**: Dungeon Master style narrative generation
 - **Context-Aware**: Story adapts to your character and previous choices
 
@@ -148,7 +212,9 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 
 ## 🚀 Deployment Options
 
-### Instant Deployment
+### Instant Deployment (Production Ready)
+The DiceTales codebase is fully optimized and deployment-ready:
+
 - **[GitHub Pages](docs/DEPLOYMENT_GUIDE.md#github-pages)** - Free hosting with Git integration
 - **[Netlify](docs/DEPLOYMENT_GUIDE.md#netlify)** - Drag-and-drop deployment
 - **[Vercel](docs/DEPLOYMENT_GUIDE.md#vercel)** - Modern edge deployment
@@ -156,6 +222,12 @@ DiceTales combines traditional tabletop RPG mechanics with cutting-edge AI techn
 ### Self-Hosted
 - **[Apache/Nginx](docs/DEPLOYMENT_GUIDE.md#self-hosted)** - Full control server deployment
 - **[Docker](docs/DEPLOYMENT_GUIDE.md#docker-deployment)** - Containerized deployment
+
+### What's Included
+- ✅ **Clean Production Code** - All debug code and test files removed
+- ✅ **Optimized Performance** - Memory leaks fixed, efficient resource usage
+- ✅ **Complete Documentation** - Updated guides for all current features
+- ✅ **System Monitoring** - Built-in health checks and error handling
 
 ## 🤝 Contributing
 
@@ -196,6 +268,7 @@ This project is open source under the **MIT License**. See [LICENSE](LICENSE) fo
 
 **Ready for adventure?** 
 
-[![Start Your Quest](https://img.shields.io/badge/🗡️-Start%20Your%20Quest-red?style=for-the-badge&size=large)](index.html)
+[![Start Classic Adventure](https://img.shields.io/badge/🗡️-Start%20Classic%20Adventure-red?style=for-the-badge&size=large)](index.html)
+[![Launch Better DM](https://img.shields.io/badge/🗺️-Launch%20Better%20DM-purple?style=for-the-badge&size=large)](better-dm/index.html)
 
-*In DiceTales, every choice matters, every roll tells a story, and every adventure is uniquely yours.*
+*In DiceTales, every choice matters, every roll tells a story, and every adventure is uniquely yours. Now with revolutionary campaign management through Better DM.*
