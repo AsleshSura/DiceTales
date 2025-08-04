@@ -2,9 +2,23 @@
 
 **A Production-Ready AI-Powered RPG Experience with Enhanced Memory System & Advanced Campaign Management**
 
-[![Play Now](https://img.shields.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](index.html)
-[![Better DM](https://img.shields.io/badge/🗺️-Better%20DM-purple?style=for-the-badge&logo=map)](better-dm/index.html)
-[![Documentation](https://img.shields.io/badge/📚-Documentation-green?style=for-the-badge&logo=book)](docs/README.md)
+[![Play Now](https://i| **[📖| **[📖 Setup Guide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** | Get started in 5 minutes |
+| **[🎮 Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** | Master the art of adventure |
+| **[🗺️ Better DM Guide](https://asleshsura.github.io/DiceTales/better-dm/docs/)** | Advanced campaign management system |
+| **[📂 Import/Export Guide](https://asleshsura.github.io/DiceTales/docs/IMPORT_EXPORT_GUIDE)** | Share and backup campaigns |
+| **[📋 API Reference](https://asleshsura.github.io/DiceTales/docs/API_REFERENCE)** | Complete code documentation |
+| **[🧠 AI Memory System](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_SYSTEM)** | Advanced memory architecture |
+| **[👤 Character System](https://asleshsura.github.io/DiceTales/docs/CHARACTER_SYSTEM)** | Character management documentation |
+| **[🚀 Deployment Guide](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE)** | Host your own instance |uide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** | Get started in 5 minutes |
+| **[🎮 Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** | Master the art of adventure |
+| **[🗺️ Better DM Guide](https://asleshsura.github.io/DiceTales/better-dm/docs/)** | Advanced campaign management system |
+| **[📂 Import/Export Guide](https://asleshsura.github.io/DiceTales/docs/IMPORT_EXPORT_GUIDE)** | Share and backup campaigns |
+| **[📋 API Reference](https://asleshsura.github.io/DiceTales/docs/API_REFERENCE)** | Complete code documentation |
+| **[🧠 AI Memory System](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_SYSTEM)** | Advanced memory architecture |
+| **[👤 Character System](https://asleshsura.github.io/DiceTales/docs/CHARACTER_SYSTEM)** | Character management documentation |
+| **[🚀 Deployment Guide](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE)** | Host your own instance |ds.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](https://asleshsura.github.io/DiceTales/)
+[![Better DM](https://img.shields.io/badge/🗺️-Better%20DM-purple?style=for-the-badge&logo=map)](https://asleshsura.github.io/DiceTales/better-dm/)
+[![Documentation](https://img.shields.io/badge/📚-Documentation-green?style=for-the-badge&logo=book)](https://asleshsura.github.io/DiceTales/docs/)
 
 ## ✨ What's New in This Version?
 
@@ -64,12 +78,12 @@ Experience the next evolution of AI dungeon mastering:
 - **⚡ Emergency Content Generation**: Handles unexpected player actions gracefully
 - **🔄 Real-time Updates**: Campaign roadmap reflects changes immediately
 
-**[🗺️ Launch Better DM](better-dm/index.html)** - Experience revolutionary campaign management
+**[🗺️ Launch Better DM](https://asleshsura.github.io/DiceTales/better-dm/)** - Experience revolutionary campaign management
 
 ### 🎮 Quick Start
 
 #### Classic DiceTales Experience
-1. **[🚀 Play Instantly](index.html)** - No setup required!
+1. **[🚀 Play Instantly](https://asleshsura.github.io/DiceTales/)** - No setup required!
 2. **Create Your Character** - Use the enhanced character creation system
 3. **Begin Your Adventure** - Experience AI-driven storytelling with memory
 4. **Make Meaningful Choices** - Every decision shapes your ongoing narrative
@@ -77,7 +91,7 @@ Experience the next evolution of AI dungeon mastering:
 6. **Build Relationships** - NPCs remember your actions and evolve over time
 
 #### Better DM Campaign Experience  
-1. **[🗺️ Launch Better DM](better-dm/index.html)** - Advanced campaign management
+1. **[🗺️ Launch Better DM](https://asleshsura.github.io/DiceTales/better-dm/)** - Advanced campaign management
 2. **Start Campaign Planning** - AI generates complete adventure roadmaps
 3. **Track Your Progress** - Visual roadmap shows campaign structure
 4. **Experience Adaptive Storytelling** - AI intelligently adjusts to your choices
@@ -215,13 +229,13 @@ Experience the next evolution of AI dungeon mastering:
 ### Instant Deployment (Production Ready)
 The DiceTales codebase is fully optimized and deployment-ready:
 
-- **[GitHub Pages](docs/DEPLOYMENT_GUIDE.md#github-pages)** - Free hosting with Git integration
-- **[Netlify](docs/DEPLOYMENT_GUIDE.md#netlify)** - Drag-and-drop deployment
-- **[Vercel](docs/DEPLOYMENT_GUIDE.md#vercel)** - Modern edge deployment
+- **[GitHub Pages](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE#github-pages)** - Free hosting with Git integration
+- **[Netlify](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE#netlify)** - Drag-and-drop deployment
+- **[Vercel](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE#vercel)** - Modern edge deployment
 
 ### Self-Hosted
-- **[Apache/Nginx](docs/DEPLOYMENT_GUIDE.md#self-hosted)** - Full control server deployment
-- **[Docker](docs/DEPLOYMENT_GUIDE.md#docker-deployment)** - Containerized deployment
+- **[Apache/Nginx](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE#self-hosted)** - Full control server deployment
+- **[Docker](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE#docker-deployment)** - Containerized deployment
 
 ### What's Included
 - ✅ **Clean Production Code** - All debug code and test files removed
@@ -238,7 +252,7 @@ We welcome contributions! Whether you're:
 - 🔧 **Writing code**
 - 🎨 **Creating assets**
 
-Check out our **[Contributing Guide](docs/CONTRIBUTING.md)** to get started.
+Check out our **[Contributing Guide](https://asleshsura.github.io/DiceTales/docs/CONTRIBUTING)** to get started.
 
 ### Development Setup
 ```bash
@@ -256,7 +270,7 @@ python -m http.server 8000  # Or any static file server
 
 ## 📜 License
 
-This project is open source under the **MIT License**. See [LICENSE](LICENSE) for details.
+This project is open source under the **MIT License**. See [LICENSE](https://github.com/AsleshSura/DiceTales/blob/main/LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
@@ -268,7 +282,7 @@ This project is open source under the **MIT License**. See [LICENSE](LICENSE) fo
 
 **Ready for adventure?** 
 
-[![Start Classic Adventure](https://img.shields.io/badge/🗡️-Start%20Classic%20Adventure-red?style=for-the-badge&size=large)](index.html)
-[![Launch Better DM](https://img.shields.io/badge/🗺️-Launch%20Better%20DM-purple?style=for-the-badge&size=large)](better-dm/index.html)
+[![Start Classic Adventure](https://img.shields.io/badge/🗡️-Start%20Classic%20Adventure-red?style=for-the-badge&size=large)](https://asleshsura.github.io/DiceTales/)
+[![Launch Better DM](https://img.shields.io/badge/🗺️-Launch%20Better%20DM-purple?style=for-the-badge&size=large)](https://asleshsura.github.io/DiceTales/better-dm/)
 
 *In DiceTales, every choice matters, every roll tells a story, and every adventure is uniquely yours. Now with revolutionary campaign management through Better DM.*

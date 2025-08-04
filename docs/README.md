@@ -7,34 +7,34 @@ Welcome to the comprehensive documentation for **DiceTales** - an AI-powered RPG
 ### 🚀 Getting Started
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[📖 Setup Guide](SETUP_GUIDE.md)** | Quick start and system configuration | All Users |
-| **[🎮 Game Guide](GAME_GUIDE.md)** | How to play DiceTales effectively | Players |
-| **[🚀 Deployment Guide](DEPLOYMENT_GUIDE.md)** | How to deploy your own instance | Developers |
+| **[📖 Setup Guide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** | Quick start and system configuration | All Users |
+| **[🎮 Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** | How to play DiceTales effectively | Players |
+| **[🚀 Deployment Guide](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE)** | How to deploy your own instance | Developers |
 
 ### 🏗️ System Documentation
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[📋 API Reference](API_REFERENCE.md)** | Complete code documentation and APIs | Developers |
-| **[🤖 Enhanced AI System](ENHANCED_AI_SYSTEM.md)** | AI system architecture and features | Developers |
-| **[🧠 AI Memory System](AI_MEMORY_SYSTEM.md)** | Memory system and persistence | Developers |
-| **[👤 Character System](CHARACTER_SYSTEM.md)** | Character creation and management | Developers |
-| **[⚙️ DM Settings Integration](DM_SETTINGS_INTEGRATION.md)** | Campaign settings and configuration | Developers |
-| **[🗺️ Better DM System](../better-dm/docs/README.md)** | Advanced campaign management system | Advanced Users |
+| **[📋 API Reference](https://asleshsura.github.io/DiceTales/docs/API_REFERENCE)** | Complete code documentation and APIs | Developers |
+| **[🤖 Enhanced AI System](https://asleshsura.github.io/DiceTales/docs/ENHANCED_AI_SYSTEM)** | AI system architecture and features | Developers |
+| **[🧠 AI Memory System](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_SYSTEM)** | Memory system and persistence | Developers |
+| **[👤 Character System](https://asleshsura.github.io/DiceTales/docs/CHARACTER_SYSTEM)** | Character creation and management | Developers |
+| **[⚙️ DM Settings Integration](https://asleshsura.github.io/DiceTales/docs/DM_SETTINGS_INTEGRATION)** | Campaign settings and configuration | Developers |
+| **[🗺️ Better DM System](https://asleshsura.github.io/DiceTales/better-dm/docs/)** | Advanced campaign management system | Advanced Users |
 
 ### 🤖 AI System Documentation
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[🎯 AI Systems Overview](AI_SYSTEMS_OVERVIEW.md)** | Complete AI ecosystem architecture | All Users |
-| **[🤖 Main AI System](AI_MAIN_SYSTEM.md)** | Core HuggingFace storytelling AI engine | Developers |
-| **[🧠 Memory Manager](AI_MEMORY_MANAGER.md)** | Persistent memory and context system | Developers |
-| **[📊 DM Evaluator](AI_DM_EVALUATOR.md)** | Response quality assessment system | Developers |
-| **[🗺️ Better DM AI](AI_BETTER_DM.md)** | Advanced campaign management AI | Advanced Users |
+| **[🎯 AI Systems Overview](https://asleshsura.github.io/DiceTales/docs/AI_SYSTEMS_OVERVIEW)** | Complete AI ecosystem architecture | All Users |
+| **[🤖 Main AI System](https://asleshsura.github.io/DiceTales/docs/AI_MAIN_SYSTEM)** | Core HuggingFace storytelling AI engine | Developers |
+| **[🧠 Memory Manager](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_MANAGER)** | Persistent memory and context system | Developers |
+| **[📊 DM Evaluator](https://asleshsura.github.io/DiceTales/docs/AI_DM_EVALUATOR)** | Response quality assessment system | Developers |
+| **[🗺️ Better DM AI](https://asleshsura.github.io/DiceTales/docs/AI_BETTER_DM)** | Advanced campaign management AI | Advanced Users |
 
 ### 📚 Additional Resources
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[📂 Import/Export Guide](IMPORT_EXPORT_GUIDE.md)** | Character and save data management | Players/Developers |
-| **[🎯 AI Setting Implementation](AI_SETTING_IMPLEMENTATION.md)** | Campaign setting development | Advanced Users |
+| **[📂 Import/Export Guide](https://asleshsura.github.io/DiceTales/docs/IMPORT_EXPORT_GUIDE)** | Character and save data management | Players/Developers |
+| **[🎯 AI Setting Implementation](https://asleshsura.github.io/DiceTales/docs/AI_SETTING_IMPLEMENTATION)** | Campaign setting development | Advanced Users |
 
 ## What is DiceTales?
 
@@ -50,10 +50,10 @@ DiceTales is a web-based tabletop RPG experience that combines:
 
 ## 🚀 Quick Links
 
-- **[Play Now](../index.html)** - Start your adventure immediately
+- **[Play Now](https://asleshsura.github.io/DiceTales/)** - Start your adventure immediately
 - **[GitHub Repository](https://github.com/AsleshSura/DiceTales)** - Source code and issues
-- **[Setup Guide](SETUP_GUIDE.md)** - Get started in 5 minutes
-- **[Game Guide](GAME_GUIDE.md)** - Master the strategic gameplay mechanics
+- **[Setup Guide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** - Get started in 5 minutes
+- **[Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** - Master the strategic gameplay mechanics
 
 ## 🏗️ Current Architecture (v2.0)
 
@@ -121,7 +121,7 @@ This project is open source under the MIT License. See the main repository for f
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! Please read our [Contributing Guide](https://asleshsura.github.io/DiceTales/docs/CONTRIBUTING) for details on:
 
 - Setting up the HuggingFace development environment
 - Understanding the new AI-only architecture

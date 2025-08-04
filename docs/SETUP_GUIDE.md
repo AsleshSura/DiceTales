@@ -255,4 +255,4 @@ Edit `advanced/js/audio.js` to customize sound effects:
 
 ---
 
-**Need more help?** Check out the [Game Guide](GAME_GUIDE.md) for gameplay tips or [Technical Overview](TECHNICAL_OVERVIEW.md) for development details.
+**Need more help?** Check out the [Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE) for gameplay tips or [Technical Overview](https://asleshsura.github.io/DiceTales/docs/TECHNICAL_OVERVIEW) for development details.

@@ -597,4 +597,4 @@ After successful deployment:
 4. **Plan updates** and new features
 5. **Backup regularly** and maintain documentation
 
-**Need help?** Check the [Technical Overview](TECHNICAL_OVERVIEW.md) for architectural details or [Setup Guide](SETUP_GUIDE.md) for local development.
+**Need help?** Check the [Technical Overview](https://asleshsura.github.io/DiceTales/docs/TECHNICAL_OVERVIEW) for architectural details or [Setup Guide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE) for local development.

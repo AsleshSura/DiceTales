@@ -806,4 +806,4 @@ observer.observe({ entryTypes: ['measure'] });
 
 ---
 
-**Need more details?** Check the source code directly or refer to the [Technical Overview](TECHNICAL_OVERVIEW.md) for architectural context.
+**Need more details?** Check the source code directly or refer to the [Technical Overview](https://asleshsura.github.io/DiceTales/docs/TECHNICAL_OVERVIEW) for architectural context.

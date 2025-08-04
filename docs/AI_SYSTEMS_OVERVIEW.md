@@ -50,7 +50,7 @@ DiceTales AI Ecosystem
 - Model fallback system for reliability
 - Response post-processing pipeline
 
-[📖 **Detailed Documentation**: AI_MAIN_SYSTEM.md](AI_MAIN_SYSTEM.md)
+[📖 **Detailed Documentation**: AI_MAIN_SYSTEM.md](https://asleshsura.github.io/DiceTales/docs/AI_MAIN_SYSTEM)
 
 ---
 
@@ -74,7 +74,7 @@ DiceTales AI Ecosystem
 - Quest progression and discoveries
 - Significant plot developments
 
-[📖 **Detailed Documentation**: AI_MEMORY_MANAGER.md](AI_MEMORY_MANAGER.md)
+[📖 **Detailed Documentation**: AI_MEMORY_MANAGER.md](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_MANAGER)
 
 ---
 
@@ -98,7 +98,7 @@ DiceTales AI Ecosystem
 - D&D Authenticity (10%)
 - Creative Flair (10%)
 
-[📖 **Detailed Documentation**: AI_DM_EVALUATOR.md](AI_DM_EVALUATOR.md)
+[📖 **Detailed Documentation**: AI_DM_EVALUATOR.md](https://asleshsura.github.io/DiceTales/docs/AI_DM_EVALUATOR)
 
 ---
 
@@ -121,7 +121,7 @@ DiceTales AI Ecosystem
 - Intelligent story adaptation
 - Campaign state management
 
-[📖 **Detailed Documentation**: AI_BETTER_DM.md](AI_BETTER_DM.md)
+[📖 **Detailed Documentation**: AI_BETTER_DM.md](https://asleshsura.github.io/DiceTales/docs/AI_BETTER_DM)
 
 ## System Interactions
 
@@ -395,7 +395,7 @@ The modular design allows for independent development and optimization of each s
 ---
 
 **For detailed information about specific AI systems, please refer to their individual documentation:**
-- [Main AI System Documentation](AI_MAIN_SYSTEM.md)
-- [Memory Manager Documentation](AI_MEMORY_MANAGER.md)
-- [DM Evaluator Documentation](AI_DM_EVALUATOR.md)
-- [Better DM AI Documentation](AI_BETTER_DM.md)
+- [Main AI System Documentation](https://asleshsura.github.io/DiceTales/docs/AI_MAIN_SYSTEM)
+- [Memory Manager Documentation](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_MANAGER)
+- [DM Evaluator Documentation](https://asleshsura.github.io/DiceTales/docs/AI_DM_EVALUATOR)
+- [Better DM AI Documentation](https://asleshsura.github.io/DiceTales/docs/AI_BETTER_DM)
