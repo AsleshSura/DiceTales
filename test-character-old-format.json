@@ -1,0 +1,44 @@
+{
+  "name": "Old Format Hero",
+  "class": "scout",
+  "level": 2,
+  "experience": 450,
+  "background": "Outlander",
+  "stats": {
+    "str": 12,
+    "dex": 16,
+    "con": 14,
+    "int": 13,
+    "wis": 15,
+    "cha": 10
+  },
+  "health": {
+    "current": 95,
+    "maximum": 95,
+    "temporary": 0
+  },
+  "skills": {
+    "Stealth": {
+      "proficient": true,
+      "modifier": 5
+    },
+    "Survival": {
+      "proficient": true,
+      "modifier": 4
+    },
+    "Perception": {
+      "proficient": true,
+      "modifier": 4
+    }
+  },
+  "abilities": [
+    {
+      "name": "Stealth Movement",
+      "description": "Move unseen and unheard"
+    },
+    {
+      "name": "Keen Senses",
+      "description": "Notice things others miss"
+    }
+  ]
+}

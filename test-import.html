@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DiceTales Import Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>DiceTales Import Functionality Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Import Dialog</h3>
+        <button onclick="testImportDialog()">Test Import Dialog</button>
+        <div id="import-test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Direct Import Test</h3>
+        <input type="file" id="test-file-input" accept=".json">
+        <button onclick="testDirectImport()">Test Direct Import</button>
+        <div id="direct-import-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Console Output</h3>
+        <div id="console-output" style="background: #f0f0f0; padding: 10px; height: 200px; overflow-y: scroll;"></div>
+    </div>
+
+    <script>
+        // Include necessary DiceTales scripts
+        console.log('Loading DiceTales scripts...');
+        
+        // Mock logger for testing
+        window.logger = {
+            info: (msg) => console.log('INFO:', msg),
+            warn: (msg) => console.warn('WARN:', msg),
+            error: (msg) => console.error('ERROR:', msg),
+            debug: (msg) => console.debug('DEBUG:', msg)
+        };
+
+        // Mock gameState for testing
+        window.gameState = {
+            getCharacter: () => ({}),
+            getCampaign: () => ({}),
+            set: (key, value) => console.log('GameState set:', key, value)
+        };
+
+        // Mock showToast function
+        window.showToast = (message, type) => {
+            console.log('TOAST:', type, message);
+            document.getElementById('console-output').innerHTML += 
+                `<div class="${type}">[${type.toUpperCase()}] ${message}</div>`;
+        };
+
+        // Capture console output
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            document.getElementById('console-output').innerHTML += 
+                `<div class="info">[LOG] ${args.join(' ')}</div>`;
+        };
+
+        function testImportDialog() {
+            const results = document.getElementById('import-test-results');
+            results.innerHTML = '<p>Testing import dialog...</p>';
+            
+            try {
+                // Test if UI manager is available
+                if (typeof window.uiManager === 'undefined') {
+                    results.innerHTML += '<p class="error">❌ UIManager not available</p>';
+                    return;
+                }
+                
+                // Test if import dialog method exists
+                if (typeof window.uiManager.showImportCharacterDialog !== 'function') {
+                    results.innerHTML += '<p class="error">❌ showImportCharacterDialog method not found</p>';
+                    return;
+                }
+                
+                results.innerHTML += '<p class="success">✅ UIManager and import method available</p>';
+                
+                // Try to call the import dialog
+                window.uiManager.showImportCharacterDialog();
+                results.innerHTML += '<p class="success">✅ Import dialog called successfully</p>';
+                
+            } catch (error) {
+                results.innerHTML += `<p class="error">❌ Error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        }
+
+        function testDirectImport() {
+            const results = document.getElementById('direct-import-results');
+            const fileInput = document.getElementById('test-file-input');
+            
+            if (!fileInput.files[0]) {
+                results.innerHTML = '<p class="error">❌ Please select a file first</p>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            results.innerHTML = `<p>Testing direct import of: ${file.name}</p>`;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const characterData = JSON.parse(e.target.result);
+                    results.innerHTML += '<p class="success">✅ File parsed successfully</p>';
+                    results.innerHTML += `<p class="info">Character data: ${JSON.stringify(characterData, null, 2).substring(0, 200)}...</p>`;
+                    
+                    // Test character data manager
+                    if (typeof window.characterDataManager !== 'undefined') {
+                        results.innerHTML += '<p class="success">✅ CharacterDataManager available</p>';
+                        
+                        if (typeof window.characterDataManager.importCharacterData === 'function') {
+                            window.characterDataManager.importCharacterData(characterData);
+                            results.innerHTML += '<p class="success">✅ Character imported successfully</p>';
+                        } else {
+                            results.innerHTML += '<p class="error">❌ importCharacterData method not found</p>';
+                        }
+                    } else {
+                        results.innerHTML += '<p class="error">❌ CharacterDataManager not available</p>';
+                    }
+                    
+                } catch (error) {
+                    results.innerHTML += `<p class="error">❌ Import error: ${error.message}</p>`;
+                    console.error('Direct import error:', error);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Load DiceTales when page loads
+        window.addEventListener('load', () => {
+            console.log('Test page loaded, checking for DiceTales components...');
+            
+            setTimeout(() => {
+                console.log('Available window objects:', Object.keys(window).filter(k => k.toLowerCase().includes('manager') || k.toLowerCase().includes('state')));
+                
+                if (typeof window.uiManager !== 'undefined') {
+                    console.log('✅ UIManager found');
+                } else {
+                    console.log('❌ UIManager not found');
+                }
+                
+                if (typeof window.characterDataManager !== 'undefined') {
+                    console.log('✅ CharacterDataManager found');
+                } else {
+                    console.log('❌ CharacterDataManager not found');
+                }
+            }, 1000);
+        });
+    </script>
+
+    <!-- Load DiceTales scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/characterDataManager.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>

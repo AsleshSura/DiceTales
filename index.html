@@ -3,430 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiceTales - Adventure Game</title>
-    <meta name="description" content="An AI-powered adventure game with dynamic storytelling and immersive gameplay">
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/character.css">
-    <link rel="stylesheet" href="css/dice.css">
-    <link rel="stylesheet" href="css/evaluation.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <title>DiceTales - Choose Your Adventure</title>
+    <meta name="description" content="Choose your AI-powered adventure experience from three different game modes">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚂</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .dice-icon {
+            font-size: 4rem;
+            animation: rotate 3s infinite ease-in-out;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            color: #b8c6ff;
+        }
+
+        .ai-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-type-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-type-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .ai-type-card:hover::before {
+            left: 100%;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .card-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            color: #e0e6ff;
+        }
+
+        .card-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-features li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .card-features li::before {
+            content: '✨';
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .launch-btn {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .launch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .base-card {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .base-card .launch-btn {
+            background: linear-gradient(45deg, #059669, #10b981);
+        }
+
+        .base-card .launch-btn:hover {
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .advanced-card {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .advanced-card .launch-btn {
+            background: linear-gradient(45deg, #dc2626, #ef4444);
+        }
+
+        .advanced-card .launch-btn:hover {
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .better-dm-card {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .better-dm-card .launch-btn {
+            background: linear-gradient(45deg, #7c3aed, #a855f7);
+        }
+
+        .better-dm-card .launch-btn:hover {
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .footer {
+            margin-top: 2rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .dice-icon {
+                font-size: 3rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+                margin-bottom: 2rem;
+            }
+
+            .ai-types-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .ai-type-card {
+                padding: 1.5rem;
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 6s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 8s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 10s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 14s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 16s; }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen active">
-        <div class="loading-content">
-            <div class="loading-dice">⚂</div>
-            <h1>DiceTales</h1>
-            <p class="loading-subtitle">Where Epic Adventures Begin</p>
-            <p class="loading-status">Preparing your adventure...</p>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
+    <!-- Animated background particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="main-title">
+            <span class="dice-icon">⚂</span>
+            DiceTales
+        </h1>
+        <p class="subtitle">Choose Your AI-Powered Adventure Experience</p>
+
+        <div class="ai-types-grid">
+            <!-- Base AI - Simple Adventure -->
+            <div class="ai-type-card base-card" onclick="window.location.href='base/'">
+                <span class="card-icon">🌟</span>
+                <h2 class="card-title">Base Adventure</h2>
+                <p class="card-description">
+                    A streamlined AI adventure experience perfect for newcomers. Dive into "The Crystal of Shadows" with simplified mechanics and guided storytelling.
+                </p>
+                <ul class="card-features">
+                    <li>Simple, intuitive interface</li>
+                    <li>Guided adventure narrative</li>
+                    <li>Perfect for beginners</li>
+                    <li>Quick setup and play</li>
+                </ul>
+                <a href="base/" class="launch-btn">Start Base Adventure</a>
             </div>
-            <div class="loading-tips">
-                <p class="loading-tip">✨ Every roll tells a story</p>
+
+            <!-- Advanced AI - Full Featured -->
+            <div class="ai-type-card advanced-card" onclick="window.location.href='advanced/'">
+                <span class="card-icon">🔥</span>
+                <h2 class="card-title">Advanced Adventure</h2>
+                <p class="card-description">
+                    The complete DiceTales experience with advanced AI, character management, dynamic storytelling, and immersive gameplay features.
+                </p>
+                <ul class="card-features">
+                    <li>Advanced AI storytelling</li>
+                    <li>Character creation & management</li>
+                    <li>Dynamic dice mechanics</li>
+                    <li>Import/Export characters</li>
+                    <li>Memory system</li>
+                </ul>
+                <a href="advanced/" class="launch-btn">Launch Advanced Mode</a>
+            </div>
+
+            <!-- Better DM - Campaign Management -->
+            <div class="ai-type-card better-dm-card" onclick="window.location.href='better-dm/'">
+                <span class="card-icon">👑</span>
+                <h2 class="card-title">Better DM</h2>
+                <p class="card-description">
+                    Enhanced AI Dungeon Master with intelligent campaign roadmap management, perfect for planning and running tabletop sessions.
+                </p>
+                <ul class="card-features">
+                    <li>AI Campaign Roadmaps</li>
+                    <li>Session planning tools</li>
+                    <li>NPCs & encounter generation</li>
+                    <li>Campaign management</li>
+                    <li>Export to various formats</li>
+                </ul>
+                <a href="better-dm/" class="launch-btn">Open Better DM</a>
             </div>
         </div>
-        <div class="loading-particles">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
+
+        <div class="footer">
+            <p>✨ Every roll tells a story • Choose your path and begin your adventure ✨</p>
         </div>
     </div>
 
-    <!-- Main Application Container -->
-    <div id="app" class="app">
-        <!-- Navigation Header -->
-        <header class="app-header">
-            <div class="header-content">
-                <h1 class="app-title">
-                    <span class="dice-icon">⚂</span>
-                    DiceTales
-                </h1>
-                <nav class="header-nav" role="navigation" aria-label="Main navigation">
-                    <button id="settings-btn" class="nav-btn" title="Game Settings" aria-label="Open game settings">
-                        <span class="icon">⚙️</span>
-                        <span class="nav-text">Settings</span>
-                    </button>
-                    <button id="character-sheet-btn" class="nav-btn" title="Character Sheet" aria-label="View character sheet">
-                        <span class="icon">👤</span>
-                        <span class="nav-text">Character</span>
-                    </button>
-                    <button id="campaign-log-btn" class="nav-btn" title="Campaign Log" aria-label="View campaign history">
-                        <span class="icon">📜</span>
-                        <span class="nav-text">Log</span>
-                    </button>
-                    <button id="save-game-btn" class="nav-btn" title="Save Game" aria-label="Save current game progress">
-                        <span class="icon">💾</span>
-                        <span class="nav-text">Save</span>
-                    </button>
-                    <button id="import-export-btn" class="nav-btn" title="Import/Export Campaign" aria-label="Import or export campaign data">
-                        <span class="icon">📂</span>
-                        <span class="nav-text">Import/Export</span>
-                    </button>
-                    <button id="dm-evaluation-btn" class="nav-btn" title="DM Evaluation" aria-label="View DM performance metrics">
-                        <span class="icon">📊</span>
-                        <span class="nav-text">DM Metrics</span>
-                    </button>
-                </nav>
-            </div>
-        </header>
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                switch(e.key) {
+                    case '1':
+                        window.location.href = 'base/';
+                        break;
+                    case '2':
+                        window.location.href = 'advanced/';
+                        break;
+                    case '3':
+                        window.location.href = 'better-dm/';
+                        break;
+                }
+            });
 
-        <!-- Main Content Area -->
-        <main id="main-content" class="main-content">
-            <!-- Character Creation Screen -->
-            <section class="screen character-creation-screen" id="character-creation" style="display: none;">
-                <div class="creation-container">
-                    <div class="creation-header">
-                        <h1>Create Your Character</h1>
-                        <p>Begin your adventure by crafting your hero</p>
-                    </div>
-                    
-                    <!-- Step Indicator -->
-                    <div class="step-indicator" id="step-indicator">
-                        <!-- Step indicators will be populated by JS -->
-                    </div>
-                    
-                    <div class="creation-content" id="creation-content">
-                        <!-- Character creation form will be populated by JS -->
-                    </div>
-                    
-                    <!-- Navigation Buttons -->
-                    <div class="creation-navigation" id="creation-navigation">
-                        <button id="prev-step-btn" class="btn btn-secondary" style="display: none;">
-                            ← Previous
-                        </button>
-                        <button id="next-step-btn" class="btn btn-primary">
-                            Next →
-                        </button>
-                        <button id="complete-creation-btn" class="btn btn-success" style="display: none;">
-                            Create Character
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Campaign Selection Screen -->
-            <section class="screen campaign-selection-screen" id="campaign-selection" style="display: none;">
-                <div class="campaign-container">
-                    <div class="campaign-header">
-                        <h1>Choose Your Adventure</h1>
-                        <p>Select a campaign setting for your tale</p>
-                    </div>
-                    <div class="campaign-content" id="campaign-selection-content">
-                        <!-- Campaign options will be populated by JS -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- Main Game Screen -->
-            <section class="screen game-screen" id="game-screen" style="display: none;">
-                <!-- Story Display Area -->
-                <section class="story-section">
-                    <div class="story-display" id="story-display">
-                        <div class="story-content" id="story-content">
-                            <div class="story-waiting">
-                                <div class="story-waiting-icon">📖</div>
-                                <h3 class="story-waiting-title">Your Adventure Awaits</h3>
-                                <p class="story-waiting-subtitle">Create your character to begin your epic tale</p>
-                                <p class="story-waiting-description">Stories will unfold here as you make choices and shape your destiny</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Game Controls -->
-                <section class="controls-section">
-                    <!-- Dice Rolling Area -->
-                    <div class="dice-container" id="dice-container">
-                        <div class="dice-display" id="dice-display">
-                            <div class="dice-waiting">
-                                <div class="dice-waiting-icon">⚂</div>
-                                <p class="dice-waiting-title">Action History</p>
-                                <p class="dice-waiting-subtitle">Recent dice rolls and outcomes will appear here</p>
-                                <div class="dice-waiting-tip">
-                                    💡 Tip: Roll your dice in the input section below before submitting actions!
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Free Input -->
-                    <div class="input-section">
-                        <div class="input-container">
-                            <textarea 
-                                id="player-input" 
-                                class="player-input" 
-                                placeholder="Describe what you want to do..."
-                                rows="3"
-                            ></textarea>
-                            
-                            <!-- Dice Selection and Roll -->
-                            <div class="dice-input-section">
-                                <label class="dice-input-label">Choose your dice and roll:</label>
-                                <div class="dice-selection">
-                                    <button class="dice-btn" data-dice="d4">D4</button>
-                                    <button class="dice-btn" data-dice="d6">D6</button>
-                                    <button class="dice-btn" data-dice="d8">D8</button>
-                                    <button class="dice-btn" data-dice="d10">D10</button>
-                                    <button class="dice-btn" data-dice="d12">D12</button>
-                                    <button class="dice-btn" data-dice="d20">D20</button>
-                                </div>
-                                <div class="dice-result-display" id="input-dice-result">
-                                    Select a die and roll to see your result
-                                </div>
-                            </div>
-                            
-                            <button id="submit-action-btn" class="btn btn-primary submit-btn">
-                                Submit Action & Roll
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Character Status Panel -->
-                <aside class="character-status" id="character-status">
-                    <div class="status-header">
-                        <h3 id="character-name">Character</h3>
-                        <span id="character-level" class="level-badge">Level 1</span>
-                    </div>
-                    <div class="health-bar">
-                        <div class="health-label">Health</div>
-                        <div class="health-display">
-                            <div class="health-bar-container">
-                                <div class="health-bar-fill" id="health-bar-fill"></div>
-                            </div>
-                            <span class="health-text" id="health-text">100/100</span>
-                        </div>
-                    </div>
-                    <div class="stats-summary" id="stats-summary">
-                        <!-- Quick stats display -->
-                    </div>
-                    <button id="quick-inventory-btn" class="btn btn-secondary">
-                        View Inventory
-                    </button>
-                </aside>
-            </section>
-        </main>
-
-        <!-- Modals and Overlays -->
-        <!-- Settings Modal -->
-        <div class="modal" id="settings-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Settings</h2>
-                    <button class="modal-close" data-modal="settings-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="settings-content">
-                    <!-- Settings form will be populated by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Character Sheet Modal -->
-        <div class="modal" id="character-sheet-modal">
-            <div class="modal-content modal-large">
-                <div class="modal-header">
-                    <h2>Character Sheet</h2>
-                    <button class="modal-close" data-modal="character-sheet-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="character-sheet-content">
-                    <!-- Character sheet will be populated by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Campaign Log Modal -->
-        <div class="modal" id="campaign-log-modal">
-            <div class="modal-content modal-large">
-                <div class="modal-header">
-                    <h2>Campaign Log</h2>
-                    <button class="modal-close" data-modal="campaign-log-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="campaign-log-content">
-                    <!-- Campaign log will be populated by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Inventory Modal -->
-        <div class="modal" id="inventory-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Inventory</h2>
-                    <button class="modal-close" data-modal="inventory-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="inventory-content">
-                    <!-- Inventory will be populated by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Import/Export Modal -->
-        <div class="modal" id="import-export-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>📂 Import/Export Campaign</h2>
-                    <button class="modal-close" data-modal="import-export-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="import-export-content">
-                    <div class="import-export-container">
-                        <!-- Export Section -->
-                        <div class="export-section">
-                            <h3>🎁 Export Campaign</h3>
-                            <p>Save your current campaign progress to a file that you can share or backup.</p>
-                            <div class="export-info">
-                                <div class="info-grid">
-                                    <div class="info-item">
-                                        <span class="info-label">Character:</span>
-                                        <span class="info-value" id="export-character-name">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Level:</span>
-                                        <span class="info-value" id="export-character-level">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Campaign:</span>
-                                        <span class="info-value" id="export-campaign-setting">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Last Played:</span>
-                                        <span class="info-value" id="export-last-played">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button id="export-campaign-btn" class="btn btn-primary">
-                                📤 Export Campaign
-                            </button>
-                        </div>
-
-                        <div class="divider"></div>
-
-                        <!-- Import Section -->
-                        <div class="import-section">
-                            <h3>📥 Import Campaign</h3>
-                            <p>Load a previously exported campaign file to continue your adventure.</p>
-                            <div class="import-controls">
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="import-file-input" accept=".json,.dicetales" style="display: none;">
-                                    <button id="select-import-file-btn" class="btn btn-secondary">
-                                        📁 Select Campaign File
-                                    </button>
-                                    <span id="selected-file-name" class="selected-file"></span>
-                                </div>
-                                <div class="import-preview" id="import-preview" style="display: none;">
-                                    <h4>Campaign Preview:</h4>
-                                    <div class="preview-info">
-                                        <div class="info-grid">
-                                            <div class="info-item">
-                                                <span class="info-label">Character:</span>
-                                                <span class="info-value" id="preview-character-name">-</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <span class="info-label">Level:</span>
-                                                <span class="info-value" id="preview-character-level">-</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <span class="info-label">Campaign:</span>
-                                                <span class="info-value" id="preview-campaign-setting">-</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <span class="info-label">Exported:</span>
-                                                <span class="info-value" id="preview-exported-date">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="import-warning">
-                                        <p>⚠️ <strong>Warning:</strong> Importing will replace your current campaign progress. Make sure to export your current campaign first if you want to keep it!</p>
-                                    </div>
-                                </div>
-                                <button id="import-campaign-btn" class="btn btn-success" style="display: none;">
-                                    📥 Import Campaign
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- DM Evaluation Modal -->
-        <div class="modal" id="dm-evaluation-modal">
-            <div class="modal-content modal-large">
-                <div class="modal-header">
-                    <h2>📊 DM Performance Evaluation</h2>
-                    <button class="modal-close" data-modal="dm-evaluation-modal">&times;</button>
-                </div>
-                <div class="modal-body" id="dm-evaluation-content">
-                    <div class="evaluation-container">
-                        <!-- Evaluation Settings -->
-                        <div class="evaluation-settings">
-                            <h3>Settings</h3>
-                            <div class="setting-row">
-                                <label class="switch">
-                                    <input type="checkbox" id="enable-evaluation">
-                                    <span class="slider"></span>
-                                </label>
-                                <span>Enable DM Evaluation</span>
-                            </div>
-                            <div class="setting-row">
-                                <label class="switch">
-                                    <input type="checkbox" id="auto-improve">
-                                    <span class="slider"></span>
-                                </label>
-                                <span>Auto-Improve DM Responses</span>
-                            </div>
-                        </div>
-
-                        <!-- Evaluation Metrics -->
-                        <div class="evaluation-metrics">
-                            <h3>Performance Metrics</h3>
-                            <div id="evaluation-stats">
-                                <!-- Stats will be populated by JS -->
-                            </div>
-                        </div>
-
-                        <!-- Recent Evaluations -->
-                        <div class="evaluation-history">
-                            <h3>Recent Evaluations</h3>
-                            <div id="recent-evaluations">
-                                <!-- Recent evaluations will be populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript Files -->
-    <script src="js/config.js"></script>
-
-    <script src="js/utils.js"></script>
-    <script src="js/gameState.js"></script>
-    <script src="js/memoryManager.js"></script>
-    <script src="js/character.js"></script>
-    <!-- Enhanced Character System -->
-    <script src="js/characterDataManager.js"></script>
-    <script src="js/characterIntegration.js"></script>
-    <script src="js/dice.js"></script>
-    <script src="js/dmEvaluator.js"></script>
-    <script src="js/ai.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/evaluationUI.js"></script>
-    <!-- System Integration Verification -->
-    <script src="js/systemIntegration.js"></script>
-    <script src="js/main.js"></script>
-
-    
-
-    
+            // Add entrance animation
+            const cards = document.querySelectorAll('.ai-type-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 * index);
+            });
+        });
+    </script>
 </body>
 </html>

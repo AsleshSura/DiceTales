@@ -67,20 +67,29 @@ class UIManager {
             }
             
             if (e.target.id === 'import-character-option-btn') {
-                this.closeModal('character-sheet-modal');
+                console.log('🎭 Import character option button clicked');
                 this.showImportCharacterDialog();
             }
 
             // Import character dialog buttons
             if (e.target.id === 'select-character-file-btn') {
-                document.getElementById('character-file-input').click();
+                console.log('🎭 Select character file button clicked');
+                const fileInput = document.getElementById('character-file-input');
+                if (fileInput) {
+                    console.log('File input found, triggering click');
+                    fileInput.click();
+                } else {
+                    console.error('Character file input not found');
+                }
             }
             
             if (e.target.id === 'import-character-file-btn') {
+                console.log('🎭 Import character button clicked');
                 this.importCharacterFile();
             }
             
             if (e.target.id === 'cancel-import-btn') {
+                console.log('🎭 Cancel import button clicked');
                 this.showCharacterOptionsMenu();
             }
             
@@ -768,6 +777,7 @@ class UIManager {
      * Open character sheet modal
      */
     openCharacterSheetModal() {
+        console.log('🎭 Character sheet modal requested from navigation');
         // Show character options menu first
         this.showCharacterOptionsMenu();
     }
@@ -776,9 +786,13 @@ class UIManager {
      * Show character options menu
      */
     showCharacterOptionsMenu() {
+        console.log('🎭 Showing character options menu');
         const content = document.getElementById('character-sheet-content');
         if (content) {
             content.innerHTML = this.renderCharacterOptionsMenu();
+            console.log('🎭 Character options menu rendered successfully');
+        } else {
+            console.error('🎭 ERROR: character-sheet-content element not found');
         }
         this.openModal('character-sheet-modal');
     }
@@ -992,10 +1006,86 @@ class UIManager {
      * Show import character dialog
      */
     showImportCharacterDialog() {
+        console.log('🎭 showImportCharacterDialog called');
+        
+        // Ensure the character sheet modal is open
+        this.openModal('character-sheet-modal');
+        
         const content = document.getElementById('character-sheet-content');
         if (content) {
+            console.log('Character sheet content found, rendering import dialog');
             content.innerHTML = this.renderImportCharacterDialog();
+            
+            // Set up event listeners for the import dialog buttons
+            this.setupImportDialogEvents();
+        } else {
+            console.error('Character sheet content element not found');
         }
+    }
+
+    /**
+     * Set up event listeners for import dialog
+     */
+    setupImportDialogEvents() {
+        console.log('🎭 Setting up import dialog events');
+        
+        // Wait for DOM to be ready
+        setTimeout(() => {
+            // File selection button
+            const selectBtn = document.getElementById('select-character-file-btn');
+            console.log('Select button found:', !!selectBtn);
+            if (selectBtn) {
+                selectBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎭 File select button clicked (direct listener)');
+                    const fileInput = document.getElementById('character-file-input');
+                    if (fileInput) {
+                        console.log('Triggering file input click');
+                        fileInput.click();
+                    } else {
+                        console.error('File input not found');
+                    }
+                });
+                console.log('Select button event listener added');
+            }
+            
+            // File input change
+            const fileInput = document.getElementById('character-file-input');
+            console.log('File input found:', !!fileInput);
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    console.log('🎭 File input changed');
+                    this.handleCharacterFileSelection(e);
+                });
+            }
+            
+            // Import button
+            const importBtn = document.getElementById('import-character-file-btn');
+            console.log('Import button found:', !!importBtn);
+            if (importBtn) {
+                importBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎭 Import button clicked (direct listener)');
+                    this.importCharacterFile();
+                });
+            }
+            
+            // Cancel button
+            const cancelBtn = document.getElementById('cancel-import-btn');
+            console.log('Cancel button found:', !!cancelBtn);
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎭 Cancel button clicked (direct listener)');
+                    this.showCharacterOptionsMenu();
+                });
+            }
+            
+            console.log('All import dialog event listeners set up');
+        }, 100);
     }
 
     /**
@@ -1007,22 +1097,56 @@ class UIManager {
                 <div class="import-header">
                     <h3>Import Character</h3>
                     <p>Select a character file to import</p>
+                    <small>Supports both DiceTales format and legacy character files</small>
                 </div>
                 
                 <div class="import-content">
                     <div class="file-input-container">
-                        <input type="file" id="character-file-input" accept=".json" style="display: none;">
-                        <button id="select-character-file-btn" class="btn btn-secondary btn-large">
+                        <input type="file" id="character-file-input" accept=".json" style="display: none;" 
+                               onchange="if(window.uiManager) window.uiManager.handleCharacterFileSelection(event); else console.error('UIManager not available');">
+                        <button id="select-character-file-btn" class="btn btn-secondary btn-large" 
+                                style="pointer-events: auto; cursor: pointer; z-index: 1000; position: relative;"
+                                onclick="
+                                    console.log('Select file button clicked via onclick');
+                                    const input = document.getElementById('character-file-input');
+                                    if (input) {
+                                        input.click();
+                                        console.log('File input triggered');
+                                    } else {
+                                        console.error('File input not found');
+                                    }
+                                ">
                             📂 Select Character File
                         </button>
                         <p class="file-info" id="selected-file-info">No file selected</p>
+                        <small style="color: #666; font-size: 0.9em;">
+                            Supported formats: DiceTales JSON, legacy character files
+                        </small>
                     </div>
                     
                     <div class="import-actions">
-                        <button id="import-character-file-btn" class="btn btn-primary" disabled>
+                        <button id="import-character-file-btn" class="btn btn-primary" disabled 
+                                style="pointer-events: auto; cursor: pointer; z-index: 1000; position: relative;"
+                                onclick="
+                                    console.log('Import button clicked via onclick');
+                                    if (window.uiManager && typeof window.uiManager.importCharacterFile === 'function') {
+                                        window.uiManager.importCharacterFile();
+                                    } else {
+                                        console.error('UIManager or importCharacterFile not available');
+                                    }
+                                ">
                             Import Character
                         </button>
-                        <button id="cancel-import-btn" class="btn btn-secondary">
+                        <button id="cancel-import-btn" class="btn btn-secondary" 
+                                style="pointer-events: auto; cursor: pointer; z-index: 1000; position: relative;"
+                                onclick="
+                                    console.log('Cancel button clicked via onclick');
+                                    if (window.uiManager && typeof window.uiManager.showCharacterOptionsMenu === 'function') {
+                                        window.uiManager.showCharacterOptionsMenu();
+                                    } else {
+                                        console.error('UIManager or showCharacterOptionsMenu not available');
+                                    }
+                                ">
                             Cancel
                         </button>
                     </div>
@@ -1035,16 +1159,40 @@ class UIManager {
      * Handle character file selection
      */
     handleCharacterFileSelection(event) {
+        console.log('🎭 handleCharacterFileSelection called', event);
         const file = event.target.files[0];
         const fileInfo = document.getElementById('selected-file-info');
         const importBtn = document.getElementById('import-character-file-btn');
         
+        console.log('Selected file:', file);
+        console.log('File info element:', fileInfo);
+        console.log('Import button element:', importBtn);
+        
         if (file) {
-            fileInfo.textContent = `Selected: ${file.name}`;
-            importBtn.disabled = false;
+            console.log('File selected:', file.name, file.size, 'bytes');
+            if (fileInfo) {
+                fileInfo.textContent = `Selected: ${file.name}`;
+                fileInfo.style.color = '#28a745';
+            }
+            if (importBtn) {
+                importBtn.disabled = false;
+                importBtn.style.cursor = 'pointer';
+                importBtn.style.opacity = '1';
+                importBtn.style.backgroundColor = '#007bff';
+                console.log('Import button enabled');
+            }
         } else {
-            fileInfo.textContent = 'No file selected';
-            importBtn.disabled = true;
+            console.log('No file selected');
+            if (fileInfo) {
+                fileInfo.textContent = 'No file selected';
+                fileInfo.style.color = '#6c757d';
+            }
+            if (importBtn) {
+                importBtn.disabled = true;
+                importBtn.style.cursor = 'not-allowed';
+                importBtn.style.opacity = '0.6';
+                importBtn.style.backgroundColor = '#6c757d';
+            }
         }
     }
 
@@ -1052,31 +1200,117 @@ class UIManager {
      * Import character from file
      */
     importCharacterFile() {
+        console.log('🎭 importCharacterFile called');
         const fileInput = document.getElementById('character-file-input');
         const file = fileInput.files[0];
         
         if (!file) {
+            console.warn('No file selected for import');
             showToast('Please select a file to import', 'error');
             return;
         }
         
+        console.log('Selected file:', file.name, file.type, file.size);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
+                console.log('File read successfully, parsing JSON...');
                 const characterData = JSON.parse(e.target.result);
+                console.log('Character data parsed:', characterData);
                 
-                // Validate character data structure
-                if (!characterData.name) {
+                // Validate character data structure - check multiple possible formats
+                let characterName = null;
+                
+                // Check for new format (basic_info.name)
+                if (characterData.basic_info && characterData.basic_info.name) {
+                    characterName = characterData.basic_info.name;
+                    console.log('Found character name in basic_info:', characterName);
+                }
+                // Check for old format (direct name property)
+                else if (characterData.name) {
+                    characterName = characterData.name;
+                    console.log('Found character name in root:', characterName);
+                }
+                
+                if (!characterName) {
                     throw new Error('Invalid character file: missing character name');
                 }
                 
-                // Store character data
+                // Store character data - try multiple access methods
+                let characterDataManager = null;
+                
+                // Try app instance first
                 if (typeof window.app !== 'undefined' && window.app.characterDataManager) {
-                    window.app.characterDataManager.saveCharacter(characterData);
-                    showToast(`Character "${characterData.name}" imported successfully!`, 'success');
+                    characterDataManager = window.app.characterDataManager;
+                    console.log('Using characterDataManager from app instance');
+                }
+                // Fallback to global instance
+                else if (typeof window.characterDataManager !== 'undefined') {
+                    characterDataManager = window.characterDataManager;
+                    console.log('Using global characterDataManager instance');
+                }
+                // If not available, try to access the global class and create instance
+                else if (typeof CharacterDataManager !== 'undefined') {
+                    console.log('Creating new CharacterDataManager instance');
+                    characterDataManager = new CharacterDataManager();
+                    window.characterDataManager = characterDataManager;
+                }
+                
+                if (characterDataManager) {
+                    console.log('CharacterDataManager available, proceeding with import...');
+                    
+                    // Use proper import method if available, otherwise set directly
+                    if (typeof characterDataManager.importCharacterData === 'function') {
+                        console.log('Using importCharacterData method...');
+                        characterDataManager.importCharacterData(characterData);
+                    } else {
+                        console.log('Using direct character assignment...');
+                        
+                        // Validate the character data structure
+                        if (typeof characterDataManager.validateCharacterData === 'function') {
+                            console.log('Validating character data...');
+                            characterDataManager.validateCharacterData(characterData);
+                        }
+                        
+                        console.log('Setting character data...');
+                        characterDataManager.character = characterData;
+                    }
+                    
+                    console.log('Saving character...');
+                    const saveResult = characterDataManager.saveCharacter();
+                    console.log('Save result:', saveResult);
+                    
+                    // Also sync to gameState if available
+                    if (typeof gameState !== 'undefined' && typeof characterDataManager.syncToGameState === 'function') {
+                        console.log('Syncing to gameState...');
+                        characterDataManager.syncToGameState(characterData);
+                    }
+                    
+                    console.log('Import completed successfully!');
+                    showToast(`Character "${characterName}" imported successfully!`, 'success');
                     this.closeModal('character-sheet-modal');
+                    
+                    // Trigger character display update if available
+                    if (typeof this.updateCharacterDisplay === 'function') {
+                        console.log('Updating character display...');
+                        this.updateCharacterDisplay();
+                    }
+                    
+                    // Trigger game state refresh if in game
+                    if (typeof window.app !== 'undefined' && typeof window.app.refreshGameDisplay === 'function') {
+                        console.log('Refreshing game display...');
+                        window.app.refreshGameDisplay();
+                    }
                 } else {
-                    throw new Error('Character data manager not available');
+                    console.error('CharacterDataManager not available');
+                    console.log('Available window objects:', Object.keys(window).filter(k => k.toLowerCase().includes('character')));
+                    console.log('Available global objects:', {
+                        'window.app': typeof window.app,
+                        'window.characterDataManager': typeof window.characterDataManager,
+                        'CharacterDataManager': typeof CharacterDataManager
+                    });
+                    throw new Error('Character data manager not available. Please refresh the page and try again.');
                 }
                 
             } catch (error) {

@@ -164,6 +164,20 @@ class DiceTalesApp {
             logger.warn('Background music start failed:', error);
         }
         
+        // Attach system instances to app for easy access
+        try {
+            this.characterDataManager = window.characterDataManager || characterDataManager;
+            this.characterManager = window.characterManager || characterManager;
+            this.uiManager = window.uiManager || uiManager;
+            this.gameState = window.gameState || gameState;
+            if (typeof aiManager !== 'undefined') this.aiManager = aiManager;
+            if (typeof audioManager !== 'undefined') this.audioManager = audioManager;
+            if (typeof memoryManager !== 'undefined') this.memoryManager = memoryManager;
+            if (typeof diceSystem !== 'undefined') this.diceSystem = diceSystem;
+        } catch (error) {
+            logger.warn('Failed to attach some system instances to app:', error);
+        }
+        
         logger.info('All game systems initialized');
     }
     

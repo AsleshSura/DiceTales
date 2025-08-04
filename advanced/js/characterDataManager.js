@@ -38,6 +38,199 @@ class CharacterDataManager {
     }
 
     /**
+     * Import character data from external source
+     */
+    importCharacterData(characterData) {
+        try {
+            console.log('Importing character data:', characterData);
+            
+            // Validate and normalize the character data
+            let normalizedData = this.normalizeCharacterData(characterData);
+            
+            // Validate the structure
+            normalizedData = this.validateCharacterData(normalizedData);
+            
+            // Set the character
+            this.character = normalizedData;
+            
+            // Update metadata
+            this.character.metadata.last_updated = new Date().toISOString();
+            this.character.metadata.import_date = new Date().toISOString();
+            
+            console.log('Character data imported successfully');
+            return true;
+            
+        } catch (error) {
+            console.error('Error importing character data:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Normalize character data from different formats
+     */
+    normalizeCharacterData(data) {
+        // If it's already in the new format, return as-is
+        if (data.version && data.basic_info && data.metadata) {
+            return data;
+        }
+        
+        // If it's old format, convert it
+        if (data.name && data.class) {
+            console.log('Converting from old character format');
+            
+            return {
+                version: "2.0.0",
+                metadata: {
+                    created_at: new Date().toISOString(),
+                    last_updated: new Date().toISOString(),
+                    character_id: `char_imported_${Date.now()}`,
+                    schema_version: "2.0.0"
+                },
+                basic_info: {
+                    name: data.name,
+                    class: data.class || 'warrior',
+                    level: data.level || 1,
+                    experience: data.experience || 0,
+                    background: data.background || '',
+                    alignment: data.alignment || 'neutral',
+                    age: data.age || 25,
+                    gender: data.gender || 'unknown',
+                    race: data.race || 'human',
+                    description: data.description || 'An adventurer'
+                },
+                campaign_setting: {
+                    setting: 'medieval-fantasy',
+                    setting_name: 'Medieval Fantasy',
+                    setting_icon: '🏰',
+                    currency: 'gold pieces',
+                    technology_level: 'Medieval',
+                    magic_system: 'High fantasy'
+                },
+                ability_scores: {
+                    base_stats: data.stats || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+                    point_buy_allocations: {},
+                    final_stats: data.stats || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+                    modifiers: {},
+                    setting_specific_names: {}
+                },
+                health_and_vitals: {
+                    hit_points: data.health || { current: 100, maximum: 100, temporary: 0 },
+                    armor_class: 10,
+                    initiative_bonus: 0,
+                    speed: 30,
+                    proficiency_bonus: 2,
+                    passive_perception: 10,
+                    inspiration: false
+                },
+                class_features: {
+                    primary_class: data.class || 'warrior',
+                    class_icon: '⚔️',
+                    class_description: 'An adventurer',
+                    hit_die: 'd10',
+                    primary_abilities: ['str', 'con'],
+                    saving_throw_proficiencies: ['str', 'con'],
+                    class_abilities: data.abilities || [],
+                    spellcasting: {
+                        is_spellcaster: false,
+                        spell_ability: null,
+                        spell_save_dc: null,
+                        spell_attack_bonus: null,
+                        cantrips_known: 0,
+                        spells_known: [],
+                        spell_slots: {}
+                    }
+                },
+                skills: {
+                    proficient_skills: [],
+                    all_skills: data.skills || {}
+                },
+                equipment: {
+                    weapons: [],
+                    armor: [],
+                    shield: null,
+                    accessories: [],
+                    consumables: [],
+                    tools_and_kits: [],
+                    currency: { platinum: 0, gold: 100, electrum: 0, silver: 0, copper: 0 },
+                    carrying_capacity: { maximum: 150, current: 0, encumbered_at: 100, heavily_encumbered_at: 150 }
+                },
+                progression: {
+                    experience_points: data.experience || 0,
+                    next_level_at: 300,
+                    level_progression: [],
+                    ability_score_improvements: { available_at_levels: [4, 6, 8, 12, 14, 16, 19], used: [] },
+                    multiclass: { enabled: false, classes: [] }
+                },
+                personality: {
+                    personality_traits: [],
+                    ideals: [],
+                    bonds: [],
+                    flaws: [],
+                    languages: ['Common'],
+                    proficiencies: { armor: [], weapons: [], tools: [], other: [] }
+                },
+                backstory: {
+                    background: data.background || 'Folk Hero',
+                    feature: '',
+                    feature_description: '',
+                    background_skills: [],
+                    background_languages: [],
+                    background_equipment: [],
+                    personal_history: '',
+                    connections: []
+                },
+                roleplay_notes: {
+                    voice_and_mannerisms: '',
+                    motivations: '',
+                    fears: '',
+                    aspirations: '',
+                    quirks: [],
+                    relationships: { party_members: [], npcs: [], reputation: { factions: {}, locations: {} } }
+                },
+                campaign_data: {
+                    current_location: '',
+                    active_quests: [],
+                    completed_quests: [],
+                    important_locations: [],
+                    known_npcs: [],
+                    campaign_flags: {},
+                    story_beats: []
+                },
+                game_mechanics: {
+                    initiative_modifier: 0,
+                    spell_save_dc: null,
+                    spell_attack_bonus: null,
+                    passive_skills: { passive_perception: 10, passive_investigation: 10, passive_insight: 10 },
+                    conditions: { current: [], immunities: [], resistances: [], vulnerabilities: [] },
+                    death_saves: { successes: 0, failures: 0 },
+                    inspiration_dice: 0,
+                    legendary_actions: 0,
+                    legendary_resistances: 0
+                },
+                ai_context: {
+                    personality_summary: 'An imported character ready for adventure',
+                    combat_preferences: 'Adaptable',
+                    roleplay_style: 'Balanced',
+                    decision_making: 'Thoughtful',
+                    relationships: 'Friendly',
+                    goals: 'Adventure and growth'
+                },
+                import_export: {
+                    compatible_formats: ['dnd_beyond', 'roll20', 'fantasy_grounds', 'dicetales_native'],
+                    export_settings: { include_backstory: true, include_campaign_data: true, include_roleplay_notes: true, format_version: '2.0.0' },
+                    last_exported: null,
+                    import_source: 'external_import',
+                    import_date: new Date().toISOString()
+                }
+            };
+        }
+        
+        // If we can't identify the format, throw an error
+        throw new Error('Unrecognized character data format');
+    }
+
+    /**
      * Save character data to JSON file (browser storage fallback)
      */
     saveCharacter(characterData = null, filePath = null) {

@@ -1,0 +1,606 @@
+/**
+ * Better DM - Styles
+ * Enhanced styling for the Better DM interface
+ */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #e6e6fa;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#better-dm-app {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Screen management */
+.screen {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Campaign Setup Screen */
+.setup-container {
+    max-width: 800px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.setup-container h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-align: center;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.setup-container p {
+    text-align: center;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-section h3 {
+    margin-bottom: 10px;
+    color: #ffd700;
+    font-size: 1.2em;
+}
+
+.form-section textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e6e6fa;
+    font-size: 1em;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.form-section textarea:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.form-section textarea::placeholder {
+    color: rgba(230, 230, 250, 0.6);
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.settings-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.settings-grid select {
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e6e6fa;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.settings-grid select:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+/* Buttons */
+.primary-button, .action-button, .control-button {
+    background: linear-gradient(45deg, #ff6b6b, #ffd700);
+    color: #1a1a2e;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.primary-button:hover, .action-button:hover, .control-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+}
+
+.primary-button:active, .action-button:active, .control-button:active {
+    transform: translateY(0);
+}
+
+.primary-button:disabled, .action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.control-button {
+    font-size: 0.9em;
+    padding: 10px 20px;
+    margin: 5px;
+}
+
+/* Progress indicator */
+.progress-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ffd700);
+    width: 0%;
+    animation: progressFill 3s ease-in-out infinite;
+}
+
+@keyframes progressFill {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+.progress-text {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Game Screen Layout */
+.game-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    height: 100vh;
+    width: 100%;
+    gap: 20px;
+    padding: 20px;
+}
+
+.story-area {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#story-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.story-message {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dm-message {
+    background: rgba(255, 215, 0, 0.1);
+    border-left: 4px solid #ffd700;
+}
+
+.player-message {
+    background: rgba(107, 255, 107, 0.1);
+    border-left: 4px solid #6bff6b;
+    margin-left: 20px;
+}
+
+.message-content {
+    margin-bottom: 5px;
+    line-height: 1.6;
+}
+
+.message-timestamp {
+    font-size: 0.8em;
+    opacity: 0.6;
+    text-align: right;
+}
+
+.input-area {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 15px;
+}
+
+#player-input {
+    flex: 1;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e6e6fa;
+    font-size: 1em;
+    resize: none;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+#player-input:focus {
+    outline: none;
+    border-color: #6bff6b;
+    box-shadow: 0 0 20px rgba(107, 255, 107, 0.3);
+}
+
+.action-button {
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+/* Sidebar */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.roadmap-panel, .controls-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.roadmap-panel h3 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.campaign-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #ff6b6b;
+}
+
+.progress-info, .scene-info {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+#current-objectives h4 {
+    color: #ffd700;
+    margin-bottom: 10px;
+    margin-top: 15px;
+}
+
+#current-objectives ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#current-objectives li {
+    padding: 5px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+#current-objectives li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #ffd700;
+}
+
+.controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    max-width: 90%;
+    max-height: 90%;
+    width: 800px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    color: #ffd700;
+    margin: 0;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: #e6e6fa;
+    font-size: 2em;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: #ff6b6b;
+}
+
+.modal-body {
+    padding: 30px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Roadmap display */
+.roadmap-overview {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 10px;
+    border-left: 4px solid #ffd700;
+}
+
+.roadmap-overview h3 {
+    color: #ffd700;
+    margin-bottom: 15px;
+}
+
+.chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chapter {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.chapter.current {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.chapter h4 {
+    color: #ff6b6b;
+    margin-bottom: 10px;
+}
+
+.scenes {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.scene {
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.scene.current {
+    border-left-color: #6bff6b;
+    background: rgba(107, 255, 107, 0.1);
+}
+
+.scene strong {
+    color: #e6e6fa;
+}
+
+.scene p {
+    margin-top: 5px;
+    opacity: 0.8;
+    font-size: 0.9em;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .game-layout {
+        grid-template-columns: 1fr 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+    }
+    
+    .sidebar {
+        order: 2;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .roadmap-panel, .controls-panel {
+        min-width: 250px;
+    }
+    
+    .setup-container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .input-area {
+        flex-direction: column;
+    }
+    
+    .action-button {
+        align-self: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .setup-container h1 {
+        font-size: 2em;
+    }
+    
+    .game-layout {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .modal-content {
+        margin: 20px;
+        width: auto;
+    }
+    
+    .modal-header {
+        padding: 15px 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.5);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 215, 0, 0.7);
+}
+
+/* Loading animations */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Success/error states */
+.success {
+    border-color: #6bff6b !important;
+    box-shadow: 0 0 20px rgba(107, 255, 107, 0.3) !important;
+}
+
+.error {
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3) !important;
+}
