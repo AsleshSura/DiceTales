@@ -2,21 +2,7 @@
 
 **A Production-Ready AI-Powered RPG Experience with Enhanced Memory System & Advanced Campaign Management**
 
-[![Play Now](https://i| **[📖| **[📖 Setup Guide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** | Get started in 5 minutes |
-| **[🎮 Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** | Master the art of adventure |
-| **[🗺️ Better DM Guide](https://asleshsura.github.io/DiceTales/better-dm/docs/)** | Advanced campaign management system |
-| **[📂 Import/Export Guide](https://asleshsura.github.io/DiceTales/docs/IMPORT_EXPORT_GUIDE)** | Share and backup campaigns |
-| **[📋 API Reference](https://asleshsura.github.io/DiceTales/docs/API_REFERENCE)** | Complete code documentation |
-| **[🧠 AI Memory System](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_SYSTEM)** | Advanced memory architecture |
-| **[👤 Character System](https://asleshsura.github.io/DiceTales/docs/CHARACTER_SYSTEM)** | Character management documentation |
-| **[🚀 Deployment Guide](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE)** | Host your own instance |uide](https://asleshsura.github.io/DiceTales/docs/SETUP_GUIDE)** | Get started in 5 minutes |
-| **[🎮 Game Guide](https://asleshsura.github.io/DiceTales/docs/GAME_GUIDE)** | Master the art of adventure |
-| **[🗺️ Better DM Guide](https://asleshsura.github.io/DiceTales/better-dm/docs/)** | Advanced campaign management system |
-| **[📂 Import/Export Guide](https://asleshsura.github.io/DiceTales/docs/IMPORT_EXPORT_GUIDE)** | Share and backup campaigns |
-| **[📋 API Reference](https://asleshsura.github.io/DiceTales/docs/API_REFERENCE)** | Complete code documentation |
-| **[🧠 AI Memory System](https://asleshsura.github.io/DiceTales/docs/AI_MEMORY_SYSTEM)** | Advanced memory architecture |
-| **[👤 Character System](https://asleshsura.github.io/DiceTales/docs/CHARACTER_SYSTEM)** | Character management documentation |
-| **[🚀 Deployment Guide](https://asleshsura.github.io/DiceTales/docs/DEPLOYMENT_GUIDE)** | Host your own instance |ds.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](https://asleshsura.github.io/DiceTales/)
+[![Play Now](https://img.shields.io/badge/🎮-Play%20Now-blue?style=for-the-badge&logo=rocket)](https://asleshsura.github.io/DiceTales/)
 [![Better DM](https://img.shields.io/badge/🗺️-Better%20DM-purple?style=for-the-badge&logo=map)](https://asleshsura.github.io/DiceTales/better-dm/)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-green?style=for-the-badge&logo=book)](https://asleshsura.github.io/DiceTales/docs/)
 
@@ -144,6 +130,52 @@ Experience the next evolution of AI dungeon mastering:
 ## 📊 Technical Features
 
 ### System Integration & Reliability
+
+### Visual Design
+- **Glass-morphism Effects**: Translucent panels with backdrop blur
+- **Animated Backgrounds**: Subtle particle effects and flowing gradients  
+- **Modern Color Palette**: Elegant dark theme with accent colors
+- **Modern Icons**: Intuitive interface symbols throughout
+- **Smooth Transitions**: 60fps animations with hardware acceleration
+
+### User Experience
+- **Intuitive Navigation**: Streamlined interface with smart organization
+- **Enhanced Character Creation**: Step-by-step wizard with progress indicators
+- **Improved Story Display**: Better typography and reading experience
+- **Interactive Elements**: Responsive buttons and hover effects
+- **Mobile Optimized**: Touch-friendly interface for all devices
+
+## 🤖 Advanced AI System
+
+### Enhanced Storytelling
+- **Modern Language Models**: Uses latest HuggingFace conversational AI
+- **Dynamic Context Building**: Comprehensive character and world awareness
+- **Memory Integration**: Persistent campaign history and character development
+- **Natural Responses**: Human-like dialogue with immersive descriptions
+
+### Model Priority System
+1. **GODEL-v1_1-large-seq2seq**: Advanced conversational AI
+2. **BlenderBot-400M-distill**: Optimized dialogue generation
+3. **DialoGPT-large**: Proven conversational model
+4. **Automatic Fallbacks**: Seamless model switching for reliability
+
+## 🧠 Memory & Character Systems
+
+### Persistent Memory
+- **Decision Tracking**: Remembers all significant player choices
+- **Relationship Management**: NPCs remember past interactions
+- **World State**: Consistent locations and environmental changes
+- **Character Growth**: Skill usage patterns and development tracking
+
+### Character System
+- **Comprehensive Stats**: Six core abilities with modifiers
+- **Background Integration**: Character history affects gameplay
+- **Equipment Management**: Detailed inventory and gear systems
+- **Progression Tracking**: Experience, leveling, and skill development
+
+## 📊 Technical Features
+
+### System Integration & Reliability
 - **🔧 Robust Error Handling**: Graceful degradation when components are unavailable
 - **🔍 Real-time Monitoring**: Automatic system integration verification
 - **⚡ Performance Optimized**: Memory leak fixes and efficient resource management
@@ -200,8 +232,8 @@ Experience the next evolution of AI dungeon mastering:
 |-------|-------------|
 | **[📖 Setup Guide](docs/SETUP_GUIDE.md)** | Get started in 5 minutes |
 | **[🎮 Game Guide](docs/GAME_GUIDE.md)** | Master the art of adventure |
-| **[�️ Better DM Guide](better-dm/docs/README.md)** | Advanced campaign management system |
-| **[�📂 Import/Export Guide](docs/IMPORT_EXPORT_GUIDE.md)** | Share and backup campaigns |
+| **[🗺️ Better DM Guide](better-dm/docs/README.md)** | Advanced campaign management system |
+| **[📂 Import/Export Guide](docs/IMPORT_EXPORT_GUIDE.md)** | Share and backup campaigns |
 | **[📋 API Reference](docs/API_REFERENCE.md)** | Complete code documentation |
 | **[🧠 AI Memory System](docs/AI_MEMORY_SYSTEM.md)** | Advanced memory architecture |
 | **[👤 Character System](docs/CHARACTER_SYSTEM.md)** | Character management documentation |
